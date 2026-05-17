@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presensi Sidogiri</title>
+    <style>
+        body { font-family: sans-serif; background-color: #FFFFFF; color: #000000; margin: 0; padding: 0; }
+        header { border-bottom: 4px solid #1b5e20; padding: 15px; text-align: center; }
+        .arab { color: #f57f17; font-size: 26px; font-weight: bold; margin-bottom: 5px; }
+        .indo { font-size: 14px; font-weight: bold; color: #000000; }
+        .container { padding: 20px; }
+        .btn { background-color: #1b5e20; color: #FFFFFF; border: none; padding: 15px; width: 100%; border-radius: 5px; font-size: 16px; margin-bottom: 10px; cursor: pointer; font-weight: bold; }
+        .btn-outline { background-color: #FFFFFF; color: #000000; border: 2px solid #1b5e20; }
+        .student-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding: 12px 0; }
+        .status-btn { padding: 6px 12px; border: 1px solid #ccc; border-radius: 20px; background-color: #FFFFFF; margin-left: 5px; cursor: pointer; font-weight: bold;}
+        .status-btn.active-H { background-color: #1b5e20; color: white; border-color: #1b5e20; }
+        .status-btn.active-S, .status-btn.active-I { background-color: #f57f17; color: white; border-color: #f57f17; }
+        .status-btn.active-A { background-color: #000000; color: white; border-color: #000000; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="arab">مدرسة مفتاح العلوم الابتدائية</div>
+        <div class="indo">Madrasah Miftahul Ulum Ibtidaiyah<br>PONDOK PESANTREN SIDOGIRI</div>
+    </header>
+
+    <div id="screen-loading" class="container">
+        <p style="text-align:center; font-weight:bold;">Memuat daftar siswa...</p>
+    </div>
+
+    <div id="screen-home" class="container hidden">
+        <h3 style="text-align:center; color:#1b5e20;">Pilih Kelas</h3>
+        <div id="class-list"></div>
+    </div>
+
+    <div id="screen-attendance" class="container hidden">
+        <h3 id="class-title" style="color:#1b5e20; border-bottom: 2px solid #1b5e20; padding-bottom:5px;"></h3>
+        <div id="student-list"></div>
+        <br>
+        <button class="btn" onclick="showPreview()">Verifikasi & Kirim</button>
+        <button class="btn btn-outline" onclick="showHome()">Kembali</button>
+    </div>
+
+    <div id="screen-preview" class="container hidden">
+        <h3 style="color:#1b5e20; text-align:center;">Verifikasi Presensi</h3>
+        <p style="text-align:center;">Pastikan data di bawah sudah benar.</p>
+        <div id="preview-summary" style="background:#f9f9f9; padding:15px; border-radius:5px; border: 1px solid #ccc;"></div>
+        <br>
+        <button class="btn btn-outline" onclick="backToAttendance()">Batal</button>
+        <button class="btn" id="btn-submit" onclick="submitData()">Selesai & Kirim Data</button>
+    </div>
+
+    <script>
+        // Kunci API yang sudah Anda buat sebelumnya
+        const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
+        
+        let allStudents = [];
+        let currentClassStudents = [];
+        let attendanceData = {};
+
+        // Mengambil data dari Google Sheets saat aplikasi pertama dibuka
+        fetch(API_URL)
+            .then(res => res.json())
+            .then(data => {
+                allStudents = data;
+                document.getElementById('screen-loading').classList.add('hidden');
+                showHome();
+            })
+            .catch(err => {
+                document.getElementById('screen-loading').innerHTML = "Gagal memuat data. Pastikan ada internet.";
+            });
+
+        function showHome() {
+            document.getElementById('screen-home').classList.remove('hidden');
+            document.getElementById('screen-attendance').classList.add('hidden');
+            document.getElementById('screen-preview').classList.add('hidden');
+            
+            const classes = [...new Set(allStudents.map(s => s.Kelas))];
+            const classListDiv = document.getElementById('class-list');
+            classListDiv.innerHTML = '';
+            
+            classes.forEach(c => {
+                let btn = document.createElement('button');
+                btn.className = 'btn btn-outline';
+                btn.innerText = "Kelas " + c;
+                btn.onclick = () => openClass(c);
+                classListDiv.appendChild(btn);
+            });
+        }
+
+        function openClass(className) {
+            document.getElementById('screen-home').classList.add('hidden');
+            document.getElementById('screen-preview').classList.add('hidden');
+            document.getElementById('screen-attendance').classList.remove('hidden');
+            
+            document.getElementById('class-title').innerText = "Daftar Siswa Kelas " + className;
+            currentClassStudents = allStudents.filter(s => s.Kelas === className);
+            
+            const studentListDiv = document.getElementById('student-list');
+            studentListDiv.innerHTML = '';
+            
+            currentClassStudents.forEach(s => {
+                attendanceData[s.ID_Siswa] = 'H'; // Default semua Hadir
+                
+                let row = document.createElement('div');
+                row.className = 'student-row';
+                row.innerHTML = `
+                    <div>
+                        <strong style="font-size:16px;">${s.Nama_Siswa}</strong><br>
+                        <small style="color:#555;">ID: ${s.ID_Siswa}</small>
+                    </div>
+                    <div>
+                        <span class="status-btn active-H" onclick="setStatus('${s.ID_Siswa}', 'H', this)">H</span>
+                        <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'S', this)">S</span>
+                        <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'I', this)">I</span>
+                        <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'A', this)">A</span>
+                    </div>
+                `;
+                studentListDiv.appendChild(row);
+            });
+        }
+
+        function setStatus(id, status, element) {
+            attendanceData[id] = status;
+            let parent = element.parentElement;
+            let buttons = parent.getElementsByTagName('span');
+            for(let btn of buttons) {
+                btn.className = 'status-btn'; 
+            }
+            element.classList.add('active-' + status);
+        }
+
+        function showPreview() {
+            document.getElementById('screen-attendance').classList.add('hidden');
+            document.getElementById('screen-preview').classList.remove('hidden');
+            
+            let h=0, s=0, i=0, a=0;
+            currentClassStudents.forEach(student => {
+                let stat = attendanceData[student.ID_Siswa];
+                if(stat==='H') h++;
+                if(stat==='S') s++;
+                if(stat==='I') i++;
+                if(stat==='A') a++;
+            });
+            
+            document.getElementById('preview-summary').innerHTML = `
+                <p><strong>Hadir:</strong> ${h} Siswa</p>
+                <p style="color:#f57f17"><strong>Sakit:</strong> ${s} Siswa</p>
+                <p style="color:#f57f17"><strong>Izin:</strong> ${i} Siswa</p>
+                <p><strong>Alpa:</strong> ${a} Siswa</p>
+            `;
+        }
+
+        function backToAttendance() {
+            document.getElementById('screen-preview').classList.add('hidden');
+            document.getElementById('screen-attendance').classList.remove('hidden');
+        }
+
+        function submitData() {
+            let btn = document.getElementById('btn-submit');
+            btn.innerText = "Mengirim Data...";
+            btn.disabled = true;
+
+            let today = new Date().toLocaleDateString('id-ID'); // Format tanggal lokal
+            let payload = currentClassStudents.map(student => ({
+                Tanggal: today,
+                ID_Siswa: student.ID_Siswa,
+                Nama_Siswa: student.Nama_Siswa,
+                Kelas: student.Kelas,
+                Status: attendanceData[student.ID_Siswa],
+                Nama_Guru: "Guru Pengajar" // Bisa dikembangkan nanti dengan sistem login
+            }));
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.text())
+            .then(text => {
+                alert("Alhamdulillah, Presensi berhasil dikirim!");
+                showHome();
+                btn.innerText = "Selesai & Kirim Data";
+                btn.disabled = false;
+            })
+            .catch(err => {
+                alert("Gagal mengirim data. Periksa koneksi internet.");
+                btn.innerText = "Selesai & Kirim Data";
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
