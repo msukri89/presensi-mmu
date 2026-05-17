@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Presensi Sidogiri</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1b5e20">
+    
     <style>
         body { font-family: sans-serif; background-color: #FFFFFF; color: #000000; margin: 0; padding: 0; }
         header { border-bottom: 4px solid #1b5e20; padding: 15px; text-align: center; }
@@ -53,14 +56,12 @@
     </div>
 
     <script>
-        // Kunci API yang sudah Anda buat sebelumnya
         const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
         
         let allStudents = [];
         let currentClassStudents = [];
         let attendanceData = {};
 
-        // Mengambil data dari Google Sheets saat aplikasi pertama dibuka
         fetch(API_URL)
             .then(res => res.json())
             .then(data => {
@@ -102,7 +103,7 @@
             studentListDiv.innerHTML = '';
             
             currentClassStudents.forEach(s => {
-                attendanceData[s.ID_Siswa] = 'H'; // Default semua Hadir
+                attendanceData[s.ID_Siswa] = 'H';
                 
                 let row = document.createElement('div');
                 row.className = 'student-row';
@@ -163,14 +164,14 @@
             btn.innerText = "Mengirim Data...";
             btn.disabled = true;
 
-            let today = new Date().toLocaleDateString('id-ID'); // Format tanggal lokal
+            let today = new Date().toLocaleDateString('id-ID');
             let payload = currentClassStudents.map(student => ({
                 Tanggal: today,
                 ID_Siswa: student.ID_Siswa,
                 Nama_Siswa: student.Nama_Siswa,
                 Kelas: student.Kelas,
                 Status: attendanceData[student.ID_Siswa],
-                Nama_Guru: "Guru Pengajar" // Bisa dikembangkan nanti dengan sistem login
+                Nama_Guru: "Guru Pengajar"
             }));
 
             fetch(API_URL, {
@@ -188,6 +189,15 @@
                 alert("Gagal mengirim data. Periksa koneksi internet.");
                 btn.innerText = "Selesai & Kirim Data";
                 btn.disabled = false;
+            });
+        }
+
+        // HIDUPKAN MESIN OFFLINE (SERVICE WORKER)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker aktif!'))
+                    .catch(err => console.log('Service Worker gagal:', err));
             });
         }
     </script>
