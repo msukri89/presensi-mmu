@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presensi Sidogiri</title>
+    <title>Presensi MMU</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1b5e20">
-    
     <style>
         body { font-family: sans-serif; background-color: #FFFFFF; color: #000000; margin: 0; padding: 0; }
         header { border-bottom: 4px solid #1b5e20; padding: 15px; text-align: center; }
@@ -15,11 +14,20 @@
         .container { padding: 20px; }
         .btn { background-color: #1b5e20; color: #FFFFFF; border: none; padding: 15px; width: 100%; border-radius: 5px; font-size: 16px; margin-bottom: 10px; cursor: pointer; font-weight: bold; }
         .btn-outline { background-color: #FFFFFF; color: #000000; border: 2px solid #1b5e20; }
+        .input-field { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
+        
         .student-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding: 12px 0; }
         .status-btn { padding: 6px 12px; border: 1px solid #ccc; border-radius: 20px; background-color: #FFFFFF; margin-left: 5px; cursor: pointer; font-weight: bold;}
         .status-btn.active-H { background-color: #1b5e20; color: white; border-color: #1b5e20; }
         .status-btn.active-S, .status-btn.active-I { background-color: #f57f17; color: white; border-color: #f57f17; }
         .status-btn.active-A { background-color: #000000; color: white; border-color: #000000; }
+        
+        .card { border: 1px solid #1b5e20; border-radius: 5px; padding: 15px; margin-bottom: 15px; text-align: center; }
+        .card h4 { margin: 0 0 10px 0; color: #1b5e20; }
+        .card .number { font-size: 24px; font-weight: bold; }
+        .card-warning { border-color: #f57f17; background-color: #fffde7; }
+        .card-warning h4 { color: #f57f17; }
+        
         .hidden { display: none; }
     </style>
 </head>
@@ -29,12 +37,22 @@
         <div class="indo">Madrasah Miftahul Ulum Ibtidaiyah<br>PONDOK PESANTREN SIDOGIRI</div>
     </header>
 
-    <div id="screen-loading" class="container">
-        <p style="text-align:center; font-weight:bold;">Memuat daftar siswa...</p>
+    <div id="screen-login" class="container">
+        <h3 style="text-align:center; color:#1b5e20;">Sistem Informasi Terpadu</h3>
+        <p style="text-align:center; font-size:14px;">Silakan masuk menggunakan Nomor HP dan PIN 6-digit Anda.</p>
+        <input type="tel" id="input-hp" class="input-field" placeholder="Nomor HP (Contoh: 0812...)">
+        <input type="password" id="input-pin" class="input-field" placeholder="PIN 6 Digit" maxlength="6">
+        <button class="btn" id="btn-login" onclick="doLogin()">Masuk</button>
+        <p id="login-error" style="color:red; text-align:center; display:none;"></p>
     </div>
 
-    <div id="screen-home" class="container hidden">
+    <div id="screen-loading" class="container hidden">
+        <p style="text-align:center; font-weight:bold;" id="loading-text">Memproses data...</p>
+    </div>
+
+    <div id="screen-home-guru" class="container hidden">
         <h3 style="text-align:center; color:#1b5e20;">Pilih Kelas</h3>
+        <p style="text-align:center; font-size:14px;">Selamat bertugas, <span id="nama-guru"></span></p>
         <div id="class-list"></div>
     </div>
 
@@ -43,7 +61,7 @@
         <div id="student-list"></div>
         <br>
         <button class="btn" onclick="showPreview()">Verifikasi & Kirim</button>
-        <button class="btn btn-outline" onclick="showHome()">Kembali</button>
+        <button class="btn btn-outline" onclick="showHomeGuru()">Kembali</button>
     </div>
 
     <div id="screen-preview" class="container hidden">
@@ -55,26 +73,118 @@
         <button class="btn" id="btn-submit" onclick="submitData()">Selesai & Kirim Data</button>
     </div>
 
+    <div id="screen-dashboard" class="container hidden">
+        <h3 style="text-align:center; color:#1b5e20;">Dasbor Pimpinan</h3>
+        <p style="text-align:center; font-size:14px; margin-top:-10px;">Selamat datang, <span id="nama-pimpinan"></span></p>
+        
+        <div class="card">
+            <h4>Kehadiran Guru Hari Ini</h4>
+            <div class="number" id="dash-guru">- / -</div>
+        </div>
+        
+        <div class="card">
+            <h4>Total Siswa Hadir</h4>
+            <div class="number" style="color:#1b5e20;" id="dash-siswa-hadir">-</div>
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+            <div class="card" style="flex:1;">
+                <h4 style="color:#f57f17; font-size:14px;">Sakit/Izin</h4>
+                <div class="number" style="color:#f57f17;" id="dash-siswa-izin">-</div>
+            </div>
+            <div class="card" style="flex:1;">
+                <h4 style="color:#000000; font-size:14px;">Alpa</h4>
+                <div class="number" style="color:#000000;" id="dash-siswa-alpa">-</div>
+            </div>
+        </div>
+
+        <div class="card card-warning">
+            <h4>Peringatan Dini</h4>
+            <div style="font-weight:bold;" id="dash-warning">-</div>
+        </div>
+        
+        <button class="btn btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar Sistem</button>
+    </div>
+
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
+        
+        let currentUser = "";
+        let currentRole = "";
         
         let allStudents = [];
         let currentClassStudents = [];
         let attendanceData = {};
 
-        fetch(API_URL)
+        function doLogin() {
+            const hp = document.getElementById('input-hp').value;
+            const pin = document.getElementById('input-pin').value;
+            const btn = document.getElementById('btn-login');
+            const err = document.getElementById('login-error');
+            
+            if(!hp || !pin) {
+                err.innerText = "Harap isi Nomor HP dan PIN.";
+                err.style.display = "block";
+                return;
+            }
+            
+            btn.innerText = "Memverifikasi...";
+            btn.disabled = true;
+            err.style.display = "none";
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "login", ID_Pengguna: hp, Kata_Sandi: pin })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "sukses") {
+                    currentUser = data.nama;
+                    currentRole = data.peran.toLowerCase();
+                    
+                    document.getElementById('screen-login').classList.add('hidden');
+                    
+                    if(currentRole === "guru") {
+                        loadGuruData();
+                    } else if(currentRole === "pimpinan") {
+                        loadDashboardData();
+                    } else {
+                        loadGuruData();
+                    }
+                } else {
+                    err.innerText = data.pesan;
+                    err.style.display = "block";
+                    btn.innerText = "Masuk";
+                    btn.disabled = false;
+                }
+            })
+            .catch(e => {
+                err.innerText = "Terjadi kesalahan jaringan. Coba lagi.";
+                err.style.display = "block";
+                btn.innerText = "Masuk";
+                btn.disabled = false;
+            });
+        }
+
+        function loadGuruData() {
+            document.getElementById('screen-loading').classList.remove('hidden');
+            document.getElementById('loading-text').innerText = "Memuat daftar kelas...";
+            
+            fetch(API_URL)
             .then(res => res.json())
             .then(data => {
                 allStudents = data;
                 document.getElementById('screen-loading').classList.add('hidden');
-                showHome();
+                document.getElementById('nama-guru').innerText = currentUser;
+                showHomeGuru();
             })
             .catch(err => {
-                document.getElementById('screen-loading').innerHTML = "Gagal memuat data. Pastikan ada internet.";
+                document.getElementById('loading-text').innerText = "Gagal memuat data. Periksa internet.";
             });
+        }
 
-        function showHome() {
-            document.getElementById('screen-home').classList.remove('hidden');
+        function showHomeGuru() {
+            document.getElementById('screen-home-guru').classList.remove('hidden');
             document.getElementById('screen-attendance').classList.add('hidden');
             document.getElementById('screen-preview').classList.add('hidden');
             
@@ -92,11 +202,10 @@
         }
 
         function openClass(className) {
-            document.getElementById('screen-home').classList.add('hidden');
-            document.getElementById('screen-preview').classList.add('hidden');
+            document.getElementById('screen-home-guru').classList.add('hidden');
             document.getElementById('screen-attendance').classList.remove('hidden');
             
-            document.getElementById('class-title').innerText = "Daftar Siswa Kelas " + className;
+            document.getElementById('class-title').innerText = "Kelas " + className;
             currentClassStudents = allStudents.filter(s => s.Kelas === className);
             
             const studentListDiv = document.getElementById('student-list');
@@ -127,9 +236,7 @@
             attendanceData[id] = status;
             let parent = element.parentElement;
             let buttons = parent.getElementsByTagName('span');
-            for(let btn of buttons) {
-                btn.className = 'status-btn'; 
-            }
+            for(let btn of buttons) { btn.className = 'status-btn'; }
             element.classList.add('active-' + status);
         }
 
@@ -140,10 +247,7 @@
             let h=0, s=0, i=0, a=0;
             currentClassStudents.forEach(student => {
                 let stat = attendanceData[student.ID_Siswa];
-                if(stat==='H') h++;
-                if(stat==='S') s++;
-                if(stat==='I') i++;
-                if(stat==='A') a++;
+                if(stat==='H') h++; if(stat==='S') s++; if(stat==='I') i++; if(stat==='A') a++;
             });
             
             document.getElementById('preview-summary').innerHTML = `
@@ -171,33 +275,55 @@
                 Nama_Siswa: student.Nama_Siswa,
                 Kelas: student.Kelas,
                 Status: attendanceData[student.ID_Siswa],
-                Nama_Guru: "Guru Pengajar"
+                Nama_Guru: currentUser
             }));
 
             fetch(API_URL, {
                 method: 'POST',
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ action: "submitAttendance", data: payload })
             })
             .then(res => res.text())
             .then(text => {
                 alert("Alhamdulillah, Presensi berhasil dikirim!");
-                showHome();
+                showHomeGuru();
                 btn.innerText = "Selesai & Kirim Data";
                 btn.disabled = false;
             })
             .catch(err => {
-                alert("Gagal mengirim data. Periksa koneksi internet.");
+                alert("Gagal mengirim data. Periksa koneksi.");
                 btn.innerText = "Selesai & Kirim Data";
                 btn.disabled = false;
             });
         }
 
-        // HIDUPKAN MESIN OFFLINE (SERVICE WORKER)
+        function loadDashboardData() {
+            document.getElementById('screen-loading').classList.remove('hidden');
+            document.getElementById('loading-text').innerText = "Menyusun Dasbor...";
+            document.getElementById('nama-pimpinan').innerText = currentUser;
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "getDashboardStats" })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('screen-loading').classList.add('hidden');
+                document.getElementById('screen-dashboard').classList.remove('hidden');
+                
+                document.getElementById('dash-guru').innerText = `${data.guruHadir} / ${data.totalGuru}`;
+                document.getElementById('dash-siswa-hadir').innerText = data.siswaHadir;
+                document.getElementById('dash-siswa-izin').innerText = data.siswaSakit + data.siswaIzin;
+                document.getElementById('dash-siswa-alpa').innerText = data.siswaAlpa;
+                document.getElementById('dash-warning').innerText = data.peringatanKelas;
+            })
+            .catch(err => {
+                document.getElementById('loading-text').innerText = "Gagal memuat dasbor.";
+            });
+        }
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker aktif!'))
-                    .catch(err => console.log('Service Worker gagal:', err));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
             });
         }
     </script>
