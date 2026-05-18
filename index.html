@@ -8,13 +8,22 @@
     <meta name="theme-color" content="#1b5e20">
     <style>
         body { font-family: sans-serif; background-color: #FFFFFF; color: #000000; margin: 0; padding: 0; }
-        header { border-bottom: 4px solid #1b5e20; padding: 15px; text-align: center; }
-        .arab { color: #f57f17; font-size: 26px; font-weight: bold; margin-bottom: 5px; }
-        .indo { font-size: 14px; font-weight: bold; color: #000000; }
+        
+        /* HEADER TANGGAL HIJRIAH (Tampil Setelah Login) */
+        #main-header { 
+            background: linear-gradient(135deg, #1b5e20, #2e7d32); 
+            color: #FFFFFF; 
+            padding: 15px; 
+            text-align: center;
+            border-bottom: 4px solid #f57f17;
+        }
+        .hijri-text { font-size: 18px; font-weight: bold; margin-bottom: 3px; }
+        .masehi-text { font-size: 12px; opacity: 0.8; }
+
         .container { padding: 20px; }
         .btn { background-color: #1b5e20; color: #FFFFFF; border: none; padding: 15px; width: 100%; border-radius: 5px; font-size: 16px; margin-bottom: 10px; cursor: pointer; font-weight: bold; }
         .btn-outline { background-color: #FFFFFF; color: #000000; border: 2px solid #1b5e20; }
-        .input-field { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
+        .input-field { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; text-align: center; }
         
         .student-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding: 12px 0; }
         .status-btn { padding: 6px 12px; border: 1px solid #ccc; border-radius: 20px; background-color: #FFFFFF; margin-left: 5px; cursor: pointer; font-weight: bold;}
@@ -22,38 +31,44 @@
         .status-btn.active-S, .status-btn.active-I { background-color: #f57f17; color: white; border-color: #f57f17; }
         .status-btn.active-A { background-color: #000000; color: white; border-color: #000000; }
         
-        .card { border: 1px solid #1b5e20; border-radius: 5px; padding: 15px; margin-bottom: 15px; text-align: center; }
-        .card h4 { margin: 0 0 10px 0; color: #1b5e20; }
-        .card .number { font-size: 24px; font-weight: bold; }
+        .card { border: 1px solid #1b5e20; border-radius: 5px; padding: 15px; margin-bottom: 15px; text-align: center; position: relative; overflow: hidden; background-color: #ffffff; }
+        .card h4 { margin: 0 0 10px 0; color: #1b5e20; position: relative; z-index: 2; }
+        .card .number { font-size: 24px; font-weight: bold; position: relative; z-index: 2; }
         .card-warning { border-color: #f57f17; background-color: #fffde7; }
         .card-warning h4 { color: #f57f17; }
+        
+        /* Watermark Logo Transparan di Dasbor */
+        .watermark { position: absolute; right: -20px; bottom: -20px; opacity: 0.1; width: 100px; z-index: 1; }
         
         .hidden { display: none; }
     </style>
 </head>
 <body>
-    <header>
-        <div class="arab">مدرسة مفتاح العلوم الابتدائية</div>
-        <div class="indo">Madrasah Miftahul Ulum Ibtidaiyah<br>PONDOK PESANTREN SIDOGIRI</div>
-    </header>
 
-    <div id="screen-login" class="container">
-        <h3 style="text-align:center; color:#1b5e20;">Sistem Informasi Terpadu</h3>
-        <p style="text-align:center; font-size:14px;">Silakan masuk menggunakan Nomor HP dan PIN 6-digit Anda.</p>
-        <input type="tel" id="input-hp" class="input-field" placeholder="Nomor HP (Contoh: 0812...)">
+    <div id="screen-login" class="container" style="text-align:center; padding-top:40px;">
+        <img src="header.svg" alt="Identitas Madrasah" style="width:100%; max-width:350px; margin-bottom:30px;">
+        
+        <p style="font-size:14px; font-weight:bold; color:#1b5e20;">SISTEM INFORMASI TERPADU</p>
+        <input type="tel" id="input-hp" class="input-field" placeholder="Nomor HP">
         <input type="password" id="input-pin" class="input-field" placeholder="PIN 6 Digit" maxlength="6">
         <button class="btn" id="btn-login" onclick="doLogin()">Masuk</button>
         <p id="login-error" style="color:red; text-align:center; display:none;"></p>
     </div>
 
+    <div id="main-header" class="hidden">
+        <div class="hijri-text" id="date-hijri">Memuat Tanggal...</div>
+        <div class="masehi-text" id="date-masehi"></div>
+    </div>
+
     <div id="screen-loading" class="container hidden">
-        <p style="text-align:center; font-weight:bold;" id="loading-text">Memproses data...</p>
+        <p style="text-align:center; font-weight:bold; color:#1b5e20;" id="loading-text">Memproses data...</p>
     </div>
 
     <div id="screen-home-guru" class="container hidden">
         <h3 style="text-align:center; color:#1b5e20;">Pilih Kelas</h3>
-        <p style="text-align:center; font-size:14px;">Selamat bertugas, <span id="nama-guru"></span></p>
+        <p style="text-align:center; font-size:14px;">Selamat bertugas, <strong id="nama-guru"></strong></p>
         <div id="class-list"></div>
+        <button class="btn btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar</button>
     </div>
 
     <div id="screen-attendance" class="container hidden">
@@ -75,14 +90,16 @@
 
     <div id="screen-dashboard" class="container hidden">
         <h3 style="text-align:center; color:#1b5e20;">Dasbor Pimpinan</h3>
-        <p style="text-align:center; font-size:14px; margin-top:-10px;">Selamat datang, <span id="nama-pimpinan"></span></p>
+        <p style="text-align:center; font-size:14px; margin-top:-10px;">Ahlan wa Sahlan, <strong id="nama-pimpinan"></strong></p>
         
         <div class="card">
+            <img src="logo.svg" class="watermark" alt="Logo">
             <h4>Kehadiran Guru Hari Ini</h4>
             <div class="number" id="dash-guru">- / -</div>
         </div>
         
         <div class="card">
+            <img src="logo.svg" class="watermark" alt="Logo">
             <h4>Total Siswa Hadir</h4>
             <div class="number" style="color:#1b5e20;" id="dash-siswa-hadir">-</div>
         </div>
@@ -108,13 +125,21 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
-        
-        let currentUser = "";
-        let currentRole = "";
-        
-        let allStudents = [];
-        let currentClassStudents = [];
-        let attendanceData = {};
+        let currentUser = "", currentRole = "", allStudents = [], currentClassStudents = [], attendanceData = {};
+
+        // FUNGSI KONVERSI TANGGAL HIJRIAH
+        function renderDates() {
+            const now = new Date();
+            const opsHijri = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const opsMasehi = { day: 'numeric', month: 'long', year: 'numeric' };
+            
+            // Mesin cerdas mendeteksi kalender islam langsung dari browser HP
+            const tglHijri = new Intl.DateTimeFormat('id-ID-u-ca-islamic', opsHijri).format(now);
+            const tglMasehi = new Intl.DateTimeFormat('id-ID', opsMasehi).format(now);
+            
+            document.getElementById('date-hijri').innerText = tglHijri + " H";
+            document.getElementById('date-masehi').innerText = tglMasehi + " M";
+        }
 
         function doLogin() {
             const hp = document.getElementById('input-hp').value;
@@ -122,65 +147,39 @@
             const btn = document.getElementById('btn-login');
             const err = document.getElementById('login-error');
             
-            if(!hp || !pin) {
-                err.innerText = "Harap isi Nomor HP dan PIN.";
-                err.style.display = "block";
-                return;
-            }
+            if(!hp || !pin) { err.innerText = "Harap isi Nomor HP dan PIN."; err.style.display = "block"; return; }
             
-            btn.innerText = "Memverifikasi...";
-            btn.disabled = true;
-            err.style.display = "none";
+            btn.innerText = "Memverifikasi..."; btn.disabled = true; err.style.display = "none";
 
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "login", ID_Pengguna: hp, Kata_Sandi: pin })
-            })
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", ID_Pengguna: hp, Kata_Sandi: pin }) })
             .then(res => res.json())
             .then(data => {
                 if(data.status === "sukses") {
-                    currentUser = data.nama;
-                    currentRole = data.peran.toLowerCase();
+                    currentUser = data.nama; currentRole = data.peran.toLowerCase();
                     
                     document.getElementById('screen-login').classList.add('hidden');
+                    document.getElementById('main-header').classList.remove('hidden'); // Tampilkan Header Hijriah
+                    renderDates(); // Jalankan mesin tanggal
                     
-                    if(currentRole === "guru") {
-                        loadGuruData();
-                    } else if(currentRole === "pimpinan") {
-                        loadDashboardData();
-                    } else {
-                        loadGuruData();
-                    }
+                    if(currentRole === "guru") { loadGuruData(); } 
+                    else { loadDashboardData(); }
                 } else {
-                    err.innerText = data.pesan;
-                    err.style.display = "block";
-                    btn.innerText = "Masuk";
-                    btn.disabled = false;
+                    err.innerText = data.pesan; err.style.display = "block"; btn.innerText = "Masuk"; btn.disabled = false;
                 }
             })
-            .catch(e => {
-                err.innerText = "Terjadi kesalahan jaringan. Coba lagi.";
-                err.style.display = "block";
-                btn.innerText = "Masuk";
-                btn.disabled = false;
-            });
+            .catch(e => { err.innerText = "Gangguan jaringan."; err.style.display = "block"; btn.innerText = "Masuk"; btn.disabled = false; });
         }
 
         function loadGuruData() {
             document.getElementById('screen-loading').classList.remove('hidden');
             document.getElementById('loading-text').innerText = "Memuat daftar kelas...";
             
-            fetch(API_URL)
-            .then(res => res.json())
-            .then(data => {
+            fetch(API_URL).then(res => res.json()).then(data => {
                 allStudents = data;
                 document.getElementById('screen-loading').classList.add('hidden');
                 document.getElementById('nama-guru').innerText = currentUser;
                 showHomeGuru();
-            })
-            .catch(err => {
-                document.getElementById('loading-text').innerText = "Gagal memuat data. Periksa internet.";
-            });
+            }).catch(err => { document.getElementById('loading-text').innerText = "Gagal memuat data."; });
         }
 
         function showHomeGuru() {
@@ -193,18 +192,14 @@
             classListDiv.innerHTML = '';
             
             classes.forEach(c => {
-                let btn = document.createElement('button');
-                btn.className = 'btn btn-outline';
-                btn.innerText = "Kelas " + c;
-                btn.onclick = () => openClass(c);
-                classListDiv.appendChild(btn);
+                let btn = document.createElement('button'); btn.className = 'btn btn-outline'; btn.innerText = "Kelas " + c;
+                btn.onclick = () => openClass(c); classListDiv.appendChild(btn);
             });
         }
 
         function openClass(className) {
             document.getElementById('screen-home-guru').classList.add('hidden');
             document.getElementById('screen-attendance').classList.remove('hidden');
-            
             document.getElementById('class-title').innerText = "Kelas " + className;
             currentClassStudents = allStudents.filter(s => s.Kelas === className);
             
@@ -213,30 +208,23 @@
             
             currentClassStudents.forEach(s => {
                 attendanceData[s.ID_Siswa] = 'H';
-                
-                let row = document.createElement('div');
-                row.className = 'student-row';
+                let row = document.createElement('div'); row.className = 'student-row';
                 row.innerHTML = `
-                    <div>
-                        <strong style="font-size:16px;">${s.Nama_Siswa}</strong><br>
-                        <small style="color:#555;">ID: ${s.ID_Siswa}</small>
-                    </div>
+                    <div><strong style="font-size:16px;">${s.Nama_Siswa}</strong><br><small style="color:#555;">ID: ${s.ID_Siswa}</small></div>
                     <div>
                         <span class="status-btn active-H" onclick="setStatus('${s.ID_Siswa}', 'H', this)">H</span>
                         <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'S', this)">S</span>
                         <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'I', this)">I</span>
                         <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'A', this)">A</span>
-                    </div>
-                `;
+                    </div>`;
                 studentListDiv.appendChild(row);
             });
         }
 
         function setStatus(id, status, element) {
             attendanceData[id] = status;
-            let parent = element.parentElement;
-            let buttons = parent.getElementsByTagName('span');
-            for(let btn of buttons) { btn.className = 'status-btn'; }
+            let btns = element.parentElement.getElementsByTagName('span');
+            for(let b of btns) b.className = 'status-btn'; 
             element.classList.add('active-' + status);
         }
 
@@ -249,13 +237,7 @@
                 let stat = attendanceData[student.ID_Siswa];
                 if(stat==='H') h++; if(stat==='S') s++; if(stat==='I') i++; if(stat==='A') a++;
             });
-            
-            document.getElementById('preview-summary').innerHTML = `
-                <p><strong>Hadir:</strong> ${h} Siswa</p>
-                <p style="color:#f57f17"><strong>Sakit:</strong> ${s} Siswa</p>
-                <p style="color:#f57f17"><strong>Izin:</strong> ${i} Siswa</p>
-                <p><strong>Alpa:</strong> ${a} Siswa</p>
-            `;
+            document.getElementById('preview-summary').innerHTML = `<p><strong>Hadir:</strong> ${h}</p><p style="color:#f57f17"><strong>Sakit:</strong> ${s}</p><p style="color:#f57f17"><strong>Izin:</strong> ${i}</p><p><strong>Alpa:</strong> ${a}</p>`;
         }
 
         function backToAttendance() {
@@ -264,36 +246,15 @@
         }
 
         function submitData() {
-            let btn = document.getElementById('btn-submit');
-            btn.innerText = "Mengirim Data...";
-            btn.disabled = true;
-
-            let today = new Date().toLocaleDateString('id-ID');
+            let btn = document.getElementById('btn-submit'); btn.innerText = "Mengirim..."; btn.disabled = true;
             let payload = currentClassStudents.map(student => ({
-                Tanggal: today,
-                ID_Siswa: student.ID_Siswa,
-                Nama_Siswa: student.Nama_Siswa,
-                Kelas: student.Kelas,
-                Status: attendanceData[student.ID_Siswa],
-                Nama_Guru: currentUser
+                Tanggal: new Date().toLocaleDateString('id-ID'), ID_Siswa: student.ID_Siswa, Nama_Siswa: student.Nama_Siswa,
+                Kelas: student.Kelas, Status: attendanceData[student.ID_Siswa], Nama_Guru: currentUser
             }));
 
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "submitAttendance", data: payload })
-            })
-            .then(res => res.text())
-            .then(text => {
-                alert("Alhamdulillah, Presensi berhasil dikirim!");
-                showHomeGuru();
-                btn.innerText = "Selesai & Kirim Data";
-                btn.disabled = false;
-            })
-            .catch(err => {
-                alert("Gagal mengirim data. Periksa koneksi.");
-                btn.innerText = "Selesai & Kirim Data";
-                btn.disabled = false;
-            });
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "submitAttendance", data: payload }) })
+            .then(res => res.text()).then(text => { alert("Presensi berhasil dikirim!"); showHomeGuru(); btn.innerText = "Kirim Data"; btn.disabled = false; })
+            .catch(err => { alert("Gagal koneksi."); btn.innerText = "Kirim Data"; btn.disabled = false; });
         }
 
         function loadDashboardData() {
@@ -301,12 +262,8 @@
             document.getElementById('loading-text').innerText = "Menyusun Dasbor...";
             document.getElementById('nama-pimpinan').innerText = currentUser;
 
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "getDashboardStats" })
-            })
-            .then(res => res.json())
-            .then(data => {
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getDashboardStats" }) })
+            .then(res => res.json()).then(data => {
                 document.getElementById('screen-loading').classList.add('hidden');
                 document.getElementById('screen-dashboard').classList.remove('hidden');
                 
@@ -315,16 +272,11 @@
                 document.getElementById('dash-siswa-izin').innerText = data.siswaSakit + data.siswaIzin;
                 document.getElementById('dash-siswa-alpa').innerText = data.siswaAlpa;
                 document.getElementById('dash-warning').innerText = data.peringatanKelas;
-            })
-            .catch(err => {
-                document.getElementById('loading-text').innerText = "Gagal memuat dasbor.";
-            });
+            }).catch(err => { document.getElementById('loading-text').innerText = "Gagal memuat."; });
         }
 
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
-            });
+            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => {}); });
         }
     </script>
 </body>
