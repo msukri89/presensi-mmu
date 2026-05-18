@@ -7,52 +7,98 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1b5e20">
     <style>
-        body { font-family: sans-serif; background-color: #FFFFFF; color: #000000; margin: 0; padding: 0; }
+        /* 1. DESAIN CLEAN UI & ELEGAN */
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 0; }
         
-        /* HEADER TANGGAL HIJRIAH (Tampil Setelah Login) */
         #main-header { 
             background: linear-gradient(135deg, #1b5e20, #2e7d32); 
             color: #FFFFFF; 
-            padding: 15px; 
+            padding: 20px 15px; 
             text-align: center;
             border-bottom: 4px solid #f57f17;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        .hijri-text { font-size: 18px; font-weight: bold; margin-bottom: 3px; }
-        .masehi-text { font-size: 12px; opacity: 0.8; }
+        .hijri-text { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .masehi-text { font-size: 13px; opacity: 0.9; }
 
-        .container { padding: 20px; }
-        .btn { background-color: #1b5e20; color: #FFFFFF; border: none; padding: 15px; width: 100%; border-radius: 5px; font-size: 16px; margin-bottom: 10px; cursor: pointer; font-weight: bold; }
-        .btn-outline { background-color: #FFFFFF; color: #000000; border: 2px solid #1b5e20; }
-        .input-field { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; text-align: center; }
+        /* Pembatas layar agar proporsional di HP */
+        .container { max-width: 500px; margin: 0 auto; padding: 25px 20px; }
         
-        .student-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding: 12px 0; }
-        .status-btn { padding: 6px 12px; border: 1px solid #ccc; border-radius: 20px; background-color: #FFFFFF; margin-left: 5px; cursor: pointer; font-weight: bold;}
-        .status-btn.active-H { background-color: #1b5e20; color: white; border-color: #1b5e20; }
-        .status-btn.active-S, .status-btn.active-I { background-color: #f57f17; color: white; border-color: #f57f17; }
-        .status-btn.active-A { background-color: #000000; color: white; border-color: #000000; }
+        .btn { 
+            background-color: #1b5e20; color: #FFFFFF; border: none; padding: 16px; 
+            width: 100%; border-radius: 12px; font-size: 16px; margin-bottom: 12px; 
+            cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(27, 94, 32, 0.2);
+            transition: all 0.2s;
+        }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 4px rgba(27, 94, 32, 0.2); }
         
-        .card { border: 1px solid #1b5e20; border-radius: 5px; padding: 15px; margin-bottom: 15px; text-align: center; position: relative; overflow: hidden; background-color: #ffffff; }
+        .btn-outline { 
+            background-color: #FFFFFF; color: #1b5e20; border: 1.5px solid #1b5e20; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .input-field { 
+            width: 100%; padding: 16px; margin-bottom: 15px; 
+            border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; 
+            box-sizing: border-box; text-align: center;
+            background-color: #ffffff;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .input-field:focus { outline: none; border-color: #1b5e20; box-shadow: 0 0 0 2px rgba(27, 94, 32, 0.1); }
+        
+        /* 5. GRID UNTUK DAFTAR KELAS */
+        #class-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        .btn-grid {
+            padding: 20px 5px;
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+
+        /* Area Aturan Guru */
+        .aturan-box {
+            background-color: #ffffff; border-radius: 12px; padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border-left: 4px solid #f57f17;
+            font-size: 13px; line-height: 1.6; color: #555;
+        }
+        .aturan-box h4 { margin: 0 0 10px 0; color: #1b5e20; }
+        
+        .student-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 15px 0; }
+        .student-row:last-child { border-bottom: none; }
+        
+        .status-btn { padding: 8px 14px; border: 1px solid #ccc; border-radius: 20px; background-color: #f9f9f9; margin-left: 5px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s;}
+        .status-btn.active-H { background-color: #1b5e20; color: white; border-color: #1b5e20; box-shadow: 0 2px 5px rgba(27,94,32,0.3); }
+        .status-btn.active-S, .status-btn.active-I { background-color: #f57f17; color: white; border-color: #f57f17; box-shadow: 0 2px 5px rgba(245,127,23,0.3);}
+        .status-btn.active-A { background-color: #d32f2f; color: white; border-color: #d32f2f; box-shadow: 0 2px 5px rgba(211,47,47,0.3);}
+        
+        .card { border: none; border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: center; position: relative; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
         .card h4 { margin: 0 0 10px 0; color: #1b5e20; position: relative; z-index: 2; }
-        .card .number { font-size: 24px; font-weight: bold; position: relative; z-index: 2; }
-        .card-warning { border-color: #f57f17; background-color: #fffde7; }
+        .card .number { font-size: 28px; font-weight: bold; position: relative; z-index: 2; }
+        .card-warning { border-left: 4px solid #f57f17; background-color: #fffde7; }
         .card-warning h4 { color: #f57f17; }
         
-        /* Watermark Logo Transparan di Dasbor */
-        .watermark { position: absolute; right: -20px; bottom: -20px; opacity: 0.1; width: 100px; z-index: 1; }
-        
+        .watermark { position: absolute; right: -20px; bottom: -20px; opacity: 0.05; width: 120px; z-index: 1; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="screen-login" class="container" style="text-align:center; padding-top:40px;">
-        <img src="header.svg" alt="Identitas Madrasah" style="width:100%; max-width:350px; margin-bottom:30px;">
+    <div id="screen-login" class="container" style="text-align:center; padding-top:10vh;">
+        <img src="header.svg" alt="Identitas Madrasah" style="width:100%; max-width:220px; margin-bottom:40px;">
         
-        <p style="font-size:14px; font-weight:bold; color:#1b5e20;">SISTEM INFORMASI TERPADU</p>
+        <p style="font-size:13px; font-weight:bold; color:#555; letter-spacing: 1px; margin-bottom:20px;">SISTEM INFORMASI TERPADU</p>
+        
         <input type="tel" id="input-hp" class="input-field" placeholder="Nomor HP">
-        <input type="password" id="input-pin" class="input-field" placeholder="PIN 6 Digit" maxlength="6">
-        <button class="btn" id="btn-login" onclick="doLogin()">Masuk</button>
-        <p id="login-error" style="color:red; text-align:center; display:none;"></p>
+        <input type="password" id="input-pin" class="input-field" placeholder="PIN 6 Digit" maxlength="6" onkeypress="if(event.key === 'Enter') doLogin()">
+        
+        <button class="btn" id="btn-login" onclick="doLogin()" style="margin-top: 10px;">Masuk</button>
+        <p id="login-error" style="color:#d32f2f; text-align:center; display:none; font-size:14px; margin-top:15px;"></p>
     </div>
 
     <div id="main-header" class="hidden">
@@ -61,36 +107,49 @@
     </div>
 
     <div id="screen-loading" class="container hidden">
-        <p style="text-align:center; font-weight:bold; color:#1b5e20;" id="loading-text">Memproses data...</p>
+        <div style="text-align:center; margin-top:50px;">
+            <p style="font-weight:bold; color:#1b5e20; font-size:18px;" id="loading-text">Memproses data...</p>
+        </div>
     </div>
 
     <div id="screen-home-guru" class="container hidden">
-        <h3 style="text-align:center; color:#1b5e20;">Pilih Kelas</h3>
-        <p style="text-align:center; font-size:14px;">Selamat bertugas, <strong id="nama-guru"></strong></p>
+        <p style="text-align:center; font-size:15px; color:#555; margin-bottom: 20px;">Ahlan wa Sahlan, <strong id="nama-guru" style="color:#1b5e20;"></strong></p>
+        
+        <h4 style="color:#1b5e20; margin-bottom: 15px;">Pilih Kelas:</h4>
         <div id="class-list"></div>
-        <button class="btn btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar</button>
+        
+        <div class="aturan-box">
+            <h4>Pusat Informasi & Aturan</h4>
+            <ul style="padding-left: 20px; margin: 0;">
+                <li style="margin-bottom: 5px;">Pastikan absensi dikirim sebelum jam 08.00 WIB.</li>
+                <li style="margin-bottom: 5px;">Cek ulang data absensi sebelum menekan tombol kirim.</li>
+                <li>Jika ada kesalahan data murid, segera hubungi Admin TU.</li>
+            </ul>
+        </div>
+
+        <button class="btn btn-outline" onclick="location.reload()" style="margin-top:30px;">Keluar Sistem</button>
     </div>
 
     <div id="screen-attendance" class="container hidden">
-        <h3 id="class-title" style="color:#1b5e20; border-bottom: 2px solid #1b5e20; padding-bottom:5px;"></h3>
-        <div id="student-list"></div>
-        <br>
+        <h3 id="class-title" style="color:#1b5e20; text-align:center; padding-bottom:15px; border-bottom: 1px solid #e0e0e0;"></h3>
+        <div id="student-list" style="margin-bottom: 30px;"></div>
+        
         <button class="btn" onclick="showPreview()">Verifikasi & Kirim</button>
-        <button class="btn btn-outline" onclick="showHomeGuru()">Kembali</button>
+        <button class="btn btn-outline" onclick="showHomeGuru()">Kembali ke Menu</button>
     </div>
 
     <div id="screen-preview" class="container hidden">
-        <h3 style="color:#1b5e20; text-align:center;">Verifikasi Presensi</h3>
-        <p style="text-align:center;">Pastikan data di bawah sudah benar.</p>
-        <div id="preview-summary" style="background:#f9f9f9; padding:15px; border-radius:5px; border: 1px solid #ccc;"></div>
-        <br>
-        <button class="btn btn-outline" onclick="backToAttendance()">Batal</button>
-        <button class="btn" id="btn-submit" onclick="submitData()">Selesai & Kirim Data</button>
+        <h3 style="color:#1b5e20; text-align:center;">Verifikasi Akhir</h3>
+        <p style="text-align:center; color:#555; margin-bottom:20px;">Pastikan rincian kehadiran kelas ini sudah benar.</p>
+        
+        <div id="preview-summary" style="background:#ffffff; padding:20px; border-radius:12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom:30px;"></div>
+        
+        <button class="btn" id="btn-submit" onclick="submitData()">Finalisasi & Kirim Data</button>
+        <button class="btn btn-outline" onclick="backToAttendance()">Batal & Koreksi</button>
     </div>
 
     <div id="screen-dashboard" class="container hidden">
-        <h3 style="text-align:center; color:#1b5e20;">Dasbor Pimpinan</h3>
-        <p style="text-align:center; font-size:14px; margin-top:-10px;">Ahlan wa Sahlan, <strong id="nama-pimpinan"></strong></p>
+        <p style="text-align:center; font-size:15px; color:#555; margin-bottom:25px;">Ahlan wa Sahlan, <strong id="nama-pimpinan" style="color:#1b5e20;"></strong></p>
         
         <div class="card">
             <img src="logo.svg" class="watermark" alt="Logo">
@@ -104,20 +163,20 @@
             <div class="number" style="color:#1b5e20;" id="dash-siswa-hadir">-</div>
         </div>
         
-        <div style="display:flex; justify-content:space-between; gap:10px;">
+        <div style="display:flex; justify-content:space-between; gap:15px;">
             <div class="card" style="flex:1;">
                 <h4 style="color:#f57f17; font-size:14px;">Sakit/Izin</h4>
                 <div class="number" style="color:#f57f17;" id="dash-siswa-izin">-</div>
             </div>
             <div class="card" style="flex:1;">
-                <h4 style="color:#000000; font-size:14px;">Alpa</h4>
-                <div class="number" style="color:#000000;" id="dash-siswa-alpa">-</div>
+                <h4 style="color:#d32f2f; font-size:14px;">Alpa</h4>
+                <div class="number" style="color:#d32f2f;" id="dash-siswa-alpa">-</div>
             </div>
         </div>
 
-        <div class="card card-warning">
+        <div class="card card-warning" style="margin-top: 10px;">
             <h4>Peringatan Dini</h4>
-            <div style="font-weight:bold;" id="dash-warning">-</div>
+            <div style="font-weight:bold; color:#555;" id="dash-warning">-</div>
         </div>
         
         <button class="btn btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar Sistem</button>
@@ -127,18 +186,30 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
         let currentUser = "", currentRole = "", allStudents = [], currentClassStudents = [], attendanceData = {};
 
-        // FUNGSI KONVERSI TANGGAL HIJRIAH
+        // 2. RUMUS ASTRONOMI HIJRIAH MURNI (BEBAS BUG "SM")
         function renderDates() {
             const now = new Date();
-            const opsHijri = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const opsMasehi = { day: 'numeric', month: 'long', year: 'numeric' };
             
-            // Mesin cerdas mendeteksi kalender islam langsung dari browser HP
-            const tglHijri = new Intl.DateTimeFormat('id-ID-u-ca-islamic', opsHijri).format(now);
-            const tglMasehi = new Intl.DateTimeFormat('id-ID', opsMasehi).format(now);
+            // Konversi Masehi
+            const opsMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            document.getElementById('date-masehi').innerText = new Intl.DateTimeFormat('id-ID', opsMasehi).format(now);
             
-            document.getElementById('date-hijri').innerText = tglHijri + " H";
-            document.getElementById('date-masehi').innerText = tglMasehi + " M";
+            // Konversi Hijriah (Algoritma Kuwaiti - Sepenuhnya Offline)
+            const wdNames = ["Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu"];
+            const iMonthNames = ["Muharram", "Safar", "Rabi'ul Awal", "Rabi'ul Akhir", "Jumadil Awal", "Jumadil Akhir", "Rajab", "Sya'ban", "Ramadhan", "Syawal", "Dzulqa'dah", "Dzulhijjah"];
+            
+            let d = now.getDate(), m = now.getMonth(), y = now.getFullYear();
+            let mjd = 367 * y - Math.floor((7 * (y + Math.floor((m + 9) / 12))) / 4) + Math.floor((275 * m) / 9) + d - 730531;
+            let l = mjd - 1921112 + 0; 
+            let n = Math.floor((11 * l + 3) / 10631);
+            l = l - 10631 * n + 354;
+            let j = (Math.floor((10985 - l) / 5316)) * (Math.floor((50 * l) / 17719)) + (Math.floor(l / 5670)) * (Math.floor((43 * l) / 15238));
+            l = l - (Math.floor((30 - j) / 15)) * (Math.floor((17719 * j) / 50)) - (Math.floor(j / 16)) * (Math.floor((15238 * j) / 43)) + 29;
+            let im = Math.floor((24 * l) / 709);
+            let id = l - Math.floor((709 * im) / 24);
+            let iy = 30 * n + j - 30;
+            
+            document.getElementById('date-hijri').innerText = id + " " + iMonthNames[im - 1] + " " + iy + " H";
         }
 
         function doLogin() {
@@ -158,8 +229,8 @@
                     currentUser = data.nama; currentRole = data.peran.toLowerCase();
                     
                     document.getElementById('screen-login').classList.add('hidden');
-                    document.getElementById('main-header').classList.remove('hidden'); // Tampilkan Header Hijriah
-                    renderDates(); // Jalankan mesin tanggal
+                    document.getElementById('main-header').classList.remove('hidden'); 
+                    renderDates(); 
                     
                     if(currentRole === "guru") { loadGuruData(); } 
                     else { loadDashboardData(); }
@@ -167,7 +238,7 @@
                     err.innerText = data.pesan; err.style.display = "block"; btn.innerText = "Masuk"; btn.disabled = false;
                 }
             })
-            .catch(e => { err.innerText = "Gangguan jaringan."; err.style.display = "block"; btn.innerText = "Masuk"; btn.disabled = false; });
+            .catch(e => { err.innerText = "Gagal terhubung ke server."; err.style.display = "block"; btn.innerText = "Masuk"; btn.disabled = false; });
         }
 
         function loadGuruData() {
@@ -192,15 +263,19 @@
             classListDiv.innerHTML = '';
             
             classes.forEach(c => {
-                let btn = document.createElement('button'); btn.className = 'btn btn-outline'; btn.innerText = "Kelas " + c;
-                btn.onclick = () => openClass(c); classListDiv.appendChild(btn);
+                // Menyesuaikan nama untuk grid (Misal: "I - SATU" tetap muncul proporsional)
+                let btn = document.createElement('button'); 
+                btn.className = 'btn btn-outline btn-grid'; 
+                btn.innerHTML = c; // Teks kelas akan otomatis masuk ke kotak
+                btn.onclick = () => openClass(c); 
+                classListDiv.appendChild(btn);
             });
         }
 
         function openClass(className) {
             document.getElementById('screen-home-guru').classList.add('hidden');
             document.getElementById('screen-attendance').classList.remove('hidden');
-            document.getElementById('class-title').innerText = "Kelas " + className;
+            document.getElementById('class-title').innerText = "Absensi Kelas " + className;
             currentClassStudents = allStudents.filter(s => s.Kelas === className);
             
             const studentListDiv = document.getElementById('student-list');
@@ -210,8 +285,11 @@
                 attendanceData[s.ID_Siswa] = 'H';
                 let row = document.createElement('div'); row.className = 'student-row';
                 row.innerHTML = `
-                    <div><strong style="font-size:16px;">${s.Nama_Siswa}</strong><br><small style="color:#555;">ID: ${s.ID_Siswa}</small></div>
-                    <div>
+                    <div style="width: 50%;">
+                        <strong style="font-size:16px;">${s.Nama_Siswa}</strong><br>
+                        <small style="color:#777;">ID: ${s.ID_Siswa}</small>
+                    </div>
+                    <div style="display:flex;">
                         <span class="status-btn active-H" onclick="setStatus('${s.ID_Siswa}', 'H', this)">H</span>
                         <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'S', this)">S</span>
                         <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'I', this)">I</span>
@@ -237,7 +315,11 @@
                 let stat = attendanceData[student.ID_Siswa];
                 if(stat==='H') h++; if(stat==='S') s++; if(stat==='I') i++; if(stat==='A') a++;
             });
-            document.getElementById('preview-summary').innerHTML = `<p><strong>Hadir:</strong> ${h}</p><p style="color:#f57f17"><strong>Sakit:</strong> ${s}</p><p style="color:#f57f17"><strong>Izin:</strong> ${i}</p><p><strong>Alpa:</strong> ${a}</p>`;
+            document.getElementById('preview-summary').innerHTML = `
+            <p style="font-size:16px; border-bottom:1px solid #eee; padding-bottom:10px;"><strong>Hadir:</strong> <span style="float:right; color:#1b5e20; font-weight:bold;">${h} Siswa</span></p>
+            <p style="font-size:16px; border-bottom:1px solid #eee; padding-bottom:10px;"><strong>Sakit:</strong> <span style="float:right; color:#f57f17; font-weight:bold;">${s} Siswa</span></p>
+            <p style="font-size:16px; border-bottom:1px solid #eee; padding-bottom:10px;"><strong>Izin:</strong> <span style="float:right; color:#f57f17; font-weight:bold;">${i} Siswa</span></p>
+            <p style="font-size:16px; margin-bottom:0;"><strong>Alpa:</strong> <span style="float:right; color:#d32f2f; font-weight:bold;">${a} Siswa</span></p>`;
         }
 
         function backToAttendance() {
@@ -253,8 +335,8 @@
             }));
 
             fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "submitAttendance", data: payload }) })
-            .then(res => res.text()).then(text => { alert("Presensi berhasil dikirim!"); showHomeGuru(); btn.innerText = "Kirim Data"; btn.disabled = false; })
-            .catch(err => { alert("Gagal koneksi."); btn.innerText = "Kirim Data"; btn.disabled = false; });
+            .then(res => res.text()).then(text => { alert("Alhamdulillah! Presensi berhasil dikirim."); showHomeGuru(); btn.innerText = "Finalisasi & Kirim Data"; btn.disabled = false; })
+            .catch(err => { alert("Gagal koneksi. Coba lagi."); btn.innerText = "Finalisasi & Kirim Data"; btn.disabled = false; });
         }
 
         function loadDashboardData() {
