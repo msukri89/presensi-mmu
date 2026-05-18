@@ -7,359 +7,365 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1b5e20">
     <style>
-        /* 1. DESAIN CLEAN UI & ELEGAN */
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 0; }
+        /* 1. RESET & GAYA DASAR PREMIUM */
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #e0e0e0; color: #333; margin: 0; padding: 0; }
         
-        #main-header { 
-            background: linear-gradient(135deg, #1b5e20, #2e7d32); 
-            color: #FFFFFF; 
-            padding: 20px 15px; 
-            text-align: center;
-            border-bottom: 4px solid #f57f17;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        /* WADAH UTAMA APLIKASI (Simulasi Layar HP) */
+        #app-container {
+            max-width: 480px; 
+            margin: 0 auto; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            background-color: #1b5e20; /* Latar Belakang Hijau Tua Penuh */
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            position: relative;
         }
-        .hijri-text { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        .masehi-text { font-size: 13px; opacity: 0.9; }
 
-        /* Pembatas layar agar proporsional di HP */
-        .container { max-width: 500px; margin: 0 auto; padding: 25px 20px; }
+        /* AREA HIJAU ATAS (Header Global) */
+        .top-header {
+            padding: 40px 20px 30px 20px;
+            text-align: center;
+            color: #ffffff;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        /* LACI PUTIH TIMBUL (Bottom Sheet MyBCA Style) */
+        .bottom-sheet {
+            background-color: #ffffff;
+            border-radius: 30px 30px 0 0; /* Lengkung Mewah di Kiri-Kanan Atas */
+            padding: 35px 25px;
+            flex-grow: 1;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* KOTAK TANGGAL ELEGAN */
+        .date-badge {
+            background: rgba(255, 255, 255, 0.15);
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        /* FORM ISIAN & TOMBOL */
+        .input-field { 
+            width: 100%; padding: 18px; margin-bottom: 15px; 
+            border: 1px solid #e0e0e0; border-radius: 14px; font-size: 16px; 
+            box-sizing: border-box; text-align: center;
+            background-color: #f9f9f9;
+            transition: 0.3s;
+        }
+        .input-field:focus { outline: none; border-color: #1b5e20; background-color:#ffffff; box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.1); }
         
         .btn { 
-            background-color: #1b5e20; color: #FFFFFF; border: none; padding: 16px; 
-            width: 100%; border-radius: 12px; font-size: 16px; margin-bottom: 12px; 
+            background: linear-gradient(135deg, #2e7d32, #1b5e20); 
+            color: #FFFFFF; border: none; padding: 18px; 
+            width: 100%; border-radius: 14px; font-size: 16px; margin-bottom: 12px; 
             cursor: pointer; font-weight: bold;
-            box-shadow: 0 4px 6px rgba(27, 94, 32, 0.2);
+            box-shadow: 0 4px 10px rgba(27, 94, 32, 0.25);
             transition: all 0.2s;
         }
-        .btn:active { transform: translateY(2px); box-shadow: 0 2px 4px rgba(27, 94, 32, 0.2); }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 5px rgba(27, 94, 32, 0.2); }
+        .btn-outline { background-color: #FFFFFF; color: #1b5e20; border: 2px solid #1b5e20; background: transparent; box-shadow: none;}
         
-        .btn-outline { 
-            background-color: #FFFFFF; color: #1b5e20; border: 1.5px solid #1b5e20; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .input-field { 
-            width: 100%; padding: 16px; margin-bottom: 15px; 
-            border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; 
-            box-sizing: border-box; text-align: center;
-            background-color: #ffffff;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .input-field:focus { outline: none; border-color: #1b5e20; box-shadow: 0 0 0 2px rgba(27, 94, 32, 0.1); }
-        
-        /* 5. GRID UNTUK DAFTAR KELAS */
-        #class-list {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-        .btn-grid {
-            padding: 20px 5px;
-            font-size: 14px;
-            margin-bottom: 0;
-        }
+        /* GRID KELAS */
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
+        .btn-grid { padding: 18px 5px; font-size: 15px; margin-bottom: 0; border-radius: 12px; }
 
-        /* Area Aturan Guru */
-        .aturan-box {
-            background-color: #ffffff; border-radius: 12px; padding: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-            border-left: 4px solid #f57f17;
-            font-size: 13px; line-height: 1.6; color: #555;
+        /* KARTU PREMIUM (MyBCA Style) */
+        .bca-card {
+            background: #ffffff; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.06); border: 1px solid #f0f0f0; margin-bottom: 18px;
         }
-        .aturan-box h4 { margin: 0 0 10px 0; color: #1b5e20; }
+        .bca-card-header {
+            background: linear-gradient(135deg, #4caf50, #1b5e20); color: #ffffff;
+            padding: 14px 18px; font-size: 14px; font-weight: 600; text-align: left;
+        }
+        .bca-card-header.warning { background: linear-gradient(135deg, #ffb300, #f57f17); }
+        .bca-card-header.danger { background: linear-gradient(135deg, #ef5350, #c62828); }
         
-        .student-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 15px 0; }
-        .student-row:last-child { border-bottom: none; }
+        .bca-card-body { padding: 25px 20px; text-align: center; position: relative; }
+        .bca-card-number { font-size: 32px; font-weight: 800; color: #1b5e20; }
+        .watermark { position: absolute; right: -15px; bottom: -15px; opacity: 0.04; width: 130px; z-index: 0; pointer-events: none;}
         
-        .status-btn { padding: 8px 14px; border: 1px solid #ccc; border-radius: 20px; background-color: #f9f9f9; margin-left: 5px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s;}
-        .status-btn.active-H { background-color: #1b5e20; color: white; border-color: #1b5e20; box-shadow: 0 2px 5px rgba(27,94,32,0.3); }
-        .status-btn.active-S, .status-btn.active-I { background-color: #f57f17; color: white; border-color: #f57f17; box-shadow: 0 2px 5px rgba(245,127,23,0.3);}
-        .status-btn.active-A { background-color: #d32f2f; color: white; border-color: #d32f2f; box-shadow: 0 2px 5px rgba(211,47,47,0.3);}
-        
-        .card { border: none; border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: center; position: relative; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
-        .card h4 { margin: 0 0 10px 0; color: #1b5e20; position: relative; z-index: 2; }
-        .card .number { font-size: 28px; font-weight: bold; position: relative; z-index: 2; }
-        .card-warning { border-left: 4px solid #f57f17; background-color: #fffde7; }
-        .card-warning h4 { color: #f57f17; }
-        
-        .watermark { position: absolute; right: -20px; bottom: -20px; opacity: 0.05; width: 120px; z-index: 1; }
-        .hidden { display: none; }
+        /* DAFTAR SISWA */
+        .student-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding: 16px 0; }
+        .status-btn { padding: 8px 14px; border: 1px solid #e0e0e0; border-radius: 20px; background-color: #ffffff; margin-left: 5px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s;}
+        .status-btn.active-H { background-color: #1b5e20; color: white; border-color: #1b5e20; box-shadow: 0 3px 6px rgba(27,94,32,0.3); }
+        .status-btn.active-S, .status-btn.active-I { background-color: #f57f17; color: white; border-color: #f57f17; box-shadow: 0 3px 6px rgba(245,127,23,0.3);}
+        .status-btn.active-A { background-color: #d32f2f; color: white; border-color: #d32f2f; box-shadow: 0 3px 6px rgba(211,47,47,0.3);}
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="screen-login" class="container" style="text-align:center; padding-top:10vh;">
-        <img src="header.svg" alt="Identitas Madrasah" style="width:100%; max-width:220px; margin-bottom:40px;">
-        
-        <p style="font-size:13px; font-weight:bold; color:#555; letter-spacing: 1px; margin-bottom:20px;">SISTEM INFORMASI TERPADU</p>
-        
-        <input type="tel" id="input-hp" class="input-field" placeholder="Nomor HP">
-        <input type="password" id="input-pin" class="input-field" placeholder="PIN 6 Digit" maxlength="6" onkeypress="if(event.key === 'Enter') doLogin()">
-        
-        <button class="btn" id="btn-login" onclick="doLogin()" style="margin-top: 10px;">Masuk</button>
-        <p id="login-error" style="color:#d32f2f; text-align:center; display:none; font-size:14px; margin-top:15px;"></p>
-    </div>
-
-    <div id="main-header" class="hidden">
-        <div class="hijri-text" id="date-hijri">Memuat Tanggal...</div>
-        <div class="masehi-text" id="date-masehi"></div>
-    </div>
-
-    <div id="screen-loading" class="container hidden">
-        <div style="text-align:center; margin-top:50px;">
-            <p style="font-weight:bold; color:#1b5e20; font-size:18px;" id="loading-text">Memproses data...</p>
-        </div>
-    </div>
-
-    <div id="screen-home-guru" class="container hidden">
-        <p style="text-align:center; font-size:15px; color:#555; margin-bottom: 20px;">Ahlan wa Sahlan, <strong id="nama-guru" style="color:#1b5e20;"></strong></p>
-        
-        <h4 style="color:#1b5e20; margin-bottom: 15px;">Pilih Kelas:</h4>
-        <div id="class-list"></div>
-        
-        <div class="aturan-box">
-            <h4>Pusat Informasi & Aturan</h4>
-            <ul style="padding-left: 20px; margin: 0;">
-                <li style="margin-bottom: 5px;">Pastikan absensi dikirim sebelum jam 08.00 WIB.</li>
-                <li style="margin-bottom: 5px;">Cek ulang data absensi sebelum menekan tombol kirim.</li>
-                <li>Jika ada kesalahan data murid, segera hubungi Admin TU.</li>
-            </ul>
-        </div>
-
-        <button class="btn btn-outline" onclick="location.reload()" style="margin-top:30px;">Keluar Sistem</button>
-    </div>
-
-    <div id="screen-attendance" class="container hidden">
-        <h3 id="class-title" style="color:#1b5e20; text-align:center; padding-bottom:15px; border-bottom: 1px solid #e0e0e0;"></h3>
-        <div id="student-list" style="margin-bottom: 30px;"></div>
-        
-        <button class="btn" onclick="showPreview()">Verifikasi & Kirim</button>
-        <button class="btn btn-outline" onclick="showHomeGuru()">Kembali ke Menu</button>
-    </div>
-
-    <div id="screen-preview" class="container hidden">
-        <h3 style="color:#1b5e20; text-align:center;">Verifikasi Akhir</h3>
-        <p style="text-align:center; color:#555; margin-bottom:20px;">Pastikan rincian kehadiran kelas ini sudah benar.</p>
-        
-        <div id="preview-summary" style="background:#ffffff; padding:20px; border-radius:12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom:30px;"></div>
-        
-        <button class="btn" id="btn-submit" onclick="submitData()">Finalisasi & Kirim Data</button>
-        <button class="btn btn-outline" onclick="backToAttendance()">Batal & Koreksi</button>
-    </div>
-
-    <div id="screen-dashboard" class="container hidden">
-        <p style="text-align:center; font-size:15px; color:#555; margin-bottom:25px;">Ahlan wa Sahlan, <strong id="nama-pimpinan" style="color:#1b5e20;"></strong></p>
-        
-        <div class="card">
-            <img src="logo.svg" class="watermark" alt="Logo">
-            <h4>Kehadiran Guru Hari Ini</h4>
-            <div class="number" id="dash-guru">- / -</div>
+<div id="app-container">
+    
+    <div class="top-header" id="top-area">
+        <div id="top-login-img">
+            <img src="header.svg" alt="Identitas Madrasah" style="width:100%; max-width:240px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));">
         </div>
         
-        <div class="card">
-            <img src="logo.svg" class="watermark" alt="Logo">
-            <h4>Total Siswa Hadir</h4>
-            <div class="number" style="color:#1b5e20;" id="dash-siswa-hadir">-</div>
-        </div>
-        
-        <div style="display:flex; justify-content:space-between; gap:15px;">
-            <div class="card" style="flex:1;">
-                <h4 style="color:#f57f17; font-size:14px;">Sakit/Izin</h4>
-                <div class="number" style="color:#f57f17;" id="dash-siswa-izin">-</div>
-            </div>
-            <div class="card" style="flex:1;">
-                <h4 style="color:#d32f2f; font-size:14px;">Alpa</h4>
-                <div class="number" style="color:#d32f2f;" id="dash-siswa-alpa">-</div>
+        <div id="top-dashboard-info" class="hidden">
+            <h3 style="margin: 0 0 5px 0; font-weight: 400; font-size:16px; opacity: 0.9;">Ahlan wa Sahlan,</h3>
+            <h2 id="top-name" style="margin: 0 0 20px 0; font-size: 24px; letter-spacing: 0.5px;">Nama Pengguna</h2>
+            
+            <div class="date-badge">
+                <div id="date-hijri" style="font-weight: 700; font-size: 16px; margin-bottom: 2px;">Memuat Hijriah...</div>
+                <div id="date-masehi" style="font-size: 12px; opacity: 0.8;">Memuat Masehi...</div>
             </div>
         </div>
-
-        <div class="card card-warning" style="margin-top: 10px;">
-            <h4>Peringatan Dini</h4>
-            <div style="font-weight:bold; color:#555;" id="dash-warning">-</div>
-        </div>
-        
-        <button class="btn btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar Sistem</button>
     </div>
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
-        let currentUser = "", currentRole = "", allStudents = [], currentClassStudents = [], attendanceData = {};
-
-        // 2. RUMUS ASTRONOMI HIJRIAH MURNI (BEBAS BUG "SM")
-        function renderDates() {
-            const now = new Date();
+    <div class="bottom-sheet">
+        
+        <div id="screen-login">
+            <h3 style="color:#1b5e20; margin:0 0 5px 0; font-size: 22px;">Sistem Informasi Terpadu</h3>
+            <p style="color:#777; font-size:14px; margin-bottom:30px;">Silakan otentikasi identitas Anda</p>
             
-            // Konversi Masehi
-            const opsMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-            document.getElementById('date-masehi').innerText = new Intl.DateTimeFormat('id-ID', opsMasehi).format(now);
+            <input type="tel" id="input-hp" class="input-field" placeholder="Nomor Handphone">
+            <input type="password" id="input-pin" class="input-field" placeholder="PIN 6 Digit" maxlength="6" onkeypress="if(event.key === 'Enter') doLogin()">
             
-            // Konversi Hijriah (Algoritma Kuwaiti - Sepenuhnya Offline)
-            const wdNames = ["Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu"];
-            const iMonthNames = ["Muharram", "Safar", "Rabi'ul Awal", "Rabi'ul Akhir", "Jumadil Awal", "Jumadil Akhir", "Rajab", "Sya'ban", "Ramadhan", "Syawal", "Dzulqa'dah", "Dzulhijjah"];
+            <button class="btn" id="btn-login" onclick="doLogin()" style="margin-top: 10px;">Masuk Sistem</button>
+            <p id="login-error" style="color:#d32f2f; text-align:center; display:none; font-size:14px; margin-top:15px; font-weight:bold;"></p>
+        </div>
+
+        <div id="screen-loading" class="hidden" style="text-align:center; padding-top: 40px;">
+            <p style="font-weight:bold; color:#1b5e20; font-size:18px;" id="loading-text">Menyiapkan data ruang kelas...</p>
+        </div>
+
+        <div id="screen-home-guru" class="hidden">
+            <h4 style="color:#1b5e20; margin:0 0 20px 0; font-size: 18px;">Silakan Pilih Kelas:</h4>
+            <div id="class-list" class="grid-3"></div>
             
-            let d = now.getDate(), m = now.getMonth(), y = now.getFullYear();
-            let mjd = 367 * y - Math.floor((7 * (y + Math.floor((m + 9) / 12))) / 4) + Math.floor((275 * m) / 9) + d - 730531;
-            let l = mjd - 1921112 + 0; 
-            let n = Math.floor((11 * l + 3) / 10631);
-            l = l - 10631 * n + 354;
-            let j = (Math.floor((10985 - l) / 5316)) * (Math.floor((50 * l) / 17719)) + (Math.floor(l / 5670)) * (Math.floor((43 * l) / 15238));
-            l = l - (Math.floor((30 - j) / 15)) * (Math.floor((17719 * j) / 50)) - (Math.floor(j / 16)) * (Math.floor((15238 * j) / 43)) + 29;
-            let im = Math.floor((24 * l) / 709);
-            let id = l - Math.floor((709 * im) / 24);
-            let iy = 30 * n + j - 30;
+            <div style="background-color: #f8f9fa; border-radius: 14px; padding: 20px; border-left: 5px solid #f57f17; margin-top: 10px;">
+                <h4 style="margin: 0 0 10px 0; color: #1b5e20; font-size:15px;">Informasi Kedisiplinan</h4>
+                <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #555; line-height: 1.6;">
+                    <li>Kirim data presensi maksimal pukul 08.00 WIB.</li>
+                    <li>Lakukan verifikasi ulang sebelum finalisasi pengiriman.</li>
+                    <li>Perubahan data setelah terkirim wajib melalui Admin TU.</li>
+                </ul>
+            </div>
+            <button class="btn btn-outline" onclick="location.reload()" style="margin-top:30px;">Keluar Sistem</button>
+        </div>
+
+        <div id="screen-attendance" class="hidden">
+            <h3 id="class-title" style="color:#1b5e20; text-align:center; margin-top:0; padding-bottom:15px; border-bottom: 2px dashed #e0e0e0;"></h3>
+            <div id="student-list" style="margin-bottom: 30px;"></div>
             
-            document.getElementById('date-hijri').innerText = id + " " + iMonthNames[im - 1] + " " + iy + " H";
-        }
+            <button class="btn" onclick="showPreview()">Verifikasi & Lanjutkan</button>
+            <button class="btn btn-outline" onclick="showHomeGuru()">Kembali ke Beranda</button>
+        </div>
 
-        function doLogin() {
-            const hp = document.getElementById('input-hp').value;
-            const pin = document.getElementById('input-pin').value;
-            const btn = document.getElementById('btn-login');
-            const err = document.getElementById('login-error');
+        <div id="screen-preview" class="hidden">
+            <h3 style="color:#1b5e20; text-align:center; margin-top:0;">Verifikasi Akhir</h3>
+            <p style="text-align:center; color:#777; margin-bottom:25px; font-size:14px;">Pastikan rekapitulasi kehadiran ini akurat.</p>
             
-            if(!hp || !pin) { err.innerText = "Harap isi Nomor HP dan PIN."; err.style.display = "block"; return; }
+            <div id="preview-summary" style="background:#f4f7f6; padding:25px; border-radius:16px; border:1px solid #e0e0e0; margin-bottom:30px;"></div>
             
-            btn.innerText = "Memverifikasi..."; btn.disabled = true; err.style.display = "none";
+            <button class="btn" id="btn-submit" onclick="submitData()">Finalisasi & Kirim</button>
+            <button class="btn btn-outline" onclick="backToAttendance()">Batal & Koreksi Data</button>
+        </div>
 
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", ID_Pengguna: hp, Kata_Sandi: pin }) })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === "sukses") {
-                    currentUser = data.nama; currentRole = data.peran.toLowerCase();
-                    
-                    document.getElementById('screen-login').classList.add('hidden');
-                    document.getElementById('main-header').classList.remove('hidden'); 
-                    renderDates(); 
-                    
-                    if(currentRole === "guru") { loadGuruData(); } 
-                    else { loadDashboardData(); }
-                } else {
-                    err.innerText = data.pesan; err.style.display = "block"; btn.innerText = "Masuk"; btn.disabled = false;
-                }
-            })
-            .catch(e => { err.innerText = "Gagal terhubung ke server."; err.style.display = "block"; btn.innerText = "Masuk"; btn.disabled = false; });
-        }
+        <div id="screen-dashboard" class="hidden">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h4 style="color:#1b5e20; margin:0; font-size: 18px;">Ringkasan Eksekutif</h4>
+            </div>
 
-        function loadGuruData() {
-            document.getElementById('screen-loading').classList.remove('hidden');
-            document.getElementById('loading-text').innerText = "Memuat daftar kelas...";
+            <div class="bca-card">
+                <div class="bca-card-header">Kehadiran Guru Terkini</div>
+                <div class="bca-card-body">
+                    <img src="logo.svg" class="watermark" alt="Logo">
+                    <div class="bca-card-number" id="dash-guru">- / -</div>
+                </div>
+            </div>
             
-            fetch(API_URL).then(res => res.json()).then(data => {
-                allStudents = data;
-                document.getElementById('screen-loading').classList.add('hidden');
-                document.getElementById('nama-guru').innerText = currentUser;
-                showHomeGuru();
-            }).catch(err => { document.getElementById('loading-text').innerText = "Gagal memuat data."; });
-        }
-
-        function showHomeGuru() {
-            document.getElementById('screen-home-guru').classList.remove('hidden');
-            document.getElementById('screen-attendance').classList.add('hidden');
-            document.getElementById('screen-preview').classList.add('hidden');
+            <div class="bca-card">
+                <div class="bca-card-header">Total Siswa Hadir</div>
+                <div class="bca-card-body">
+                    <img src="logo.svg" class="watermark" alt="Logo">
+                    <div class="bca-card-number" id="dash-siswa-hadir">-</div>
+                </div>
+            </div>
             
-            const classes = [...new Set(allStudents.map(s => s.Kelas))];
-            const classListDiv = document.getElementById('class-list');
-            classListDiv.innerHTML = '';
-            
-            classes.forEach(c => {
-                // Menyesuaikan nama untuk grid (Misal: "I - SATU" tetap muncul proporsional)
-                let btn = document.createElement('button'); 
-                btn.className = 'btn btn-outline btn-grid'; 
-                btn.innerHTML = c; // Teks kelas akan otomatis masuk ke kotak
-                btn.onclick = () => openClass(c); 
-                classListDiv.appendChild(btn);
-            });
-        }
+            <div style="display:flex; justify-content:space-between; gap:15px;">
+                <div class="bca-card" style="flex:1; margin-bottom: 25px;">
+                    <div class="bca-card-header warning" style="font-size:12px;">Sakit / Izin</div>
+                    <div class="bca-card-body" style="padding:15px;"><div class="bca-card-number" style="color:#f57f17; font-size:24px;" id="dash-siswa-izin">-</div></div>
+                </div>
+                <div class="bca-card" style="flex:1; margin-bottom: 25px;">
+                    <div class="bca-card-header danger" style="font-size:12px;">Alpa (Tanpa Ket)</div>
+                    <div class="bca-card-body" style="padding:15px;"><div class="bca-card-number" style="color:#d32f2f; font-size:24px;" id="dash-siswa-alpa">-</div></div>
+                </div>
+            </div>
 
-        function openClass(className) {
-            document.getElementById('screen-home-guru').classList.add('hidden');
-            document.getElementById('screen-attendance').classList.remove('hidden');
-            document.getElementById('class-title').innerText = "Absensi Kelas " + className;
-            currentClassStudents = allStudents.filter(s => s.Kelas === className);
-            
-            const studentListDiv = document.getElementById('student-list');
-            studentListDiv.innerHTML = '';
-            
-            currentClassStudents.forEach(s => {
-                attendanceData[s.ID_Siswa] = 'H';
-                let row = document.createElement('div'); row.className = 'student-row';
-                row.innerHTML = `
-                    <div style="width: 50%;">
-                        <strong style="font-size:16px;">${s.Nama_Siswa}</strong><br>
-                        <small style="color:#777;">ID: ${s.ID_Siswa}</small>
-                    </div>
-                    <div style="display:flex;">
-                        <span class="status-btn active-H" onclick="setStatus('${s.ID_Siswa}', 'H', this)">H</span>
-                        <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'S', this)">S</span>
-                        <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'I', this)">I</span>
-                        <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'A', this)">A</span>
-                    </div>`;
-                studentListDiv.appendChild(row);
-            });
-        }
+            <button class="btn btn-outline" onclick="location.reload()">Akhiri Sesi (Keluar)</button>
+        </div>
 
-        function setStatus(id, status, element) {
-            attendanceData[id] = status;
-            let btns = element.parentElement.getElementsByTagName('span');
-            for(let b of btns) b.className = 'status-btn'; 
-            element.classList.add('active-' + status);
-        }
+    </div>
+</div>
 
-        function showPreview() {
-            document.getElementById('screen-attendance').classList.add('hidden');
-            document.getElementById('screen-preview').classList.remove('hidden');
-            
-            let h=0, s=0, i=0, a=0;
-            currentClassStudents.forEach(student => {
-                let stat = attendanceData[student.ID_Siswa];
-                if(stat==='H') h++; if(stat==='S') s++; if(stat==='I') i++; if(stat==='A') a++;
-            });
-            document.getElementById('preview-summary').innerHTML = `
-            <p style="font-size:16px; border-bottom:1px solid #eee; padding-bottom:10px;"><strong>Hadir:</strong> <span style="float:right; color:#1b5e20; font-weight:bold;">${h} Siswa</span></p>
-            <p style="font-size:16px; border-bottom:1px solid #eee; padding-bottom:10px;"><strong>Sakit:</strong> <span style="float:right; color:#f57f17; font-weight:bold;">${s} Siswa</span></p>
-            <p style="font-size:16px; border-bottom:1px solid #eee; padding-bottom:10px;"><strong>Izin:</strong> <span style="float:right; color:#f57f17; font-weight:bold;">${i} Siswa</span></p>
-            <p style="font-size:16px; margin-bottom:0;"><strong>Alpa:</strong> <span style="float:right; color:#d32f2f; font-weight:bold;">${a} Siswa</span></p>`;
-        }
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
+    let currentUser = "", currentRole = "", allStudents = [], currentClassStudents = [], attendanceData = {};
 
-        function backToAttendance() {
-            document.getElementById('screen-preview').classList.add('hidden');
-            document.getElementById('screen-attendance').classList.remove('hidden');
-        }
+    // API KALENDER ALADHAN (AKURAT & BEBAS BUG)
+    function renderDates() {
+        const now = new Date();
+        const opsMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        document.getElementById('date-masehi').innerText = new Intl.DateTimeFormat('id-ID', opsMasehi).format(now);
+        
+        // Meminta data Hijriah hari ini dari server pusat
+        const dmy = `${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}`;
+        fetch(`https://api.aladhan.com/v1/gToH?date=${dmy}`)
+        .then(res => res.json())
+        .then(data => {
+            const h = data.data.hijri;
+            const indoMonths = ["Muharram", "Safar", "Rabi'ul Awal", "Rabi'ul Akhir", "Jumadil Awal", "Jumadil Akhir", "Rajab", "Sya'ban", "Ramadhan", "Syawal", "Dzulqa'dah", "Dzulhijjah"];
+            const nmBulan = indoMonths[h.month.number - 1];
+            document.getElementById('date-hijri').innerText = `${h.day} ${nmBulan} ${h.year} H`;
+        })
+        .catch(err => {
+            document.getElementById('date-hijri').innerText = "Tahun Hijriah (Offline)";
+        });
+    }
 
-        function submitData() {
-            let btn = document.getElementById('btn-submit'); btn.innerText = "Mengirim..."; btn.disabled = true;
-            let payload = currentClassStudents.map(student => ({
-                Tanggal: new Date().toLocaleDateString('id-ID'), ID_Siswa: student.ID_Siswa, Nama_Siswa: student.Nama_Siswa,
-                Kelas: student.Kelas, Status: attendanceData[student.ID_Siswa], Nama_Guru: currentUser
-            }));
+    function switchScreen(screenId) {
+        const screens = ['screen-login', 'screen-loading', 'screen-home-guru', 'screen-attendance', 'screen-preview', 'screen-dashboard'];
+        screens.forEach(s => document.getElementById(s).classList.add('hidden'));
+        document.getElementById(screenId).classList.remove('hidden');
+    }
 
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "submitAttendance", data: payload }) })
-            .then(res => res.text()).then(text => { alert("Alhamdulillah! Presensi berhasil dikirim."); showHomeGuru(); btn.innerText = "Finalisasi & Kirim Data"; btn.disabled = false; })
-            .catch(err => { alert("Gagal koneksi. Coba lagi."); btn.innerText = "Finalisasi & Kirim Data"; btn.disabled = false; });
-        }
+    function doLogin() {
+        const hp = document.getElementById('input-hp').value;
+        const pin = document.getElementById('input-pin').value;
+        const btn = document.getElementById('btn-login');
+        const err = document.getElementById('login-error');
+        
+        if(!hp || !pin) { err.innerText = "Mohon lengkapi HP dan PIN."; err.style.display = "block"; return; }
+        
+        btn.innerText = "Memverifikasi..."; btn.disabled = true; err.style.display = "none";
 
-        function loadDashboardData() {
-            document.getElementById('screen-loading').classList.remove('hidden');
-            document.getElementById('loading-text').innerText = "Menyusun Dasbor...";
-            document.getElementById('nama-pimpinan').innerText = currentUser;
-
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getDashboardStats" }) })
-            .then(res => res.json()).then(data => {
-                document.getElementById('screen-loading').classList.add('hidden');
-                document.getElementById('screen-dashboard').classList.remove('hidden');
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", ID_Pengguna: hp, Kata_Sandi: pin }) })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === "sukses") {
+                currentUser = data.nama; currentRole = data.peran.toLowerCase();
                 
-                document.getElementById('dash-guru').innerText = `${data.guruHadir} / ${data.totalGuru}`;
-                document.getElementById('dash-siswa-hadir').innerText = data.siswaHadir;
-                document.getElementById('dash-siswa-izin').innerText = data.siswaSakit + data.siswaIzin;
-                document.getElementById('dash-siswa-alpa').innerText = data.siswaAlpa;
-                document.getElementById('dash-warning').innerText = data.peringatanKelas;
-            }).catch(err => { document.getElementById('loading-text').innerText = "Gagal memuat."; });
-        }
+                // Transisi Header
+                document.getElementById('top-login-img').classList.add('hidden');
+                document.getElementById('top-dashboard-info').classList.remove('hidden');
+                document.getElementById('top-name').innerText = currentUser;
+                renderDates(); 
+                
+                if(currentRole === "guru") { loadGuruData(); } else { loadDashboardData(); }
+            } else {
+                err.innerText = data.pesan; err.style.display = "block"; btn.innerText = "Masuk Sistem"; btn.disabled = false;
+            }
+        })
+        .catch(e => { err.innerText = "Gangguan koneksi ke server."; err.style.display = "block"; btn.innerText = "Masuk Sistem"; btn.disabled = false; });
+    }
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => {}); });
-        }
-    </script>
+    function loadGuruData() {
+        switchScreen('screen-loading');
+        fetch(API_URL).then(res => res.json()).then(data => {
+            allStudents = data;
+            showHomeGuru();
+        }).catch(err => { document.getElementById('loading-text').innerText = "Gagal memuat data kelas."; });
+    }
+
+    function showHomeGuru() {
+        switchScreen('screen-home-guru');
+        const classes = [...new Set(allStudents.map(s => s.Kelas))];
+        const classListDiv = document.getElementById('class-list');
+        classListDiv.innerHTML = '';
+        classes.forEach(c => {
+            let btn = document.createElement('button'); btn.className = 'btn btn-outline btn-grid'; 
+            btn.innerHTML = c; btn.onclick = () => openClass(c); classListDiv.appendChild(btn);
+        });
+    }
+
+    function openClass(className) {
+        switchScreen('screen-attendance');
+        document.getElementById('class-title').innerText = "Absensi Kelas " + className;
+        currentClassStudents = allStudents.filter(s => s.Kelas === className);
+        
+        const studentListDiv = document.getElementById('student-list');
+        studentListDiv.innerHTML = '';
+        currentClassStudents.forEach(s => {
+            attendanceData[s.ID_Siswa] = 'H';
+            let row = document.createElement('div'); row.className = 'student-row';
+            row.innerHTML = `
+                <div style="width: 50%;">
+                    <strong style="font-size:15px; color:#333;">${s.Nama_Siswa}</strong><br>
+                    <small style="color:#999;">ID: ${s.ID_Siswa}</small>
+                </div>
+                <div style="display:flex;">
+                    <span class="status-btn active-H" onclick="setStatus('${s.ID_Siswa}', 'H', this)">H</span>
+                    <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'S', this)">S</span>
+                    <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'I', this)">I</span>
+                    <span class="status-btn" onclick="setStatus('${s.ID_Siswa}', 'A', this)">A</span>
+                </div>`;
+            studentListDiv.appendChild(row);
+        });
+    }
+
+    function setStatus(id, status, element) {
+        attendanceData[id] = status;
+        let btns = element.parentElement.getElementsByTagName('span');
+        for(let b of btns) b.className = 'status-btn'; 
+        element.classList.add('active-' + status);
+    }
+
+    function showPreview() {
+        switchScreen('screen-preview');
+        let h=0, s=0, i=0, a=0;
+        currentClassStudents.forEach(student => {
+            let stat = attendanceData[student.ID_Siswa];
+            if(stat==='H') h++; if(stat==='S') s++; if(stat==='I') i++; if(stat==='A') a++;
+        });
+        document.getElementById('preview-summary').innerHTML = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:16px;"><span>Hadir:</span> <strong style="color:#1b5e20;">${h} Siswa</strong></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:16px;"><span>Sakit:</span> <strong style="color:#f57f17;">${s} Siswa</strong></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:16px;"><span>Izin:</span> <strong style="color:#f57f17;">${i} Siswa</strong></div>
+        <div style="display:flex; justify-content:space-between; font-size:16px; border-top:1px solid #ddd; padding-top:12px;"><span>Alpa:</span> <strong style="color:#d32f2f;">${a} Siswa</strong></div>`;
+    }
+
+    function backToAttendance() { switchScreen('screen-attendance'); }
+
+    function submitData() {
+        let btn = document.getElementById('btn-submit'); btn.innerText = "Memproses Pengiriman..."; btn.disabled = true;
+        let payload = currentClassStudents.map(student => ({
+            Tanggal: new Date().toLocaleDateString('id-ID'), ID_Siswa: student.ID_Siswa, Nama_Siswa: student.Nama_Siswa,
+            Kelas: student.Kelas, Status: attendanceData[student.ID_Siswa], Nama_Guru: currentUser
+        }));
+
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "submitAttendance", data: payload }) })
+        .then(res => res.text()).then(text => { alert("Alhamdulillah! Presensi terekam ke sistem pusat."); showHomeGuru(); btn.innerText = "Finalisasi & Kirim"; btn.disabled = false; })
+        .catch(err => { alert("Gagal koneksi. Pastikan sinyal stabil."); btn.innerText = "Finalisasi & Kirim"; btn.disabled = false; });
+    }
+
+    function loadDashboardData() {
+        switchScreen('screen-loading'); document.getElementById('loading-text').innerText = "Menarik Data Eksekutif...";
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getDashboardStats" }) })
+        .then(res => res.json()).then(data => {
+            switchScreen('screen-dashboard');
+            document.getElementById('dash-guru').innerText = `${data.guruHadir} / ${data.totalGuru}`;
+            document.getElementById('dash-siswa-hadir').innerText = data.siswaHadir;
+            document.getElementById('dash-siswa-izin').innerText = data.siswaSakit + data.siswaIzin;
+            document.getElementById('dash-siswa-alpa').innerText = data.siswaAlpa;
+        }).catch(err => { document.getElementById('loading-text').innerText = "Gagal memuat dasbor."; });
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => {}); });
+    }
+</script>
 </body>
 </html>
