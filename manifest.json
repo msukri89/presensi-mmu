@@ -1,5 +1,5 @@
 {
-  "name": "Presensi Madrasah Miftahul Ulum",
+  "name": "Presensi Madrasah Miftahul Ulum B-08",
   "short_name": "Presensi MMU",
   "start_url": "index.html",
   "display": "standalone",
@@ -8,14 +8,10 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://placehold.co/192x192/1b5e20/white?text=MMU",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://placehold.co/512x512/1b5e20/white?text=MMU",
+      "src": "icon.svg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }
