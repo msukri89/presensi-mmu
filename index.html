@@ -299,7 +299,8 @@
             } else { secJadwal.classList.add('hidden'); }
 
             const secInval = document.getElementById('section-inval'); const divInval = document.getElementById('inval-container');
-            if (currentRole === 'piket' || currentRole === 'pimpinan') {
+            const canAccessInval = currentRole === 'piket' || currentRole === 'pimpinan' || d.isPiket === true;
+            if (canAccessInval) {
                 secInval.classList.remove('hidden'); divInval.innerHTML = '';
                 if(d.kelasInvalKosong.length > 0){
                     d.kelasInvalKosong.forEach(j => {
