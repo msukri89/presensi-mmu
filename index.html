@@ -7,44 +7,65 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1b5e20">
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #e0e0e0; color: #333; margin: 0; padding: 0; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        /* DIET TIPOGRAFI: Menggunakan regular (400) dan medium (500) */
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f7f9f8; color: #333; margin: 0; padding: 0; font-weight: 400; }
         #app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background-color: #1b5e20; position: relative; }
-        .sticky-top-bar { position: sticky; top: 0; left: 0; right: 0; background-color: #1b5e20; color: #ffffff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 200; border-bottom: 1px solid rgba(255,255,255,0.15); font-weight: bold; font-size: 14px; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .settings-btn { background: none; border: none; color: #ffffff; cursor: pointer; opacity: 0.85; padding: 4px; display: flex; align-items: center; transition: 0.2s; }
-        .settings-btn:hover { opacity: 1; }
-        .settings-btn svg { width: 20px; height: 20px; stroke: #ffffff; fill: none; stroke-width: 2; }
-        .sticky-class-bar { position: sticky; top: 45px; left: 0; right: 0; background-color: #f4f7f6; color: #1b5e20; padding: 10px 20px; text-align: center; font-weight: bold; font-size: 15px; z-index: 190; border-bottom: 2px solid #1b5e20; box-shadow: 0 3px 6px rgba(0,0,0,0.05); }
-        .top-header { background-color: #1b5e20; padding: 25px 20px 20px 20px; text-align: center; color: #ffffff; flex-shrink: 0; }
-        .bottom-sheet { background-color: #ffffff; border-radius: 30px 30px 0 0; padding: 30px 20px; flex-grow: 1; box-shadow: 0 -5px 20px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
-        .date-badge { background: rgba(255, 255, 255, 0.12); display: inline-block; padding: 8px 18px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.15); margin-top: 10px; }
-        .input-field { width: 100%; padding: 16px; margin-bottom: 15px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; box-sizing: border-box; text-align: center; background-color: #f9f9f9; }
-        .input-field:focus { outline: none; border-color: #1b5e20; background-color: #fff; }
-        .select-session { padding: 6px 10px; border-radius: 8px; border: 1px solid #1b5e20; background-color: #ffffff; color: #1b5e20; font-weight: bold; font-size: 13px; cursor: pointer; outline: none; }
-        .btn { background: linear-gradient(135deg, #2e7d32, #1b5e20); color: #FFFFFF; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 16px; margin-bottom: 12px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(27, 94, 32, 0.25); }
-        .btn-outline { background: #FFFFFF; color: #1b5e20; border: 2px solid #1b5e20; box-shadow: none; }
-        .btn-standby { background: linear-gradient(135deg, #1976d2, #0d47a1); margin-top:10px; }
-        .grid-list { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
-        .bca-card { background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #f0f0f0; margin-bottom: 15px; }
-        .bca-card-header { background: linear-gradient(135deg, #4caf50, #1b5e20); color: #ffffff; padding: 12px 16px; font-size: 13px; font-weight: 600; text-align: left; }
-        .bca-card-header.warning { background: linear-gradient(135deg, #ffb300, #f57f17); }
-        .bca-card-header.danger { background: linear-gradient(135deg, #ef5350, #c62828); }
-        .bca-card-body { padding: 18px; text-align: center; }
-        .bca-card-number { font-size: 28px; font-weight: 800; color: #1b5e20; }
-        .student-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 14px 0; }
-        .status-container { display: flex; align-items: center; }
-        .status-btn { padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 15px; background-color: #ffffff; margin-left: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
-        .status-btn.active-H { background-color: #1b5e20; color: white; border-color: #1b5e20; }
-        .status-btn.active-S, .status-btn.active-I { background-color: #f57f17; color: white; border-color: #f57f17; }
-        .status-btn.active-A { background-color: #d32f2f; color: white; border-color: #d32f2f; }
-        .wa-action-btn { background-color: #25d366; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; margin-left: 6px; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .modal-box { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .adj-btn { padding: 8px 12px; border: 1px solid #1b5e20; border-radius: 8px; background: #fff; color: #1b5e20; font-weight: bold; cursor: pointer; margin: 0 5px; }
-        .adj-btn.active { background: #1b5e20; color: #fff; }
-        .hidden { display: none !important; }
         
-        .section-title { font-size:14px; color:#1b5e20; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #ddd; padding-bottom:5px; }
+        .sticky-top-bar { position: sticky; top: 0; background-color: #1b5e20; color: #fff; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; z-index: 100; font-size: 14px; font-weight: 500; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .settings-btn { background: none; border: none; cursor: pointer; opacity: 0.8; padding: 0; }
+        .sticky-class-bar { position: sticky; top: 52px; background-color: #fff; color: #1b5e20; padding: 12px 20px; text-align: center; font-weight: 500; font-size: 14px; z-index: 90; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        
+        .top-header { padding: 30px 22px 25px 22px; text-align: center; color: #fff; }
+        .bottom-sheet { background: #f7f9f8; border-radius: 28px 28px 0 0; padding: 25px 20px; flex-grow: 1; }
+        
+        .date-badge { background: rgba(255, 255, 255, 0.1); display: inline-block; padding: 6px 16px; border-radius: 20px; margin-top: 8px; font-size: 13px; font-weight: 400; border: 1px solid rgba(255,255,255,0.15); }
+        .input-field { width: 100%; padding: 16px; margin-bottom: 15px; border: 1px solid #e0e4e2; border-radius: 12px; font-size: 15px; background-color: #fff; color: #333; outline: none; }
+        .input-field:focus { border-color: #1b5e20; }
+        .select-session { padding: 8px 14px; border-radius: 10px; border: 1px solid #1b5e20; background-color: #fff; color: #1b5e20; font-weight: 500; font-size: 13px; outline: none; }
+        
+        .btn { background: #1b5e20; color: #fff; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 15px; font-weight: 500; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
+        .btn:active { opacity: 0.9; transform: scale(0.98); }
+        .btn-outline { background: transparent; color: #1b5e20; border: 1px solid #1b5e20; }
+        
+        .section-title { font-size: 13px; color: #777; font-weight: 500; margin: 25px 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* DESAIN KARTU CLEAN FLAT */
+        .card-soft { background: #fff; border-radius: 14px; padding: 18px; margin-bottom: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: 0.2s; border: 1px solid transparent; }
+        .card-soft:active { background: #f0f4f2; border-color: #e0e4e2; }
+        .card-inval { border-left: 3px solid #f57f17; } /* Aksen minimalis Inval */
+        
+        /* TOMBOL STANDBY (HADIR KANTOR) ELEGAN */
+        .card-standby { background: #fff; border: 1px solid #4caf50; border-radius: 14px; padding: 18px; text-align: center; cursor: pointer; color: #1b5e20; transition: 0.2s; }
+        .card-standby:active { background: #e8f5e9; }
+        .badge-hadir { background: #e8f5e9; color: #2e7d32; border-radius: 10px; padding: 14px; text-align: center; font-size: 13px; font-weight: 500; margin-bottom: 15px; }
+        
+        /* SILENT ALERT PIMPIMAN */
+        .card-alert { background: #fff; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 15px; }
+        .alert-title { color: #d32f2f; font-weight: 500; font-size: 14px; margin-bottom: 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
+        .alert-item { display: flex; align-items: center; font-size: 13px; color: #333; margin-bottom: 8px; }
+        .alert-dot { color: #d32f2f; margin-right: 8px; font-size: 18px; line-height: 0; }
+        
+        /* STATISTIK CLEAN */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-box { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        .stat-lbl { font-size: 11px; color: #777; margin-bottom: 6px; text-transform: uppercase; }
+        .stat-val { font-size: 24px; font-weight: 500; color: #1b5e20; }
+        
+        .student-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #eee; }
+        .status-container { display: flex; align-items: center; }
+        .status-btn { padding: 8px 12px; border: 1px solid #e0e4e2; border-radius: 10px; background: #fff; margin-left: 5px; cursor: pointer; font-size: 13px; font-weight: 500; color: #555; }
+        .status-btn.active-H { background: #1b5e20; color: #fff; border-color: #1b5e20; }
+        .status-btn.active-S, .status-btn.active-I { background: #f57f17; color: #fff; border-color: #f57f17; }
+        .status-btn.active-A { background: #d32f2f; color: #fff; border-color: #d32f2f; }
+        .wa-action-btn { background: #25d366; color: #fff; border: none; width: 34px; height: 34px; border-radius: 50%; margin-left: 6px; cursor: pointer; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(37,211,102,0.3); }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .modal-box { background: #fff; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; }
+        .adj-btn { padding: 10px 14px; border: 1px solid #e0e4e2; border-radius: 10px; background: #fff; color: #555; font-weight: 500; font-size: 13px; margin: 0 4px; cursor: pointer; }
+        .adj-btn.active { background: #1b5e20; color: #fff; border-color: #1b5e20; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -53,110 +74,116 @@
     <div class="sticky-top-bar">
         <div>MMU-B08 SURABAYA</div>
         <button class="settings-btn hidden" id="config-gear" onclick="openAdjustmentModal()">
-            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </button>
     </div>
-    
+
     <div id="sticky-class-header" class="sticky-class-bar hidden">Presensi Kelas</div>
-    
+
     <div class="top-header" id="top-area">
-        <div id="top-login-img"><img src="header.svg" alt="Header MMU" style="width:100%; max-width:200px;"></div>
+        <div id="top-login-img"><img src="header.svg" style="width:170px;"></div>
         <div id="top-dashboard-info" class="hidden">
-            <h3 style="margin: 0; font-size:14px; opacity: 0.9;">Ahlan wa Sahlan,</h3>
-            <h2 id="top-name" style="margin: 5px 0 10px 0; font-size: 20px;">Nama</h2>
-            <div class="date-badge">
-                <div id="date-hijri" style="font-weight: 700; font-size: 15px;">Memuat...</div>
-                <div id="date-masehi" style="font-size: 11px; opacity: 0.8;"></div>
-            </div>
+            <h2 id="top-name" style="margin:0; font-weight:500; font-size:20px;"></h2>
+            <div class="date-badge" id="date-hijri">Memuat...</div>
+            <div id="date-masehi" style="font-size:12px; opacity:0.7; margin-top:6px;"></div>
         </div>
     </div>
 
     <div class="bottom-sheet">
         <div id="screen-login">
-            <h3 style="color:#1b5e20; margin:0 0 5px 0;">Sistem Informasi Terpadu</h3>
-            <p style="color:#777; font-size:13px; margin-bottom:30px;">Madrasah Miftahul Ulum Ibtidaiyah</p>
+            <p style="color:#777; font-size:14px; text-align:center; margin-bottom:25px;">Sistem Presensi Terpadu</p>
             <input type="tel" id="input-hp" class="input-field" placeholder="Nomor Handphone">
-            <input type="password" id="input-pin" class="input-field" placeholder="PIN 6 Digit" maxlength="6" onkeypress="if(event.key==='Enter') doLogin()">
-            <button class="btn" onclick="doLogin()">Masuk Sistem</button>
-            <p id="login-error" style="color:#d32f2f; display:none; text-align:center; font-weight:bold; font-size:14px;"></p>
+            <input type="password" id="input-pin" class="input-field" placeholder="PIN Akses" maxlength="6" onkeypress="if(event.key==='Enter') doLogin()">
+            <button class="btn" onclick="doLogin()">Akses Sistem</button>
+            <p id="login-error" style="color:#d32f2f; font-size:13px; text-align:center; display:none;"></p>
         </div>
 
-        <div id="screen-loading" class="hidden" style="text-align:center; padding: 30px 0;">
-            <p style="font-weight:bold; color:#1b5e20; font-size:16px;" id="loading-text">Menyinkronkan data...</p>
+        <div id="screen-loading" class="hidden" style="text-align:center; padding: 40px 0;">
+            <p style="color:#1b5e20; font-size:14px; font-weight:500;" id="loading-text">Menyinkronkan data presisi...</p>
         </div>
 
         <div id="screen-dashboard" class="hidden">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:#f4f7f6; padding:10px; border-radius:10px;">
-                <span style="font-weight:bold; color:#555; font-size:13px;">Target Presensi:</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <span style="font-weight:500; color:#555; font-size:13px;">Target Presensi:</span>
                 <select id="session-selector" class="select-session" onchange="updateSesiManual(this.value)">
-                    <option value="1">Sesi 1 (07.00 - 08.20)</option>
-                    <option value="2">Sesi 2 (08.50 - 10.10)</option>
-                    <option value="3">Sesi 3 (10.30 - 11.50)</option>
+                    <option value="1">Sesi 1 (07.00)</option><option value="2">Sesi 2 (08.50)</option><option value="3">Sesi 3 (10.30)</option>
                 </select>
             </div>
             
-            <div class="section-title">Aktivitas Anda (Sesi <span id="lbl-sesi"></span>)</div>
-            <div id="jadwal-pribadi-container" class="grid-list"></div>
-            <div id="standby-container" class="hidden" style="margin-bottom: 20px;">
-                <div style="background:#e3f2fd; padding:15px; border-radius:12px; border-left:4px solid #1976d2; text-align:center;">
-                    <p style="margin:0 0 10px 0; font-size:13px; color:#0d47a1;">Anda tidak memiliki jadwal mengajar di sesi ini.</p>
-                    <button class="btn btn-standby" onclick="markStandby()">✅ Konfirmasi Kehadiran Kantor</button>
+            <div id="hadir-badge" class="badge-hadir hidden">✓ Kehadiran Anda tercatat di sesi ini</div>
+            <div id="standby-container" class="hidden" style="margin-bottom:20px;">
+                <div class="card-standby" onclick="markStandby()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" style="margin-bottom:8px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <div style="font-weight:500; font-size:14px;">Konfirmasi Hadir Kantor</div>
+                    <div style="font-size:12px; color:#777; margin-top:4px;">Tanpa jadwal mengajar (Sesi <span id="lbl-sesi"></span>)</div>
                 </div>
             </div>
-            <div id="hadir-badge" class="hidden" style="background:#e8f5e9; color:#2e7d32; padding:12px; border-radius:10px; text-align:center; font-weight:bold; font-size:13px; margin-bottom:20px;">
-                ✓ Anda telah tercatat hadir di madrasah pada sesi ini.
+
+            <div id="section-jadwal" class="hidden">
+                <div class="section-title">Jadwal Anda</div>
+                <div id="jadwal-container"></div>
             </div>
 
-            <div id="inval-section" class="hidden">
-                <div class="section-title" style="margin-top:10px;">Tugas Inval (Kelas Kosong)</div>
-                <div id="kelas-inval-container" class="grid-list"></div>
+            <div id="section-inval" class="hidden">
+                <div class="section-title">Tugas Inval</div>
+                <div id="inval-container"></div>
             </div>
 
-            <div id="pimpinan-section" class="hidden" style="margin-top:15px;">
-                <div class="section-title">Pemantauan Eksekutif</div>
-                <div class="bca-card"><div class="bca-card-header">Kehadiran Guru & Staf</div><div class="bca-card-body"><div class="bca-card-number" id="dash-guru">- / -</div></div></div>
-                <div class="bca-card"><div class="bca-card-header danger">Peringatan: Kelas Kosong Sesi Ini</div><div class="bca-card-body" id="late-list" style="font-size:13px; color:#d32f2f; text-align:left; font-weight:bold;">Memuat...</div></div>
-                <div style="display:flex; gap:10px;">
-                    <div class="bca-card" style="flex:1;"><div class="bca-card-header warning" style="font-size:11px;">Sakit/Izin</div><div class="bca-card-body" style="padding:15px;"><div class="bca-card-number" style="color:#f57f17; font-size:22px;" id="dash-siswa-izin">-</div></div></div>
-                    <div class="bca-card" style="flex:1;"><div class="bca-card-header danger" style="font-size:11px;">Alpa Murid</div><div class="bca-card-body" style="padding:15px;"><div class="bca-card-number" style="color:#d32f2f; font-size:22px;" id="dash-siswa-alpa">-</div></div></div>
+            <div id="section-pimpinan" class="hidden" style="margin-top:25px;">
+                <div class="section-title">Dashboard Pimpinan</div>
+                
+                <div class="card-soft" style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-size:13px; color:#555;">Kehadiran Guru</div>
+                    <div style="font-size:18px; font-weight:500; color:#1b5e20;" id="dash-guru">- / -</div>
+                </div>
+                
+                <div class="stat-grid" style="margin-bottom:15px;">
+                    <div class="stat-box">
+                        <div class="stat-lbl">Sakit / Izin</div><div class="stat-val" style="color:#f57f17;" id="dash-izin">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">Alpa Murid</div><div class="stat-val" style="color:#d32f2f;" id="dash-alpa">-</div>
+                    </div>
+                </div>
+
+                <div class="card-alert" id="card-alert-late">
+                    <div class="alert-title">Belum Diabsen (Kosong)</div>
+                    <div id="late-list" style="font-size:13px; color:#555;">Memuat...</div>
                 </div>
             </div>
-            
+
             <button class="btn btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar Sistem</button>
         </div>
 
         <div id="screen-attendance" class="hidden">
-            <div id="student-list"></div>
-            <button class="btn" onclick="showPreview()" style="margin-top:20px;">Verifikasi & Lanjutkan</button>
-            <button class="btn btn-outline" onclick="switchScreen('screen-dashboard')">Batal</button>
+            <div id="student-list" style="margin-bottom:20px;"></div>
+            <button class="btn" onclick="showPreview()">Verifikasi Data</button>
+            <button class="btn btn-outline" style="border:none; color:#777;" onclick="switchScreen('screen-dashboard')">Batal</button>
         </div>
 
         <div id="screen-preview" class="hidden">
-            <h3 style="text-align:center; color:#1b5e20; margin-top:0;">Verifikasi Akhir</h3>
-            <p style="text-align:center; color:#777; font-size:13px;">Periksa ulang ringkasan laporan sesi ini.</p>
-            <div id="preview-summary" style="background:#f4f7f6; padding:20px; border-radius:16px; border:1px solid #e5e5e5; font-size:14px;"></div>
-            <button class="btn" id="btn-submit" onclick="submitData()" style="margin-top:20px;">Finalisasi & Kirim Data</button>
-            <button class="btn btn-outline" onclick="switchScreen('screen-attendance')">Kembali Koreksi</button>
+            <p style="text-align:center; color:#555; font-size:14px; margin-bottom:20px;">Ringkasan Presensi Sesi <span id="prev-sesi"></span></p>
+            <div class="card-soft" id="preview-summary" style="font-size:14px; color:#333; line-height:1.8;"></div>
+            <button class="btn" id="btn-submit" onclick="submitData()" style="margin-top:20px;">Kunci & Kirim Data</button>
+            <button class="btn btn-outline" style="border:none; color:#777;" onclick="switchScreen('screen-attendance')">Koreksi Kembali</button>
         </div>
     </div>
 </div>
 
 <div id="adjustment-modal" class="modal-overlay hidden">
     <div class="modal-box">
-        <div class="modal-title">⚙️ Kalender Hijriah</div>
-        <div style="display:flex; justify-content:center; gap:5px; margin-top:15px;">
+        <div style="font-weight:500; font-size:15px; color:#1b5e20; margin-bottom:15px;">Penyesuaian Kalender</div>
+        <div style="display:flex; justify-content:center;">
             <button id="adj-min1" class="adj-btn" onclick="setHijriAdjustment(-1)">-1 Hari</button>
             <button id="adj-0" class="adj-btn" onclick="setHijriAdjustment(0)">Normal</button>
             <button id="adj-plus1" class="adj-btn" onclick="setHijriAdjustment(1)">+1 Hari</button>
         </div>
-        <button class="btn" onclick="closeAdjustmentModal()" style="margin-top:20px; padding:10px; font-size:14px;">Terapkan</button>
+        <button class="btn" onclick="closeAdjustmentModal()" style="margin-top:20px; padding:12px; font-size:14px;">Simpan</button>
     </div>
 </div>
 
 <script>
-    // GANTI DENGAN URL APPS SCRIPT ANDA
     const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
-    
     let currentUser="", currentRole="", allStudents=[], currentClassStudents=[], attendanceData={}, currentSesi=1, activeClassTitle="";
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
@@ -169,9 +196,8 @@
         else if(jam > "08:20" && jam <= "10:10") currentSesi=2; 
         else currentSesi=3;
         
-        const selector = document.getElementById('session-selector');
-        if(selector) selector.value = currentSesi;
-
+        const sel = document.getElementById('session-selector'); if(sel) sel.value = currentSesi;
+        
         fetch(`https://api.aladhan.com/v1/gToH?date=${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}`)
         .then(res=>res.json()).then(d=>{
             let h = d.data.hijri; let finalDay = parseInt(h.day) + hijriOffset;
@@ -181,20 +207,16 @@
         });
     }
 
-    function switchScreen(screenId) {
-        ['screen-login', 'screen-loading', 'screen-dashboard', 'screen-attendance', 'screen-preview'].forEach(s => {
-            document.getElementById(s).classList.add('hidden');
-        });
-        document.getElementById(screenId).classList.remove('hidden');
+    function switchScreen(id) {
+        ['screen-login', 'screen-loading', 'screen-dashboard', 'screen-attendance', 'screen-preview'].forEach(s => document.getElementById(s).classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
         
-        const classHeader = document.getElementById('sticky-class-header');
-        if (screenId === 'screen-attendance') {
-            classHeader.innerText = "Presensi Kelas " + activeClassTitle;
-            classHeader.classList.remove('hidden');
-        } else { classHeader.classList.add('hidden'); }
-
-        if (screenId === 'screen-dashboard') if (history.state !== 'home') history.pushState('home', null, '');
-        else if (screenId === 'screen-attendance') history.pushState('attendance', null, '');
+        const clsHeader = document.getElementById('sticky-class-header');
+        if (id === 'screen-attendance') { clsHeader.innerText = "Presensi Kelas " + activeClassTitle; clsHeader.classList.remove('hidden'); } 
+        else { clsHeader.classList.add('hidden'); }
+        
+        if (id === 'screen-dashboard' && history.state !== 'home') history.pushState('home', null, '');
+        else if (id === 'screen-attendance') history.pushState('attendance', null, '');
     }
 
     window.onpopstate = function() {
@@ -203,7 +225,6 @@
         else if (!document.getElementById('screen-dashboard').classList.contains('hidden')) history.pushState('home', null, '');
     };
 
-    function updateSesiManual(val) { currentSesi = parseInt(val); loadDashboardData(); }
     function openAdjustmentModal() {
         document.getElementById('adjustment-modal').classList.remove('hidden');
         ['adj-min1', 'adj-0', 'adj-plus1'].forEach(id => document.getElementById(id).classList.remove('active'));
@@ -213,11 +234,12 @@
     }
     function setHijriAdjustment(val) { hijriOffset = val; localStorage.setItem('hijri_offset', val); openAdjustmentModal(); renderDates(); }
     function closeAdjustmentModal() { document.getElementById('adjustment-modal').classList.add('hidden'); }
+    function updateSesiManual(val) { currentSesi = parseInt(val); loadDashboardData(); }
 
     function doLogin(){
         const hp=document.getElementById('input-hp').value, pin=document.getElementById('input-pin').value;
         const err = document.getElementById('login-error');
-        if(!hp || !pin) { err.innerText="Isi HP & PIN!"; err.style.display="block"; return; }
+        if(!hp || !pin) { err.innerText="Mohon isi HP & PIN"; err.style.display="block"; return; }
         
         err.style.display="none"; switchScreen('screen-loading');
         fetch(API_URL,{method:'POST',body:JSON.stringify({action:"login",ID_Pengguna:hp,Kata_Sandi:pin})})
@@ -228,78 +250,77 @@
                 document.getElementById('top-dashboard-info').classList.remove('hidden');
                 document.getElementById('top-name').innerText=currentUser;
                 document.getElementById('config-gear').classList.remove('hidden');
-                
                 renderDates(); 
                 fetch(API_URL+"?action=getStudents").then(r=>r.json()).then(stData=>{ allStudents=stData; loadDashboardData(); });
             } else { switchScreen('screen-login'); err.innerText=data.pesan; err.style.display="block"; }
-        }).catch(()=>{ switchScreen('screen-login'); err.innerText="Gangguan jaringan."; err.style.display="block"; });
+        }).catch(()=>{ switchScreen('screen-login'); err.innerText="Gangguan server."; err.style.display="block"; });
     }
 
     function loadDashboardData(){
-        switchScreen('screen-loading'); document.getElementById('loading-text').innerText="Menarik Jadwal Sesi "+currentSesi+"...";
+        switchScreen('screen-loading'); document.getElementById('loading-text').innerText="Menyusun data sesi "+currentSesi+"...";
         document.getElementById('lbl-sesi').innerText = currentSesi;
         
         fetch(API_URL,{method:'POST',body:JSON.stringify({action:"syncDashboard", sesi:currentSesi, nama:currentUser})})
-        .then(res=>res.json()).then(data=>{
+        .then(res=>res.json()).then(d=>{
             switchScreen('screen-dashboard');
             
-            // Atur Visibilitas Badge Standby
-            document.getElementById('standby-container').classList.add('hidden');
-            document.getElementById('hadir-badge').classList.add('hidden');
-            if(data.isPresent) {
-                document.getElementById('hadir-badge').classList.remove('hidden');
-            } else if(data.jadwalPribadi.length === 0) {
-                document.getElementById('standby-container').classList.remove('hidden');
-            }
-
-            // Render Jadwal Pribadi
-            const jadDiv = document.getElementById('jadwal-pribadi-container'); jadDiv.innerHTML='';
-            if(data.jadwalPribadi.length > 0){
-                data.jadwalPribadi.forEach(j => {
-                    let b=document.createElement('button'); b.className='btn btn-outline';
-                    b.innerHTML = `Mengajar <b>Kelas ${j.kelas}</b><br><small>${j.mapel}</small>`;
-                    b.onclick=() => { activeClassTitle=j.kelas; openClass(j.kelas); }; jadDiv.appendChild(b);
-                });
+            // Logic Lencana Hadir & Tombol Standby (Mencegah Spam)
+            const bHadir = document.getElementById('hadir-badge'); const cStandby = document.getElementById('standby-container');
+            bHadir.classList.add('hidden'); cStandby.classList.add('hidden');
+            
+            if(d.isPresent) {
+                bHadir.classList.remove('hidden');
             } else {
-                jadDiv.innerHTML = "<p style='text-align:center; color:#999; font-size:13px;'>Kosong</p>";
+                // Selalu munculkan standby jika Pimpinan, atau tidak ada jadwal
+                if (currentRole === 'pimpinan' || d.jadwalPribadi.length === 0) cStandby.classList.remove('hidden');
             }
 
-            // Render Guru Piket (Inval)
-            const invSec = document.getElementById('inval-section');
-            if(currentRole === 'piket' || currentRole === 'pimpinan') {
-                invSec.classList.remove('hidden');
-                const invDiv = document.getElementById('kelas-inval-container'); invDiv.innerHTML='';
-                if(data.kelasInvalKosong.length > 0){
-                    data.kelasInvalKosong.forEach(j => {
-                        let b=document.createElement('button'); b.className='btn btn-outline'; b.style.borderColor="#f57f17"; b.style.color="#f57f17";
-                        b.innerHTML = `Inval <b>Kelas ${j.kelas}</b><br><small>${j.mapel} (Guru: ${j.guru})</small>`;
-                        b.onclick=() => { activeClassTitle=j.kelas; openClass(j.kelas); }; invDiv.appendChild(b);
-                    });
-                } else { invDiv.innerHTML = "<p style='text-align:center; color:#2e7d32; font-size:13px;'>Alhamdulillah, tidak ada kelas kosong.</p>"; }
-            } else { invSec.classList.add('hidden'); }
+            // Jadwal Pribadi
+            const secJadwal = document.getElementById('section-jadwal'); const divJadwal = document.getElementById('jadwal-container');
+            if (d.jadwalPribadi.length > 0) {
+                secJadwal.classList.remove('hidden'); divJadwal.innerHTML = '';
+                d.jadwalPribadi.forEach(j => {
+                    let div = document.createElement('div'); div.className = "card-soft"; div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); };
+                    div.innerHTML = `<div style="font-weight:500; font-size:15px; color:#333; margin-bottom:4px;">Kelas ${j.kelas}</div><div style="font-size:12px; color:#777;">${j.mapel}</div>`;
+                    divJadwal.appendChild(div);
+                });
+            } else { secJadwal.classList.add('hidden'); }
 
-            // Render Pimpinan
-            const pimSec = document.getElementById('pimpinan-section');
-            if(currentRole === 'pimpinan'){
-                pimSec.classList.remove('hidden');
-                document.getElementById('dash-guru').innerText=`${data.stats.guruHadir} / ${data.stats.totalGuru} Guru`;
-                document.getElementById('dash-siswa-izin').innerText=data.stats.s + data.stats.i;
-                document.getElementById('dash-siswa-alpa').innerText=data.stats.a;
-                const lateDiv=document.getElementById('late-list'); lateDiv.innerHTML='';
-                if(data.kelasInvalKosong.length > 0){
-                    data.kelasInvalKosong.forEach(l=>{
-                        let p=document.createElement('div'); p.style.borderBottom="1px solid #eee"; p.style.padding="4px 0";
-                        p.innerHTML=`⚠️ <b>Kls ${l.kelas}</b>: ${l.guru} (${l.mapel})`; lateDiv.appendChild(p);
+            // Inval
+            const secInval = document.getElementById('section-inval'); const divInval = document.getElementById('inval-container');
+            if (currentRole === 'piket' || currentRole === 'pimpinan') {
+                secInval.classList.remove('hidden'); divInval.innerHTML = '';
+                if(d.kelasInvalKosong.length > 0){
+                    d.kelasInvalKosong.forEach(j => {
+                        let div = document.createElement('div'); div.className = "card-soft card-inval"; div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); };
+                        div.innerHTML = `<div style="font-weight:500; font-size:14px; color:#333; margin-bottom:4px;">Kelas ${j.kelas} - ${j.mapel}</div><div style="font-size:12px; color:#777;">Guru Utama: ${j.guru}</div>`;
+                        divInval.appendChild(div);
                     });
-                } else { lateDiv.innerHTML="<span style='color:#2e7d32;'>✅ Seluruh kelas telah diabsen.</span>"; }
-            } else { pimSec.classList.add('hidden'); }
+                } else { divInval.innerHTML = "<div style='font-size:13px; color:#1b5e20;'>Semua kelas terpenuhi.</div>"; }
+            } else { secInval.classList.add('hidden'); }
+
+            // Pimpinan Alert & Stats
+            const secPimpinan = document.getElementById('section-pimpinan');
+            if (currentRole === 'pimpinan') {
+                secPimpinan.classList.remove('hidden');
+                document.getElementById('dash-guru').innerText = `${d.stats.guruHadir} / ${d.stats.totalGuru}`;
+                document.getElementById('dash-izin').innerText = d.stats.s + d.stats.i; document.getElementById('dash-alpa').innerText = d.stats.a;
+                
+                const lateDiv = document.getElementById('late-list'); lateDiv.innerHTML = '';
+                if(d.kelasInvalKosong.length > 0){
+                    d.kelasInvalKosong.forEach(l => {
+                        let div = document.createElement('div'); div.className = "alert-item";
+                        div.innerHTML = `<span class="alert-dot">•</span> Kelas ${l.kelas} <span style="color:#777; font-size:12px; margin-left:6px;">(${l.guru})</span>`; lateDiv.appendChild(div);
+                    });
+                } else { lateDiv.innerHTML = "<div style='color:#1b5e20;'>Alhamdulillah, tidak ada kelas kosong.</div>"; }
+            } else { secPimpinan.classList.add('hidden'); }
         });
     }
 
     function markStandby() {
-        const btn = document.querySelector('.btn-standby'); btn.innerText = "Memproses..."; btn.disabled = true;
+        document.querySelector('.card-standby').style.opacity = '0.5';
         fetch(API_URL,{method:'POST',body:JSON.stringify({action:"markStandby", sesi:currentSesi, nama:currentUser})})
-        .then(()=>{ alert("Kehadiran kantor Sesi "+currentSesi+" berhasil dikonfirmasi."); loadDashboardData(); });
+        .then(r=>r.text()).then(res=>{ loadDashboardData(); });
     }
 
     function openClass(c){
@@ -311,13 +332,18 @@
             attendanceData[s.ID_Siswa]='H'; 
             let r=document.createElement('div'); r.className='student-row';
             r.innerHTML=`
-                <div style="width: 50%;"><strong>${s.Nama_Siswa}</strong><br><small style="color:#aaa;">${s.ID_Siswa}</small></div>
+                <div style="width: 50%;">
+                    <div style="font-size:14px; font-weight:500; color:#333; margin-bottom:2px;">${s.Nama_Siswa}</div>
+                    <div style="font-size:11px; color:#888;">${s.ID_Siswa}</div>
+                </div>
                 <div class="status-container">
                     <span class="status-btn active-H" onclick="setStatus('${s.ID_Siswa}','H',this)">H</span>
                     <span class="status-btn" onclick="setStatus('${s.ID_Siswa}','S',this)">S</span>
                     <span class="status-btn" onclick="setStatus('${s.ID_Siswa}','I',this)">I</span>
                     <span class="status-btn" onclick="setStatus('${s.ID_Siswa}','A',this)">A</span>
-                    <button class="wa-action-btn" id="wa-${s.ID_Siswa}" onclick="sendWA('${s.Nomor_WA_Wali}','${s.Nama_Siswa}','${c}')">💬</button>
+                    <button class="wa-action-btn" id="wa-${s.ID_Siswa}" onclick="sendWA('${s.Nomor_WA_Wali}','${s.Nama_Siswa}','${c}')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    </button>
                 </div>`; div.appendChild(r);
         });
     }
@@ -340,20 +366,21 @@
 
     function showPreview(){
         switchScreen('screen-preview');
+        document.getElementById('prev-sesi').innerText = currentSesi;
         let h=0,s=0,i=0,a=0; currentClassStudents.forEach(st=>{ let v=attendanceData[st.ID_Siswa]; if(v==='H')h++;else if(v==='S')s++;else if(v==='I')i++;else a++; });
-        document.getElementById('preview-summary').innerHTML=`<p>Hadir: <b>${h}</b> | Sakit: <b>${s}</b> | Izin: <b>${i}</b> | Alpa: <b>${a}</b></p>`;
+        document.getElementById('preview-summary').innerHTML=`<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Hadir</span> <span style="font-weight:500;">${h} Siswa</span></div><div style="display:flex; justify-content:space-between; margin-bottom:8px; color:#f57f17;"><span>Sakit/Izin</span> <span style="font-weight:500;">${s+i} Siswa</span></div><div style="display:flex; justify-content:space-between; color:#d32f2f; padding-top:8px; border-top:1px solid #f0f0f0;"><span>Alpa</span> <span style="font-weight:500;">${a} Siswa</span></div>`;
     }
 
     function submitData(){
-        const btn = document.getElementById('btn-submit'); btn.innerText = "Mengunci data..."; btn.disabled = true;
+        const btn = document.getElementById('btn-submit'); btn.innerText = "Memproses..."; btn.disabled = true;
         const payload = currentClassStudents.map(s=>({
             Tanggal: new Date().toLocaleDateString('id-ID'), Sesi: currentSesi, ID_Siswa: s.ID_Siswa, Nama_Siswa: s.Nama_Siswa, Kelas: s.Kelas, Status: attendanceData[s.ID_Siswa], Nama_Guru: currentUser
         }));
         fetch(API_URL,{method:'POST',body:JSON.stringify({action:"submitAttendance",data:payload})})
         .then(res=>res.json()).then(data=>{
-            if(data.status === "gagal") { alert(data.pesan); switchScreen('screen-dashboard'); btn.innerText="Finalisasi & Kirim Data"; btn.disabled=false; }
-            else { alert(`Sesi ${currentSesi} berhasil direkam! Anda otomatis tercatat hadir di madrasah.`); loadDashboardData(); btn.innerText="Finalisasi & Kirim Data"; btn.disabled=false; }
-        }).catch(()=>{ alert("Gagal koneksi."); btn.innerText="Finalisasi & Kirim Data"; btn.disabled=false; });
+            if(data.status === "gagal") { alert(data.pesan); switchScreen('screen-dashboard'); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; }
+            else { alert(`Data terkunci. Anda tercatat hadir di Sesi ${currentSesi}.`); loadDashboardData(); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; }
+        }).catch(()=>{ alert("Gagal koneksi."); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; });
     }
 
     window.onload = renderDates;
