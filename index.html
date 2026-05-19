@@ -60,6 +60,24 @@
         .adj-btn { padding: 10px 14px; border: 1px solid #e0e4e2; border-radius: 10px; background: #fff; color: #555; font-weight: 500; font-size: 13px; margin: 0 4px; cursor: pointer; }
         .adj-btn.active { background: #1b5e20; color: #fff; border-color: #1b5e20; }
         
+
+        .inval-summary-card { cursor: default; border-left: 3px solid #f57f17; }
+        .inval-summary-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; }
+        .inval-summary-title { font-size:13px; color:#555; font-weight:500; }
+        .inval-count-badge { background:#fff3e0; color:#e65100; border-radius:20px; padding:6px 10px; font-size:12px; font-weight:600; white-space:nowrap; }
+        .inval-summary-note { font-size:12px; color:#777; margin-bottom:12px; line-height:1.5; }
+        .inval-btn-small { background:#1b5e20; color:#fff; border:none; border-radius:12px; padding:12px 14px; width:100%; font-size:14px; font-weight:500; cursor:pointer; }
+        .inval-btn-small:disabled { background:#d9dedb; color:#777; cursor:not-allowed; }
+        .bottom-drawer-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.38); z-index: 1200; display:flex; align-items:flex-end; justify-content:center; }
+        .bottom-drawer { background:#f7f9f8; width:100%; max-width:480px; max-height:82vh; border-radius:24px 24px 0 0; padding:12px 18px 20px 18px; box-shadow:0 -8px 24px rgba(0,0,0,0.18); overflow-y:auto; }
+        .drawer-handle { width:42px; height:5px; background:#d2d8d4; border-radius:10px; margin:0 auto 16px auto; }
+        .drawer-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
+        .drawer-title { font-size:16px; font-weight:600; color:#1b5e20; }
+        .drawer-subtitle { font-size:12px; color:#777; margin-top:4px; line-height:1.4; }
+        .drawer-close { border:none; background:#fff; color:#555; border-radius:50%; width:34px; height:34px; cursor:pointer; font-size:18px; line-height:34px; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+        .drawer-empty { background:#fff; color:#1b5e20; border-radius:14px; padding:16px; font-size:13px; text-align:center; }
+        .drawer-inval-card { background:#fff; border-radius:14px; padding:16px; margin-bottom:10px; border-left:3px solid #f57f17; box-shadow:0 4px 12px rgba(0,0,0,0.02); cursor:pointer; }
+        .drawer-inval-card:active { background:#f0f4f2; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -120,8 +138,15 @@
             </div>
 
             <div id="section-inval" class="hidden">
-                <div class="section-title">Tugas Inval</div>
-                <div id="inval-container"></div>
+                <div class="section-title">Akses Inval</div>
+                <div class="card-soft inval-summary-card">
+                    <div class="inval-summary-head">
+                        <div class="inval-summary-title">Kelas Belum Diabsen</div>
+                        <div class="inval-count-badge"><span id="inval-count">0</span> kelas</div>
+                    </div>
+                    <div class="inval-summary-note" id="inval-summary-note">Memuat daftar kelas kosong...</div>
+                    <button class="inval-btn-small" id="btn-open-inval" onclick="openInvalDrawer()">Buka Inval</button>
+                </div>
             </div>
 
             <div id="section-pimpinan" class="hidden" style="margin-top:25px;">
@@ -177,10 +202,25 @@
     </div>
 </div>
 
+<div id="inval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeInvalDrawer()">
+    <div class="bottom-drawer" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <div>
+                <div class="drawer-title">Daftar Kelas Inval</div>
+                <div class="drawer-subtitle">Pilih kelas yang benar-benar akan panjenengan isi pada sesi ini.</div>
+            </div>
+            <button class="drawer-close" onclick="closeInvalDrawer()" aria-label="Tutup">×</button>
+        </div>
+        <div id="inval-drawer-list"></div>
+    </div>
+</div>
+
     <script>
     // PASTIKAN BARIS INI ADA DI PALING ATAS
     const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
     let currentUser="", currentRole="", allStudents=[], currentClassStudents=[], attendanceData={}, currentSesi=1, activeClassTitle="";
+    let latestInvalList = [];
     let isSubmitting=false, standbyBusy=false;
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
@@ -271,6 +311,85 @@
         }).catch(()=>{ switchScreen('screen-login'); err.innerText="Gangguan server."; err.style.display="block"; });
     }
 
+
+    function safeText(val) {
+        return (val === undefined || val === null) ? "" : String(val);
+    }
+
+    function renderInvalAccessCard(prefix) {
+        const total = latestInvalList.length;
+        const countEl = document.getElementById(prefix + '-count') || document.getElementById('inval-count');
+        const noteEl = document.getElementById(prefix + '-note') || document.getElementById('inval-summary-note');
+        const btnEl = document.getElementById(prefix + '-btn') || document.getElementById('btn-open-inval');
+
+        if (countEl) countEl.innerText = total;
+        if (noteEl) {
+            noteEl.innerText = total > 0
+                ? `Ada ${total} kelas yang belum melakukan presensi pada sesi ${currentSesi}. Tekan tombol untuk melihat daftar.`
+                : `Semua kelas pada sesi ${currentSesi} sudah melakukan presensi.`;
+        }
+        if (btnEl) {
+            btnEl.disabled = total === 0;
+            btnEl.innerText = total > 0 ? 'Buka Inval' : 'Tidak Ada Inval';
+        }
+    }
+
+    function renderPimpinanInvalCard() {
+        const lateDiv = document.getElementById('late-list');
+        if (!lateDiv) return;
+
+        const total = latestInvalList.length;
+        lateDiv.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px;">
+                <div style="font-size:13px; color:#555;">Kelas belum diabsen sesi ${currentSesi}</div>
+                <div class="inval-count-badge"><span id="pimpinan-inval-count">${total}</span> kelas</div>
+            </div>
+            <div class="inval-summary-note" id="pimpinan-inval-note">
+                ${total > 0 ? 'Tekan tombol untuk melihat daftar kelas kosong tanpa memenuhi dashboard.' : 'Alhamdulillah, semua kelas pada sesi ini sudah melakukan presensi.'}
+            </div>
+            <button class="inval-btn-small" id="pimpinan-inval-btn" onclick="openInvalDrawer()" ${total === 0 ? 'disabled' : ''}>${total > 0 ? 'Buka Inval' : 'Tidak Ada Inval'}</button>
+        `;
+    }
+
+    function openInvalDrawer() {
+        const overlay = document.getElementById('inval-drawer-overlay');
+        const list = document.getElementById('inval-drawer-list');
+        if (!overlay || !list) return;
+
+        list.innerHTML = '';
+
+        if (!latestInvalList || latestInvalList.length === 0) {
+            list.innerHTML = '<div class="drawer-empty">Alhamdulillah, tidak ada kelas kosong pada sesi ini.</div>';
+        } else {
+            latestInvalList.forEach(j => {
+                const card = document.createElement('div');
+                card.className = 'drawer-inval-card';
+                card.innerHTML = `
+                    <div style="font-weight:600; font-size:15px; color:#333; margin-bottom:4px;">Kelas ${safeText(j.kelas)}</div>
+                    <div style="font-size:12px; color:#777; margin-bottom:6px;">${safeText(j.mapel)}</div>
+                    <div style="font-size:12px; color:#555;">Guru Utama: <span style="font-weight:500; color:#333;">${safeText(j.guru)}</span></div>
+                `;
+                card.onclick = () => {
+                    closeInvalDrawer();
+                    activeClassTitle = j.kelas;
+                    openClass(j.kelas);
+                };
+                list.appendChild(card);
+            });
+        }
+
+        overlay.classList.remove('hidden');
+    }
+
+    function closeInvalDrawer() {
+        const overlay = document.getElementById('inval-drawer-overlay');
+        if (overlay) overlay.classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeInvalDrawer();
+    });
+
     function loadDashboardData(){
         switchScreen('screen-loading'); document.getElementById('loading-text').innerText="Menyusun data sesi "+currentSesi+"... ";
         document.getElementById('lbl-sesi').innerText = currentSesi;
@@ -300,18 +419,18 @@
                 });
             } else { secJadwal.classList.add('hidden'); }
 
-            const secInval = document.getElementById('section-inval'); const divInval = document.getElementById('inval-container');
+            latestInvalList = Array.isArray(d.kelasInvalKosong) ? d.kelasInvalKosong : [];
+
+            const secInval = document.getElementById('section-inval');
             const canAccessInval = d.canAccessInval === true;
-            if (canAccessInval) {
-                secInval.classList.remove('hidden'); divInval.innerHTML = '';
-                if(d.kelasInvalKosong.length > 0){
-                    d.kelasInvalKosong.forEach(j => {
-                        let div = document.createElement('div'); div.className = "card-soft card-inval"; div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); };
-                        div.innerHTML = `<div style="font-weight:500; font-size:14px; color:#333; margin-bottom:4px;">Kelas ${j.kelas} - ${j.mapel}</div><div style="font-size:12px; color:#777;">Guru Utama: ${j.guru}</div>`;
-                        divInval.appendChild(div);
-                    });
-                } else { divInval.innerHTML = "<div style='font-size:13px; color:#1b5e20;'>Semua kelas terpenuhi.</div>"; }
-            } else { secInval.classList.add('hidden'); }
+            // Untuk pimpinan, ringkasan Inval diletakkan di kartu Dashboard Pimpinan agar dashboard tetap rapi.
+            // Untuk guru piket, ringkasan Inval tampil sebagai akses utama.
+            if (canAccessInval && currentRole !== 'pimpinan') {
+                secInval.classList.remove('hidden');
+                renderInvalAccessCard('inval');
+            } else {
+                secInval.classList.add('hidden');
+            }
 
             const secPimpinan = document.getElementById('section-pimpinan');
             if (currentRole === 'pimpinan') {
@@ -319,13 +438,7 @@
                 document.getElementById('dash-guru').innerText = `${d.stats.guruHadir} / ${d.stats.totalGuru}`;
                 document.getElementById('dash-izin').innerText = d.stats.s + d.stats.i; document.getElementById('dash-alpa').innerText = d.stats.a;
                 
-                const lateDiv = document.getElementById('late-list'); lateDiv.innerHTML = '';
-                if(d.kelasInvalKosong.length > 0){
-                    d.kelasInvalKosong.forEach(l => {
-                        let div = document.createElement('div'); div.className = "alert-item";
-                        div.innerHTML = `<span class="alert-dot">•</span> Kelas ${l.kelas} <span style="color:#777; font-size:12px; margin-left:6px;">(${l.guru})</span>`; lateDiv.appendChild(div);
-                    });
-                } else { lateDiv.innerHTML = "<div style='color:#1b5e20;'>Alhamdulillah, tidak ada kelas kosong.</div>"; }
+                renderPimpinanInvalCard();
             } else { secPimpinan.classList.add('hidden'); }
         });
     }
@@ -357,9 +470,15 @@
     }
 
     function openClass(c){
+        closeInvalDrawer();
         switchScreen('screen-attendance');
         currentClassStudents=allStudents.filter(s=>s.Kelas===c);
         const div=document.getElementById('student-list'); div.innerHTML='';
+
+        if (currentClassStudents.length === 0) {
+            div.innerHTML = `<div class="card-soft" style="cursor:default; text-align:center; color:#d32f2f; font-size:13px; line-height:1.6;">Data siswa untuk kelas ${safeText(c)} belum tersedia. Silakan lengkapi Data_Siswa terlebih dahulu.</div>`;
+            return;
+        }
         
         currentClassStudents.forEach(s=>{
             attendanceData[s.ID_Siswa]='H'; 
