@@ -181,6 +181,7 @@
     // PASTIKAN BARIS INI ADA DI PALING ATAS
     const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
     let currentUser="", currentRole="", allStudents=[], currentClassStudents=[], attendanceData={}, currentSesi=1, activeClassTitle="";
+    let isSubmitting=false, standbyBusy=false;
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
     // SISTEM PROTEKSI NAVIGASI TOMBOL BACK/SWIPE HP (SPA ROUTER)
@@ -327,9 +328,29 @@
     }
 
     function markStandby() {
+        if (standbyBusy) return;
+        standbyBusy = true;
+
         switchScreen('screen-loading');
-        fetch(API_URL,{method:'POST',body:JSON.stringify({action:"markStandby", sesi:currentSesi, nama:currentUser})})
-        .then(()=>{ loadDashboardData(); });
+
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:"markStandby", sesi:currentSesi, nama:currentUser})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            // Jika sudah tercatat, tidak perlu logout/menolak akses.
+            // Cukup kembali ke dashboard agar badge hadir muncul.
+            if(data.status === "gagal") alert(data.pesan || "Gagal mencatat kehadiran.");
+            loadDashboardData();
+        })
+        .catch(()=>{
+            alert("Gagal koneksi.");
+            switchScreen('screen-dashboard');
+        })
+        .finally(()=>{
+            standbyBusy = false;
+        });
     }
 
     function openClass(c){
@@ -381,15 +402,47 @@
     }
 
     function submitData(){
-        const btn = document.getElementById('btn-submit'); btn.innerText = "Mengunci data..."; btn.disabled = true;
+        if (isSubmitting) return;
+        isSubmitting = true;
+
+        const btn = document.getElementById('btn-submit');
+        btn.innerText = "Mengunci data...";
+        btn.disabled = true;
+
         const payload = currentClassStudents.map(s=>({
-            Tanggal: new Date().toLocaleDateString('id-ID'), Sesi: currentSesi, ID_Siswa: s.ID_Siswa, Nama_Siswa: s.Nama_Siswa, Kelas: s.Kelas, Status: attendanceData[s.ID_Siswa], Nama_Guru: currentUser
+            // Tanggal tetap dikirim untuk kompatibilitas,
+            // tetapi server yang menentukan tanggal final agar formatnya konsisten.
+            Tanggal: new Date().toLocaleDateString('id-ID'),
+            Sesi: currentSesi,
+            ID_Siswa: s.ID_Siswa,
+            Nama_Siswa: s.Nama_Siswa,
+            Kelas: s.Kelas,
+            Status: attendanceData[s.ID_Siswa],
+            Nama_Guru: currentUser
         }));
-        fetch(API_URL,{method:'POST',body:JSON.stringify({action:"submitAttendance",data:payload})})
-        .then(res=>res.json()).then(data=>{
-            if(data.status === "gagal") { alert(data.pesan); switchScreen('screen-dashboard'); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; }
-            else { alert(`Data sukses terkunci.`); loadDashboardData(); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; }
-        }).catch(()=>{ alert("Gagal koneksi."); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; });
+
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:"submitAttendance",data:payload})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if(data.status === "gagal") {
+                alert(data.pesan || "Data ditolak server.");
+                switchScreen('screen-dashboard');
+            } else {
+                alert("Data sukses terkunci.");
+                loadDashboardData();
+            }
+        })
+        .catch(()=>{
+            alert("Gagal koneksi.");
+        })
+        .finally(()=>{
+            btn.innerText="Kunci & Kirim Data";
+            btn.disabled=false;
+            isSubmitting=false;
+        });
     }
 
     // Inisialisasi awal agar halaman login menjadi batas terbawah tumpukan navigasi HP
