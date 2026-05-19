@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#1b5e20">
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        /* DIET TIPOGRAFI: Menggunakan regular (400) dan medium (500) */
+        /* DIET FONTS: Dominasi Regular (400) dan Medium (500) untuk estetika premium */
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f7f9f8; color: #333; margin: 0; padding: 0; font-weight: 400; }
         #app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background-color: #1b5e20; position: relative; }
         
@@ -30,23 +30,21 @@
         
         .section-title { font-size: 13px; color: #777; font-weight: 500; margin: 25px 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        /* DESAIN KARTU CLEAN FLAT */
+        /* GAYA DESAIN KARTU CLEAN & FLAT (TIDAK NORAK / KAKU) */
         .card-soft { background: #fff; border-radius: 14px; padding: 18px; margin-bottom: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: 0.2s; border: 1px solid transparent; }
         .card-soft:active { background: #f0f4f2; border-color: #e0e4e2; }
-        .card-inval { border-left: 3px solid #f57f17; } /* Aksen minimalis Inval */
+        .card-inval { border-left: 3px solid #f57f17; } /* Aksen minimalis pinggir kiri */
         
-        /* TOMBOL STANDBY (HADIR KANTOR) ELEGAN */
-        .card-standby { background: #fff; border: 1px solid #4caf50; border-radius: 14px; padding: 18px; text-align: center; cursor: pointer; color: #1b5e20; transition: 0.2s; }
-        .card-standby:active { background: #e8f5e9; }
-        .badge-hadir { background: #e8f5e9; color: #2e7d32; border-radius: 10px; padding: 14px; text-align: center; font-size: 13px; font-weight: 500; margin-bottom: 15px; }
+        .card-standby { background: #fff; border: 1px solid #e0e4e2; border-radius: 14px; padding: 18px; text-align: center; cursor: pointer; color: #1b5e20; transition: 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .card-standby:active { background: #f0f4f2; }
+        .badge-hadir { background: #e8f5e9; color: #2e7d32; border-radius: 12px; padding: 14px; text-align: center; font-size: 13px; font-weight: 500; margin-bottom: 15px; }
         
-        /* SILENT ALERT PIMPIMAN */
+        /* SILENT ALERT: Desain Peringatan Minimalis & Elegan */
         .card-alert { background: #fff; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 15px; }
         .alert-title { color: #d32f2f; font-weight: 500; font-size: 14px; margin-bottom: 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
         .alert-item { display: flex; align-items: center; font-size: 13px; color: #333; margin-bottom: 8px; }
         .alert-dot { color: #d32f2f; margin-right: 8px; font-size: 18px; line-height: 0; }
         
-        /* STATISTIK CLEAN */
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .stat-box { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
         .stat-lbl { font-size: 11px; color: #777; margin-bottom: 6px; text-transform: uppercase; }
@@ -110,12 +108,12 @@
                 </select>
             </div>
             
-            <div id="hadir-badge" class="badge-hadir hidden">✓ Kehadiran Anda tercatat di sesi ini</div>
+            <div id="hadir-badge" class="badge-hadir hidden">✓ Kehadiran Anda sukses terkunci di sesi ini</div>
             <div id="standby-container" class="hidden" style="margin-bottom:20px;">
                 <div class="card-standby" onclick="markStandby()">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" style="margin-bottom:8px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    <div style="font-weight:500; font-size:14px;">Konfirmasi Hadir Kantor</div>
-                    <div style="font-size:12px; color:#777; margin-top:4px;">Tanpa jadwal mengajar (Sesi <span id="lbl-sesi"></span>)</div>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1b5e20" stroke-width="2" style="margin-bottom:6px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <div style="font-weight:500; font-size:14px;">Konfirmasi Kehadiran Kantor</div>
+                    <div style="font-size:12px; color:#777; margin-top:4px;">Mengisi daftar hadir utama (Sesi <span id="lbl-sesi"></span>)</div>
                 </div>
             </div>
 
@@ -133,7 +131,7 @@
                 <div class="section-title">Dashboard Pimpinan</div>
                 
                 <div class="card-soft" style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="font-size:13px; color:#555;">Kehadiran Guru</div>
+                    <div style="font-size:13px; color:#555;">Kehadiran Guru Hari Ini</div>
                     <div style="font-size:18px; font-weight:500; color:#1b5e20;" id="dash-guru">- / -</div>
                 </div>
                 
@@ -164,7 +162,7 @@
         <div id="screen-preview" class="hidden">
             <p style="text-align:center; color:#555; font-size:14px; margin-bottom:20px;">Ringkasan Presensi Sesi <span id="prev-sesi"></span></p>
             <div class="card-soft" id="preview-summary" style="font-size:14px; color:#333; line-height:1.8;"></div>
-            <button class="btn" id="btn-submit" onclick="submitData()" style="margin-top:20px;">Kunci & Kirim Data</button>
+            <button class="btn" id="btn-submit" onclick="submitData()">Kunci & Kirim Data</button>
             <button class="btn btn-outline" style="border:none; color:#777;" onclick="switchScreen('screen-attendance')">Koreksi Kembali</button>
         </div>
     </div>
@@ -183,7 +181,9 @@
 </div>
 
 <script>
+    // TAUTAN JEMBATAN WEB APP GOOGLE ASLI 
     const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
+    
     let currentUser="", currentRole="", allStudents=[], currentClassStudents=[], attendanceData={}, currentSesi=1, activeClassTitle="";
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
@@ -251,31 +251,28 @@
                 document.getElementById('top-name').innerText=currentUser;
                 document.getElementById('config-gear').classList.remove('hidden');
                 renderDates(); 
-                fetch(API_URL+"?action=getStudents").then(r=>r.json()).then(stData=>{ allStudents=stData; loadDashboardData(); });
+                fetch(API_URL).then(r=>r.json()).then(stData=>{ allStudents=stData; loadDashboardData(); });
             } else { switchScreen('screen-login'); err.innerText=data.pesan; err.style.display="block"; }
         }).catch(()=>{ switchScreen('screen-login'); err.innerText="Gangguan server."; err.style.display="block"; });
     }
 
     function loadDashboardData(){
-        switchScreen('screen-loading'); document.getElementById('loading-text').innerText="Menyusun data sesi "+currentSesi+"...";
+        switchScreen('screen-loading'); document.getElementById('loading-text').innerText="Menyusun data sesi "+currentSesi+"... ";
         document.getElementById('lbl-sesi').innerText = currentSesi;
         
         fetch(API_URL,{method:'POST',body:JSON.stringify({action:"syncDashboard", sesi:currentSesi, nama:currentUser})})
         .then(res=>res.json()).then(d=>{
             switchScreen('screen-dashboard');
             
-            // Logic Lencana Hadir & Tombol Standby (Mencegah Spam)
             const bHadir = document.getElementById('hadir-badge'); const cStandby = document.getElementById('standby-container');
             bHadir.classList.add('hidden'); cStandby.classList.add('hidden');
             
             if(d.isPresent) {
                 bHadir.classList.remove('hidden');
             } else {
-                // Selalu munculkan standby jika Pimpinan, atau tidak ada jadwal
                 if (currentRole === 'pimpinan' || d.jadwalPribadi.length === 0) cStandby.classList.remove('hidden');
             }
 
-            // Jadwal Pribadi
             const secJadwal = document.getElementById('section-jadwal'); const divJadwal = document.getElementById('jadwal-container');
             if (d.jadwalPribadi.length > 0) {
                 secJadwal.classList.remove('hidden'); divJadwal.innerHTML = '';
@@ -286,7 +283,6 @@
                 });
             } else { secJadwal.classList.add('hidden'); }
 
-            // Inval
             const secInval = document.getElementById('section-inval'); const divInval = document.getElementById('inval-container');
             if (currentRole === 'piket' || currentRole === 'pimpinan') {
                 secInval.classList.remove('hidden'); divInval.innerHTML = '';
@@ -299,7 +295,6 @@
                 } else { divInval.innerHTML = "<div style='font-size:13px; color:#1b5e20;'>Semua kelas terpenuhi.</div>"; }
             } else { secInval.classList.add('hidden'); }
 
-            // Pimpinan Alert & Stats
             const secPimpinan = document.getElementById('section-pimpinan');
             if (currentRole === 'pimpinan') {
                 secPimpinan.classList.remove('hidden');
@@ -318,9 +313,10 @@
     }
 
     function markStandby() {
-        document.querySelector('.card-standby').style.opacity = '0.5';
+        document.getElementById('screen-dashboard').classList.add('hidden');
+        switchScreen('screen-loading');
         fetch(API_URL,{method:'POST',body:JSON.stringify({action:"markStandby", sesi:currentSesi, nama:currentUser})})
-        .then(r=>r.text()).then(res=>{ loadDashboardData(); });
+        .then(()=>{ loadDashboardData(); });
     }
 
     function openClass(c){
@@ -342,7 +338,7 @@
                     <span class="status-btn" onclick="setStatus('${s.ID_Siswa}','I',this)">I</span>
                     <span class="status-btn" onclick="setStatus('${s.ID_Siswa}','A',this)">A</span>
                     <button class="wa-action-btn" id="wa-${s.ID_Siswa}" onclick="sendWA('${s.Nomor_WA_Wali}','${s.Nama_Siswa}','${c}')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                        <svg width="15" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                     </button>
                 </div>`; div.appendChild(r);
         });
@@ -372,14 +368,14 @@
     }
 
     function submitData(){
-        const btn = document.getElementById('btn-submit'); btn.innerText = "Memproses..."; btn.disabled = true;
+        const btn = document.getElementById('btn-submit'); btn.innerText = "Mengunci data..."; btn.disabled = true;
         const payload = currentClassStudents.map(s=>({
             Tanggal: new Date().toLocaleDateString('id-ID'), Sesi: currentSesi, ID_Siswa: s.ID_Siswa, Nama_Siswa: s.Nama_Siswa, Kelas: s.Kelas, Status: attendanceData[s.ID_Siswa], Nama_Guru: currentUser
         }));
         fetch(API_URL,{method:'POST',body:JSON.stringify({action:"submitAttendance",data:payload})})
         .then(res=>res.json()).then(data=>{
             if(data.status === "gagal") { alert(data.pesan); switchScreen('screen-dashboard'); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; }
-            else { alert(`Data terkunci. Anda tercatat hadir di Sesi ${currentSesi}.`); loadDashboardData(); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; }
+            else { alert(`Data terkunci. Kehadiran Anda dicatat pada Sesi ${currentSesi}.`); loadDashboardData(); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; }
         }).catch(()=>{ alert("Gagal koneksi."); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; });
     }
 
