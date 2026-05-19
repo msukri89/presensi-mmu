@@ -128,7 +128,7 @@
                 <div class="section-title">Dashboard Pimpinan</div>
                 
                 <div class="card-soft" style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="font-size:13px; color:#555;">Kehadiran Guru Hari Ini</div>
+                    <div style="font-size:13px; color:#555;">Kehadiran Guru Sesi Ini</div>
                     <div style="font-size:18px; font-weight:500; color:#1b5e20;" id="dash-guru">- / -</div>
                 </div>
                 
@@ -283,9 +283,11 @@
             bHadir.classList.add('hidden'); cStandby.classList.add('hidden');
             
             if(d.isPresent) {
+                bHadir.innerText = d.currentActivity ? `✓ Aktivitas Anda terkunci: ${d.currentActivity}` : '✓ Aktivitas Anda sudah terkunci di sesi ini';
                 bHadir.classList.remove('hidden');
             } else {
-                if (currentRole === 'pimpinan' || d.jadwalPribadi.length === 0) cStandby.classList.remove('hidden');
+                // Konfirmasi kehadiran kantor hanya untuk pimpinan/guru piket sesuai validasi server.
+                if (d.canStandby === true) cStandby.classList.remove('hidden');
             }
 
             const secJadwal = document.getElementById('section-jadwal'); const divJadwal = document.getElementById('jadwal-container');
@@ -299,7 +301,7 @@
             } else { secJadwal.classList.add('hidden'); }
 
             const secInval = document.getElementById('section-inval'); const divInval = document.getElementById('inval-container');
-            const canAccessInval = currentRole === 'piket' || currentRole === 'pimpinan' || d.isPiket === true;
+            const canAccessInval = d.canAccessInval === true;
             if (canAccessInval) {
                 secInval.classList.remove('hidden'); divInval.innerHTML = '';
                 if(d.kelasInvalKosong.length > 0){
@@ -432,7 +434,7 @@
                 alert(data.pesan || "Data ditolak server.");
                 switchScreen('screen-dashboard');
             } else {
-                alert("Data sukses terkunci.");
+                alert(data.pesan || "Data sukses terkunci.");
                 loadDashboardData();
             }
         })
