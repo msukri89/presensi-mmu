@@ -8,7 +8,6 @@
     <meta name="theme-color" content="#1b5e20">
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        /* DIET FONTS: Dominasi Regular (400) dan Medium (500) untuk estetika premium */
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f7f9f8; color: #333; margin: 0; padding: 0; font-weight: 400; }
         #app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background-color: #1b5e20; position: relative; }
         
@@ -30,16 +29,14 @@
         
         .section-title { font-size: 13px; color: #777; font-weight: 500; margin: 25px 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        /* GAYA DESAIN KARTU CLEAN & FLAT (TIDAK NORAK / KAKU) */
         .card-soft { background: #fff; border-radius: 14px; padding: 18px; margin-bottom: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: 0.2s; border: 1px solid transparent; }
         .card-soft:active { background: #f0f4f2; border-color: #e0e4e2; }
-        .card-inval { border-left: 3px solid #f57f17; } /* Aksen minimalis pinggir kiri */
+        .card-inval { border-left: 3px solid #f57f17; }
         
         .card-standby { background: #fff; border: 1px solid #e0e4e2; border-radius: 14px; padding: 18px; text-align: center; cursor: pointer; color: #1b5e20; transition: 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .card-standby:active { background: #f0f4f2; }
         .badge-hadir { background: #e8f5e9; color: #2e7d32; border-radius: 12px; padding: 14px; text-align: center; font-size: 13px; font-weight: 500; margin-bottom: 15px; }
         
-        /* SILENT ALERT: Desain Peringatan Minimalis & Elegan */
         .card-alert { background: #fff; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); margin-bottom: 15px; }
         .alert-title { color: #d32f2f; font-weight: 500; font-size: 14px; margin-bottom: 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
         .alert-item { display: flex; align-items: center; font-size: 13px; color: #333; margin-bottom: 8px; }
@@ -181,11 +178,44 @@
 </div>
 
 <script>
-    // TAUTAN JEMBATAN WEB APP GOOGLE ASLI 
-    const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
-    
     let currentUser="", currentRole="", allStudents=[], currentClassStudents=[], attendanceData={}, currentSesi=1, activeClassTitle="";
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
+
+    // SISTEM PROTEKSI NAVIGASI TOMBOL BACK/SWIPE HP (SPA ROUTER)
+    function switchScreen(id, isPopState = false) {
+        ['screen-login', 'screen-loading', 'screen-dashboard', 'screen-attendance', 'screen-preview'].forEach(s => {
+            document.getElementById(s).classList.add('hidden');
+        });
+        document.getElementById(id).classList.remove('hidden');
+        
+        const clsHeader = document.getElementById('sticky-class-header');
+        if (id === 'screen-attendance') { 
+            clsHeader.innerText = "Presensi Kelas " + activeClassTitle; 
+            clsHeader.classList.remove('hidden'); 
+        } else { 
+            clsHeader.classList.add('hidden'); 
+        }
+        
+        // Jika perpindahan layar bukan dipicu tombol back HP, catat sejarah navigasinya
+        if (!isPopState) {
+            history.pushState({ screen: id }, '');
+        }
+    }
+
+    // Sensor penangkap tombol Back HP / Swipe Back Gesture
+    window.onpopstate = function(event) {
+        if (event.state && event.state.screen) {
+            // Kembalikan ke susunan layar yang tepat di dalam aplikasi, bukan menutup aplikasi
+            switchScreen(event.state.screen, true);
+        } else {
+            // Jembatan pengaman jika stack history kosong, paksa ke dashboard
+            if (currentUser !== "") {
+                switchScreen('screen-dashboard', true);
+            } else {
+                switchScreen('screen-login', true);
+            }
+        }
+    };
 
     function renderDates() {
         const now = new Date();
@@ -206,24 +236,6 @@
             document.getElementById('date-hijri').innerText = `${finalDay} ${ms[h.month.number-1]} ${h.year} H`;
         });
     }
-
-    function switchScreen(id) {
-        ['screen-login', 'screen-loading', 'screen-dashboard', 'screen-attendance', 'screen-preview'].forEach(s => document.getElementById(s).classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        
-        const clsHeader = document.getElementById('sticky-class-header');
-        if (id === 'screen-attendance') { clsHeader.innerText = "Presensi Kelas " + activeClassTitle; clsHeader.classList.remove('hidden'); } 
-        else { clsHeader.classList.add('hidden'); }
-        
-        if (id === 'screen-dashboard' && history.state !== 'home') history.pushState('home', null, '');
-        else if (id === 'screen-attendance') history.pushState('attendance', null, '');
-    }
-
-    window.onpopstate = function() {
-        if (!document.getElementById('screen-attendance').classList.contains('hidden')) switchScreen('screen-dashboard');
-        else if (!document.getElementById('screen-preview').classList.contains('hidden')) switchScreen('screen-attendance');
-        else if (!document.getElementById('screen-dashboard').classList.contains('hidden')) history.pushState('home', null, '');
-    };
 
     function openAdjustmentModal() {
         document.getElementById('adjustment-modal').classList.remove('hidden');
@@ -313,7 +325,6 @@
     }
 
     function markStandby() {
-        document.getElementById('screen-dashboard').classList.add('hidden');
         switchScreen('screen-loading');
         fetch(API_URL,{method:'POST',body:JSON.stringify({action:"markStandby", sesi:currentSesi, nama:currentUser})})
         .then(()=>{ loadDashboardData(); });
@@ -375,11 +386,15 @@
         fetch(API_URL,{method:'POST',body:JSON.stringify({action:"submitAttendance",data:payload})})
         .then(res=>res.json()).then(data=>{
             if(data.status === "gagal") { alert(data.pesan); switchScreen('screen-dashboard'); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; }
-            else { alert(`Data terkunci. Kehadiran Anda dicatat pada Sesi ${currentSesi}.`); loadDashboardData(); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; }
+            else { alert(`Data sukses terkunci.`); loadDashboardData(); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; }
         }).catch(()=>{ alert("Gagal koneksi."); btn.innerText="Kunci & Kirim Data"; btn.disabled=false; });
     }
 
-    window.onload = renderDates;
+    // Inisialisasi awal agar halaman login menjadi batas terbawah tumpukan navigasi HP
+    window.onload = function() {
+        history.replaceState({ screen: 'screen-login' }, '');
+        renderDates();
+    };
 </script>
 </body>
 </html>
