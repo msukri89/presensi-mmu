@@ -78,6 +78,17 @@
         .drawer-empty { background:#fff; color:#1b5e20; border-radius:14px; padding:16px; font-size:13px; text-align:center; }
         .drawer-inval-card { background:#fff; border-radius:14px; padding:16px; margin-bottom:10px; border-left:3px solid #f57f17; box-shadow:0 4px 12px rgba(0,0,0,0.02); cursor:pointer; }
         .drawer-inval-card:active { background:#f0f4f2; }
+
+        .tukar-summary-card { cursor: default; border-left: 3px solid #1b5e20; }
+        .tukar-summary-title { font-size:14px; font-weight:600; color:#1b5e20; margin-bottom:6px; }
+        .tukar-summary-note { font-size:12px; color:#777; line-height:1.5; margin-bottom:12px; }
+        .tukar-field-label { font-size:12px; color:#555; font-weight:600; margin:12px 0 6px 0; }
+        .tukar-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .tukar-readonly { background:#f0f4f2; border:1px solid #e0e4e2; border-radius:12px; padding:13px; font-size:13px; color:#333; min-height:44px; }
+        .tukar-status { font-size:12px; line-height:1.5; border-radius:12px; padding:12px; margin:12px 0; background:#fff; color:#555; border:1px solid #e0e4e2; }
+        .tukar-status.error { background:#ffebee; color:#c62828; border-color:#ffcdd2; }
+        .tukar-status.success { background:#e8f5e9; color:#1b5e20; border-color:#c8e6c9; }
+        .input-field[disabled], .input-field:disabled { background:#f0f4f2; color:#888; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -135,6 +146,15 @@
             <div id="section-jadwal" class="hidden">
                 <div class="section-title">Jadwal Anda</div>
                 <div id="jadwal-container"></div>
+            </div>
+
+            <div id="section-tukar">
+                <div class="section-title">Tukar Tugas</div>
+                <div class="card-soft tukar-summary-card">
+                    <div class="tukar-summary-title">Ajukan Tukar Jam Mengajar</div>
+                    <div class="tukar-summary-note">Buat pengajuan pertukaran tugas. Pengajuan belum berlaku sampai disetujui pimpinan.</div>
+                    <button class="inval-btn-small" onclick="openTukarDrawer()">Ajukan Tukar Tugas</button>
+                </div>
             </div>
 
             <div id="section-inval" class="hidden">
@@ -216,12 +236,64 @@
     </div>
 </div>
 
+<div id="tukar-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeTukarDrawer()">
+    <div class="bottom-drawer" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <div>
+                <div class="drawer-title">Ajukan Tukar Tugas</div>
+                <div class="drawer-subtitle">Pilih jadwal panjenengan, lalu pilih guru pengisi yang memang mengampu kelas tersebut.</div>
+            </div>
+            <button class="drawer-close" onclick="closeTukarDrawer()" aria-label="Tutup">×</button>
+        </div>
+
+        <div class="tukar-row">
+            <div>
+                <div class="tukar-field-label">Tanggal</div>
+                <input type="date" id="tukar-tanggal" class="input-field" onchange="loadTukarOptions()">
+            </div>
+            <div>
+                <div class="tukar-field-label">Sesi</div>
+                <select id="tukar-sesi" class="input-field" onchange="loadTukarOptions()">
+                    <option value="1">Sesi 1</option>
+                    <option value="2">Sesi 2</option>
+                    <option value="3">Sesi 3</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="tukar-field-label">Kelas yang Ditukar</div>
+        <select id="tukar-kelas" class="input-field" onchange="selectTukarClass()">
+            <option value="">Pilih tanggal dan sesi dulu</option>
+        </select>
+
+        <div class="tukar-field-label">Mata Pelajaran</div>
+        <div id="tukar-mapel" class="tukar-readonly">-</div>
+
+        <div class="tukar-field-label">Guru Jadwal Asli</div>
+        <div id="tukar-guru-asli" class="tukar-readonly">-</div>
+
+        <div class="tukar-field-label">Guru Pengisi</div>
+        <select id="tukar-guru-pengisi" class="input-field">
+            <option value="">Pilih kelas terlebih dahulu</option>
+        </select>
+
+        <div class="tukar-field-label">Keterangan</div>
+        <textarea id="tukar-keterangan" class="input-field" rows="3" placeholder="Contoh: Ada keperluan keluarga, sudah sepakat dengan guru pengisi."></textarea>
+
+        <div id="tukar-status" class="tukar-status">Status awal pengajuan akan tersimpan sebagai Diajukan dan belum berlaku sampai disetujui pimpinan.</div>
+        <button class="btn" id="btn-submit-tukar" onclick="submitTukarTugas()">Kirim Pengajuan</button>
+    </div>
+</div>
+
     <script>
     // PASTIKAN BARIS INI ADA DI PALING ATAS
     const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
     let currentUser="", currentRole="", allStudents=[], currentClassStudents=[], attendanceData={}, currentSesi=1, activeClassTitle="";
     let latestInvalList = [];
-    let isSubmitting=false, standbyBusy=false;
+    let latestTukarOptions = [];
+    let selectedTukarSchedule = null;
+    let isSubmitting=false, standbyBusy=false, tukarBusy=false;
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
     // SISTEM PROTEKSI NAVIGASI TOMBOL BACK/SWIPE HP (SPA ROUTER)
@@ -387,8 +459,201 @@
     }
 
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeInvalDrawer();
+        if (e.key === 'Escape') { closeInvalDrawer(); closeTukarDrawer(); }
     });
+
+
+    function formatLocalDateInput(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    function setTukarStatus(msg, type) {
+        const el = document.getElementById('tukar-status');
+        if (!el) return;
+        el.className = 'tukar-status';
+        if (type === 'error') el.classList.add('error');
+        if (type === 'success') el.classList.add('success');
+        el.innerText = msg;
+    }
+
+    function openTukarDrawer() {
+        const overlay = document.getElementById('tukar-drawer-overlay');
+        if (!overlay) return;
+
+        const tgl = document.getElementById('tukar-tanggal');
+        const sesi = document.getElementById('tukar-sesi');
+        if (tgl && !tgl.value) tgl.value = formatLocalDateInput(new Date());
+        if (sesi) sesi.value = String(currentSesi || 1);
+
+        document.getElementById('tukar-keterangan').value = '';
+        setTukarStatus('Status awal pengajuan akan tersimpan sebagai Diajukan dan belum berlaku sampai disetujui pimpinan.', '');
+        overlay.classList.remove('hidden');
+        loadTukarOptions();
+    }
+
+    function closeTukarDrawer() {
+        const overlay = document.getElementById('tukar-drawer-overlay');
+        if (overlay) overlay.classList.add('hidden');
+    }
+
+    function resetTukarClassFields(message) {
+        selectedTukarSchedule = null;
+        document.getElementById('tukar-mapel').innerText = '-';
+        document.getElementById('tukar-guru-asli').innerText = '-';
+        const gp = document.getElementById('tukar-guru-pengisi');
+        gp.innerHTML = `<option value="">${message || 'Pilih kelas terlebih dahulu'}</option>`;
+    }
+
+    function loadTukarOptions() {
+        const tanggal = document.getElementById('tukar-tanggal').value;
+        const sesi = document.getElementById('tukar-sesi').value;
+        const kelasSelect = document.getElementById('tukar-kelas');
+
+        latestTukarOptions = [];
+        kelasSelect.innerHTML = '<option value="">Memuat jadwal...</option>';
+        resetTukarClassFields('Memuat pilihan guru...');
+
+        if (!tanggal || !sesi) {
+            kelasSelect.innerHTML = '<option value="">Pilih tanggal dan sesi dulu</option>';
+            return;
+        }
+
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:'getTukarOptions', nama:currentUser, tanggal:tanggal, sesi:sesi})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if (data.status === 'gagal') {
+                kelasSelect.innerHTML = '<option value="">Gagal memuat jadwal</option>';
+                setTukarStatus(data.pesan || 'Gagal memuat opsi tukar tugas.', 'error');
+                return;
+            }
+
+            latestTukarOptions = Array.isArray(data.schedules) ? data.schedules : [];
+            kelasSelect.innerHTML = '';
+
+            if (latestTukarOptions.length === 0) {
+                kelasSelect.innerHTML = '<option value="">Tidak ada jadwal mengajar Anda</option>';
+                setTukarStatus(`Tidak ada jadwal mengajar Anda pada ${data.hari || 'hari terpilih'} sesi ${sesi}.`, 'error');
+                resetTukarClassFields('Tidak ada kelas yang bisa dipilih');
+                return;
+            }
+
+            kelasSelect.innerHTML = '<option value="">Pilih kelas</option>';
+            latestTukarOptions.forEach((j, idx)=>{
+                const opt = document.createElement('option');
+                opt.value = String(idx);
+                opt.textContent = `Kelas ${safeText(j.kelas)} - ${safeText(j.mapel)}`;
+                kelasSelect.appendChild(opt);
+            });
+
+            setTukarStatus(`Ditemukan ${latestTukarOptions.length} jadwal panjenengan pada ${data.hari}, sesi ${sesi}. Pilih kelas yang akan ditukar.`, '');
+            resetTukarClassFields('Pilih kelas terlebih dahulu');
+        })
+        .catch(()=>{
+            kelasSelect.innerHTML = '<option value="">Gangguan koneksi</option>';
+            setTukarStatus('Gagal koneksi saat memuat jadwal tukar tugas.', 'error');
+        });
+    }
+
+    function selectTukarClass() {
+        const idx = document.getElementById('tukar-kelas').value;
+        const gp = document.getElementById('tukar-guru-pengisi');
+        selectedTukarSchedule = null;
+
+        if (idx === '') {
+            resetTukarClassFields('Pilih kelas terlebih dahulu');
+            return;
+        }
+
+        const j = latestTukarOptions[parseInt(idx, 10)];
+        if (!j) {
+            resetTukarClassFields('Kelas tidak valid');
+            return;
+        }
+
+        selectedTukarSchedule = j;
+        document.getElementById('tukar-mapel').innerText = safeText(j.mapel) || '-';
+        document.getElementById('tukar-guru-asli').innerText = safeText(j.guruJadwalAsli) || currentUser;
+
+        const candidates = Array.isArray(j.guruPengisiOptions) ? j.guruPengisiOptions : [];
+        gp.innerHTML = '';
+
+        if (candidates.length === 0) {
+            gp.innerHTML = '<option value="">Tidak ada guru pengisi dari kelas ini</option>';
+            setTukarStatus('Tidak ditemukan guru lain yang mengampu kelas ini. Untuk kasus khusus, ajukan melalui pimpinan.', 'error');
+            return;
+        }
+
+        gp.innerHTML = '<option value="">Pilih guru pengisi</option>';
+        candidates.forEach(nama=>{
+            const opt = document.createElement('option');
+            opt.value = nama;
+            opt.textContent = nama;
+            gp.appendChild(opt);
+        });
+
+        setTukarStatus(`Pilih guru pengisi yang sudah menyepakati pertukaran untuk kelas ${safeText(j.kelas)}.`, '');
+    }
+
+    function submitTukarTugas() {
+        if (tukarBusy) return;
+
+        const tanggal = document.getElementById('tukar-tanggal').value;
+        const sesi = document.getElementById('tukar-sesi').value;
+        const guruPengisi = document.getElementById('tukar-guru-pengisi').value;
+        const keterangan = document.getElementById('tukar-keterangan').value.trim();
+
+        if (!selectedTukarSchedule) {
+            setTukarStatus('Pilih kelas yang akan ditukar terlebih dahulu.', 'error');
+            return;
+        }
+        if (!guruPengisi) {
+            setTukarStatus('Pilih guru pengisi terlebih dahulu.', 'error');
+            return;
+        }
+
+        tukarBusy = true;
+        const btn = document.getElementById('btn-submit-tukar');
+        btn.disabled = true;
+        btn.innerText = 'Mengirim...';
+
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({
+                action:'submitTukarTugas',
+                nama:currentUser,
+                tanggal:tanggal,
+                sesi:sesi,
+                kelas:selectedTukarSchedule.kelas,
+                guruPengisi:guruPengisi,
+                keterangan:keterangan
+            })
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if (data.status === 'gagal') {
+                setTukarStatus(data.pesan || 'Pengajuan ditolak server.', 'error');
+                return;
+            }
+
+            setTukarStatus(data.pesan || 'Pengajuan tukar tugas berhasil dibuat.', 'success');
+            alert(data.pesan || 'Pengajuan tukar tugas berhasil dibuat.');
+            closeTukarDrawer();
+        })
+        .catch(()=>{
+            setTukarStatus('Gagal koneksi saat mengirim pengajuan.', 'error');
+        })
+        .finally(()=>{
+            tukarBusy = false;
+            btn.disabled = false;
+            btn.innerText = 'Kirim Pengajuan';
+        });
+    }
 
     function loadDashboardData(){
         switchScreen('screen-loading'); document.getElementById('loading-text').innerText="Menyusun data sesi "+currentSesi+"... ";
