@@ -263,6 +263,15 @@
                     <div class="inval-summary-note" id="audit-bulanan-summary-note">Lihat ringkasan dan daftar detail Rekap_Guru_Bulanan bulan berjalan.</div>
                     <button class="inval-btn-small" id="btn-open-audit-bulanan" onclick="openAuditBulananDrawer()" style="background:#0d47a1;">Lihat Audit Bulanan</button>
                 </div>
+
+                <div class="card-soft audit-card" id="card-laporan-yayasan" style="cursor:default; border-left-color:#4e342e;">
+                    <div class="inval-summary-head">
+                        <div class="inval-summary-title">Laporan Yayasan</div>
+                        <div class="audit-count-badge" style="background:#efebe9; color:#4e342e;">Ringkas</div>
+                    </div>
+                    <div class="inval-summary-note" id="laporan-yayasan-summary-note">Buat format laporan ringkas dari Rekap_Guru_Bulanan bulan berjalan ke sheet Laporan_Yayasan.</div>
+                    <button class="inval-btn-small" id="btn-generate-laporan-yayasan" onclick="generateLaporanYayasan()" style="background:#4e342e;">Generate Laporan Yayasan</button>
+                </div>
             </div>
 
             <button class="btn btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar Sistem</button>
@@ -1045,6 +1054,48 @@
         if (noteEl) {
             noteEl.innerText = `Hari ini: Reguler ${c.Reguler || 0}, Tukar ${c.Tukar || 0}, Inval ${c.Inval || 0}, Standby ${c.Standby || 0}, Tidak Hadir ${c.TidakHadir || 0}.`;
         }
+    }
+
+
+
+    function generateLaporanYayasan() {
+        const btn = document.getElementById('btn-generate-laporan-yayasan');
+        const btnBulanan = document.getElementById('btn-generate-rekap-bulanan');
+        if (!confirm('Buat/perbarui Laporan_Yayasan dari Rekap_Guru_Bulanan bulan berjalan? Pastikan Rekap Bulanan sudah digenerate dan diaudit.')) return;
+
+        const oldText = btn ? btn.innerText : '';
+        if (btn) { btn.disabled = true; btn.innerText = 'Membuat laporan...'; }
+        if (btnBulanan) btnBulanan.disabled = true;
+
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:'generateLaporanYayasan', nama:currentUser})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if (data.status !== 'sukses') {
+                alert(data.pesan || 'Gagal membuat Laporan_Yayasan.');
+                return;
+            }
+
+            const s = data.summary || {};
+            const msg = `${data.pesan}\n\nRingkasan Laporan:\nGuru: ${data.totalGuru || 0}\nWajib Efektif: ${s.WajibEfektif || 0}\nTotal Aktivitas: ${s.TotalAktivitas || 0}\nTidak Hadir: ${s.TidakHadir || 0}\nPersentase: ${safeText(s.PersentaseTotal || '0.0%')}`;
+            alert(msg);
+
+            const note = document.getElementById('laporan-yayasan-summary-note');
+            if (note) note.innerText = `Laporan ${safeText(data.bulan)} ${safeText(data.tahun)} siap. Total guru ${data.totalGuru || 0}.`;
+
+            if (data.url && confirm('Buka sheet Laporan_Yayasan sekarang?')) {
+                window.open(data.url, '_blank');
+            }
+        })
+        .catch(()=>{
+            alert('Gagal koneksi saat membuat Laporan_Yayasan.');
+        })
+        .finally(()=>{
+            if (btn) { btn.disabled = false; btn.innerText = oldText || 'Generate Laporan Yayasan'; }
+            if (btnBulanan) btnBulanan.disabled = false;
+        });
     }
 
     function closeAuditRekapDrawer() {
