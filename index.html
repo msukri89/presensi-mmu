@@ -89,6 +89,17 @@
         .tukar-status.error { background:#ffebee; color:#c62828; border-color:#ffcdd2; }
         .tukar-status.success { background:#e8f5e9; color:#1b5e20; border-color:#c8e6c9; }
         .input-field[disabled], .input-field:disabled { background:#f0f4f2; color:#888; }
+
+        .approval-card { cursor: default; border-left: 3px solid #1976d2; }
+        .approval-count-badge { background:#e3f2fd; color:#0d47a1; border-radius:20px; padding:6px 10px; font-size:12px; font-weight:600; white-space:nowrap; }
+        .approval-item { background:#fff; border-radius:14px; padding:16px; margin-bottom:10px; border-left:3px solid #1976d2; box-shadow:0 4px 12px rgba(0,0,0,0.02); }
+        .approval-meta { font-size:12px; color:#777; margin-top:4px; line-height:1.45; }
+        .approval-teachers { font-size:12px; color:#333; margin-top:8px; line-height:1.55; background:#f7f9f8; border-radius:10px; padding:10px; }
+        .approval-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+        .approval-btn { border:none; border-radius:11px; padding:11px 10px; font-size:13px; font-weight:600; cursor:pointer; }
+        .approval-btn.approve { background:#1b5e20; color:#fff; }
+        .approval-btn.cancel { background:#fff; color:#d32f2f; border:1px solid #ffcdd2; }
+        .approval-btn:disabled { background:#d9dedb; color:#777; border:none; cursor:not-allowed; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -190,6 +201,15 @@
                     <div class="alert-title">Belum Diabsen (Kosong)</div>
                     <div id="late-list" style="font-size:13px; color:#555;">Memuat...</div>
                 </div>
+
+                <div class="card-soft approval-card" id="card-tukar-approval">
+                    <div class="inval-summary-head">
+                        <div class="inval-summary-title">Pengajuan Tukar Tugas</div>
+                        <div class="approval-count-badge"><span id="approval-count">0</span> diajukan</div>
+                    </div>
+                    <div class="inval-summary-note" id="approval-summary-note">Memuat pengajuan tukar tugas...</div>
+                    <button class="inval-btn-small" id="btn-open-approval" onclick="openTukarApprovalDrawer()">Kelola Pengajuan</button>
+                </div>
             </div>
 
             <button class="btn btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar Sistem</button>
@@ -286,14 +306,29 @@
     </div>
 </div>
 
+<div id="approval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeTukarApprovalDrawer()">
+    <div class="bottom-drawer" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <div>
+                <div class="drawer-title">Persetujuan Tukar Tugas</div>
+                <div class="drawer-subtitle">Pengajuan yang disetujui baru akan dianggap sah pada tahap berikutnya saat jadwal tukar diaktifkan.</div>
+            </div>
+            <button class="drawer-close" onclick="closeTukarApprovalDrawer()" aria-label="Tutup">×</button>
+        </div>
+        <div id="approval-drawer-list"></div>
+    </div>
+</div>
+
     <script>
     // PASTIKAN BARIS INI ADA DI PALING ATAS
     const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
     let currentUser="", currentRole="", allStudents=[], currentClassStudents=[], attendanceData={}, currentSesi=1, activeClassTitle="";
     let latestInvalList = [];
     let latestTukarOptions = [];
+    let latestTukarRequests = [];
     let selectedTukarSchedule = null;
-    let isSubmitting=false, standbyBusy=false, tukarBusy=false;
+    let isSubmitting=false, standbyBusy=false, tukarBusy=false, approvalBusy=false;
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
     // SISTEM PROTEKSI NAVIGASI TOMBOL BACK/SWIPE HP (SPA ROUTER)
@@ -459,9 +494,123 @@
     }
 
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') { closeInvalDrawer(); closeTukarDrawer(); }
+        if (e.key === 'Escape') { closeInvalDrawer(); closeTukarDrawer(); closeTukarApprovalDrawer(); }
     });
 
+
+
+    function renderApprovalAccessCard() {
+        const countEl = document.getElementById('approval-count');
+        const noteEl = document.getElementById('approval-summary-note');
+        const btn = document.getElementById('btn-open-approval');
+        const total = latestTukarRequests.length;
+
+        if (countEl) countEl.innerText = total;
+        if (noteEl) {
+            noteEl.innerText = total > 0
+                ? 'Ada pengajuan tukar tugas yang menunggu keputusan pimpinan.'
+                : 'Tidak ada pengajuan tukar tugas yang menunggu persetujuan.';
+        }
+        if (btn) {
+            btn.disabled = total === 0;
+            btn.innerText = total > 0 ? 'Kelola Pengajuan' : 'Tidak Ada Pengajuan';
+        }
+    }
+
+    function loadTukarApprovals() {
+        if (currentRole !== 'pimpinan') return;
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:'listTukarPengajuan', nama:currentUser, statusFilter:'Diajukan'})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if (data.status === 'gagal') {
+                latestTukarRequests = [];
+                renderApprovalAccessCard();
+                return;
+            }
+            latestTukarRequests = Array.isArray(data.requests) ? data.requests : [];
+            renderApprovalAccessCard();
+            renderTukarApprovalList();
+        })
+        .catch(()=>{
+            latestTukarRequests = [];
+            renderApprovalAccessCard();
+        });
+    }
+
+    function openTukarApprovalDrawer() {
+        const overlay = document.getElementById('approval-drawer-overlay');
+        if (!overlay) return;
+        renderTukarApprovalList();
+        overlay.classList.remove('hidden');
+        loadTukarApprovals();
+    }
+
+    function closeTukarApprovalDrawer() {
+        const overlay = document.getElementById('approval-drawer-overlay');
+        if (overlay) overlay.classList.add('hidden');
+    }
+
+    function renderTukarApprovalList() {
+        const list = document.getElementById('approval-drawer-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        if (!latestTukarRequests || latestTukarRequests.length === 0) {
+            list.innerHTML = '<div class="drawer-empty">Tidak ada pengajuan tukar tugas yang menunggu persetujuan.</div>';
+            return;
+        }
+
+        latestTukarRequests.forEach(req => {
+            const card = document.createElement('div');
+            card.className = 'approval-item';
+            card.innerHTML = `
+                <div style="font-weight:700; font-size:14px; color:#1b5e20; margin-bottom:4px;">${safeText(req.idTukar)} — Kelas ${safeText(req.kelas)}</div>
+                <div class="approval-meta">${safeText(req.hari)}, ${safeText(req.tanggal)} • Sesi ${safeText(req.sesi)} • ${safeText(req.mapel)}</div>
+                <div class="approval-teachers">
+                    <div>Guru Jadwal Asli: <b>${safeText(req.guruJadwalAsli)}</b></div>
+                    <div>Guru Pengisi: <b>${safeText(req.guruPengisi)}</b></div>
+                    <div style="margin-top:6px; color:#777;">${safeText(req.keterangan) || 'Tidak ada keterangan.'}</div>
+                </div>
+                <div class="approval-actions">
+                    <button class="approval-btn approve" onclick="decideTukar('${safeText(req.idTukar)}','Disetujui')">Setujui</button>
+                    <button class="approval-btn cancel" onclick="decideTukar('${safeText(req.idTukar)}','Batal')">Batalkan</button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function decideTukar(idTukar, newStatus) {
+        if (approvalBusy) return;
+        const catatan = prompt(newStatus === 'Disetujui' ? 'Catatan persetujuan (boleh kosong):' : 'Alasan pembatalan (disarankan diisi):', '');
+        if (catatan === null) return;
+
+        approvalBusy = true;
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({
+                action:'updateTukarStatus',
+                nama:currentUser,
+                idTukar:idTukar,
+                newStatus:newStatus,
+                catatan:catatan
+            })
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            alert(data.pesan || (data.status === 'sukses' ? 'Status berhasil diperbarui.' : 'Keputusan gagal diproses.'));
+            loadTukarApprovals();
+        })
+        .catch(()=>{
+            alert('Gagal koneksi saat memproses keputusan tukar tugas.');
+        })
+        .finally(()=>{
+            approvalBusy = false;
+        });
+    }
 
     function formatLocalDateInput(dateObj) {
         const y = dateObj.getFullYear();
@@ -704,6 +853,7 @@
                 document.getElementById('dash-izin').innerText = d.stats.s + d.stats.i; document.getElementById('dash-alpa').innerText = d.stats.a;
                 
                 renderPimpinanInvalCard();
+                loadTukarApprovals();
             } else { secPimpinan.classList.add('hidden'); }
         });
     }
