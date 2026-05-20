@@ -225,7 +225,8 @@
                         <div class="approval-count-badge">Sesi <span id="rekap-sesi-label">-</span></div>
                     </div>
                     <div class="inval-summary-note" id="rekap-summary-note">Buat ulang Rekap_Guru untuk tanggal hari ini dan sesi yang sedang dipilih.</div>
-                    <button class="inval-btn-small" id="btn-generate-rekap" onclick="generateRekapGuruSesi()">Generate Rekap</button>
+                    <button class="inval-btn-small" id="btn-generate-rekap" onclick="generateRekapGuruSesi()">Generate Rekap Sesi Ini</button>
+                    <button class="inval-btn-small" id="btn-generate-rekap-harian" onclick="generateRekapGuruHarian()" style="margin-top:8px; background:#fff; color:#1b5e20; border:1px solid #1b5e20;">Generate Rekap Harian</button>
                 </div>
             </div>
 
@@ -827,7 +828,7 @@
         const lbl = document.getElementById('rekap-sesi-label');
         if (lbl) lbl.innerText = currentSesi;
         const note = document.getElementById('rekap-summary-note');
-        if (note) note.innerText = `Buat ulang Rekap_Guru untuk hari ini, sesi ${currentSesi}. Baris rekap lama pada sesi ini akan diganti.`;
+        if (note) note.innerText = `Sesi ini: generate sesi ${currentSesi}. Harian: generate sesi 1, 2, dan 3 setelah semua sesi selesai.`;
     }
 
     function generateRekapGuruSesi() {
@@ -859,7 +860,44 @@
             alert('Gagal koneksi saat membuat rekap guru.');
         })
         .finally(()=>{
-            if (btn) { btn.disabled = false; btn.innerText = oldText || 'Generate Rekap'; }
+            if (btn) { btn.disabled = false; btn.innerText = oldText || 'Generate Rekap Sesi Ini'; }
+        });
+    }
+
+
+    function generateRekapGuruHarian() {
+        const btn = document.getElementById('btn-generate-rekap-harian');
+        const btnSesi = document.getElementById('btn-generate-rekap');
+        if (!confirm('Generate ulang Rekap_Guru HARIAN untuk hari ini? Sistem akan membuat ulang sesi 1, 2, dan 3. Gunakan setelah semua sesi hari ini selesai.')) return;
+
+        const oldText = btn ? btn.innerText : '';
+        if (btn) { btn.disabled = true; btn.innerText = 'Membuat harian...'; }
+        if (btnSesi) btnSesi.disabled = true;
+
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:'generateRekapGuruHarian', nama:currentUser})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if (data.status !== 'sukses') {
+                alert(data.pesan || 'Gagal membuat rekap guru harian.');
+                return;
+            }
+
+            const c = data.counts || {};
+            const msg = `${data.pesan}\n\nRingkasan Harian:\nReguler: ${c.Reguler || 0}\nTukar: ${c.Tukar || 0}\nInval: ${c.Inval || 0}\nStandby: ${c.Standby || 0}\nTidak Hadir: ${c.TidakHadir || 0}`;
+            alert(msg);
+
+            const note = document.getElementById('rekap-summary-note');
+            if (note) note.innerText = `Terakhir dibuat: Rekap harian ${safeText(data.hari)}, ${safeText(data.tanggal)}. Baris baru: ${data.rowsAdded || 0}.`;
+        })
+        .catch(()=>{
+            alert('Gagal koneksi saat membuat rekap guru harian.');
+        })
+        .finally(()=>{
+            if (btn) { btn.disabled = false; btn.innerText = oldText || 'Generate Rekap Harian'; }
+            if (btnSesi) btnSesi.disabled = false;
         });
     }
 
