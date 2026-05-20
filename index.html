@@ -126,7 +126,7 @@
     <div class="header-greeting">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
         <div>
-          <div class="header-greeting-title">Selamat Datang,</div>
+          <div class="header-greeting-title">Ahlan wa Sahlan,</div>
           <div class="header-greeting-name" id="top-name">Nama Guru</div>
         </div>
         <div class="date-pill">
@@ -436,7 +436,7 @@ function openInvalDrawer() {
       card.style.border = "1px solid #fecaca";
       card.style.background = "#fef2f2";
       card.innerHTML = `
-        <div style="font-weight:800; font-size:15px; color:#b91c1c; margin-bottom:4px;">Kelas ${escapeHTML(j.kelas)}</div>
+        <div style="font-weight:800; font-size:15px; color:#b91c1c; margin-bottom:4px;">${escapeHTML(j.kelas)}</div>
         <div style="font-size:13px; color:#991b1b; margin-bottom:8px;">${escapeHTML(j.mapel)}</div>
         <div style="font-size:12px; color:#7f1d1d;">Asli: <b>${escapeHTML(j.guru)}</b></div>`;
       card.onclick = () => {
@@ -724,7 +724,7 @@ function loadDashboardData() {
           const div = document.createElement("div");
           div.className = "card-soft";
           div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); };
-          div.innerHTML = `<div style="font-weight:800; font-size:16px; color:#0f172a; margin-bottom:4px;">Kelas ${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#64748b;">${escapeHTML(j.mapel)}</div>`;
+          div.innerHTML = `<div style="font-weight:800; font-size:16px; color:#0f172a; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#64748b;">${escapeHTML(j.mapel)}</div>`;
           divJadwal.appendChild(div);
         });
       } else {
@@ -741,7 +741,7 @@ function loadDashboardData() {
           div.className = "card-soft";
           div.style.border = "1px solid #bfdbfe";
           div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); };
-          div.innerHTML = `<div class="badge-tukar">Tukar Resmi</div><div style="font-weight:800; font-size:16px; color:#1e40af; margin-bottom:4px;">Kelas ${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#3b82f6; margin-bottom:8px;">${escapeHTML(j.mapel)}</div><div style="font-size:12px; color:#1e3a8a;">Guru Asli: <b>${escapeHTML(j.guru)}</b></div>`;
+          div.innerHTML = `<div class="badge-tukar">Tukar Resmi</div><div style="font-weight:800; font-size:16px; color:#1e40af; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#3b82f6; margin-bottom:8px;">${escapeHTML(j.mapel)}</div><div style="font-size:12px; color:#1e3a8a;">Guru Asli: <b>${escapeHTML(j.guru)}</b></div>`;
           divJadwalTukar.appendChild(div);
         });
       } else {
@@ -827,7 +827,7 @@ function loadTukarOptions() {
       latestTukarOptions.forEach((j, idx) => {
         const opt = document.createElement("option");
         opt.value = String(idx);
-        opt.textContent = `Kelas ${safeText(j.kelas)} - ${safeText(j.mapel)}`;
+        opt.textContent = `${safeText(j.kelas)} - ${safeText(j.mapel)}`;
         kelasSelect.appendChild(opt);
       });
       setTukarStatus("Pilih kelas yang akan ditukar.", "");
@@ -910,7 +910,7 @@ function renderTukarApprovalList() {
     card.style.border = "1px solid #bfdbfe";
     card.style.background = "#eff6ff";
     card.innerHTML = `
-      <div style="font-weight:800; font-size:15px; color:#1d4ed8; margin-bottom:6px;">${escapeHTML(req.idTukar)} — Kelas ${escapeHTML(req.kelas)}</div>
+      <div style="font-weight:800; font-size:15px; color:#1d4ed8; margin-bottom:6px;">${escapeHTML(req.idTukar)} — ${escapeHTML(req.kelas)}</div>
       <div style="font-size:13px; color:#1e40af;">${escapeHTML(req.hari)}, ${escapeHTML(req.tanggal)} • Sesi ${escapeHTML(req.sesi)} • ${escapeHTML(req.mapel)}</div>
       <div style="font-size:13px; color:#1e3a8a; margin-top:12px;">Asli: <b>${escapeHTML(req.guruJadwalAsli)}</b><br>Pengisi: <b>${escapeHTML(req.guruPengisi)}</b></div>
       <div style="margin-top:8px; font-size:12px; color:#3b82f6;">Ket: ${escapeHTML(req.keterangan) || "-"}</div>
@@ -1048,7 +1048,7 @@ function openClass(c) {
   switchScreen("screen-attendance");
   const div = $("student-list");
   if (!div) return;
-  div.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#0f172a; font-weight:600; font-size:14px;">Memuat data siswa kelas ${escapeHTML(c)}...</div>`;
+  div.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#0f172a; font-weight:600; font-size:14px;">Memuat data siswa ${escapeHTML(c)}...</div>`;
 
   const render = () => renderStudentList(c, div);
   if (allStudents.length > 0) {
