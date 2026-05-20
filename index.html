@@ -243,6 +243,7 @@
                     <div class="inval-summary-note" id="rekap-summary-note">Buat ulang Rekap_Guru untuk tanggal hari ini dan sesi yang sedang dipilih.</div>
                     <button class="inval-btn-small" id="btn-generate-rekap" onclick="generateRekapGuruSesi()">Generate Rekap Sesi Ini</button>
                     <button class="inval-btn-small" id="btn-generate-rekap-harian" onclick="generateRekapGuruHarian()" style="margin-top:8px; background:#fff; color:#1b5e20; border:1px solid #1b5e20;">Generate Rekap Harian</button>
+                    <button class="inval-btn-small" id="btn-generate-rekap-bulanan" onclick="generateRekapGuruBulanan()" style="margin-top:8px; background:#0d47a1;">Generate Rekap Bulanan</button>
                 </div>
 
                 <div class="card-soft audit-card" id="card-audit-rekap" style="cursor:default;">
@@ -954,6 +955,47 @@
         })
         .finally(()=>{
             if (btn) { btn.disabled = false; btn.innerText = oldText || 'Generate Rekap Harian'; }
+            if (btnSesi) btnSesi.disabled = false;
+        });
+    }
+
+
+
+    function generateRekapGuruBulanan() {
+        const btn = document.getElementById('btn-generate-rekap-bulanan');
+        const btnHarian = document.getElementById('btn-generate-rekap-harian');
+        const btnSesi = document.getElementById('btn-generate-rekap');
+        if (!confirm('Generate ulang Rekap_Guru_Bulanan untuk bulan berjalan? Pastikan Rekap Harian untuk tanggal yang ingin dihitung sudah dibuat. Baris rekap bulanan lama akan diganti.')) return;
+
+        const oldText = btn ? btn.innerText : '';
+        if (btn) { btn.disabled = true; btn.innerText = 'Membuat bulanan...'; }
+        if (btnHarian) btnHarian.disabled = true;
+        if (btnSesi) btnSesi.disabled = true;
+
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:'generateRekapGuruBulanan', nama:currentUser})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if (data.status !== 'sukses') {
+                alert(data.pesan || 'Gagal membuat rekap guru bulanan.');
+                return;
+            }
+
+            const s = data.summary || {};
+            const msg = `${data.pesan}\n\nRingkasan Bulanan:\nGuru: ${s.guru || 0}\nSesi Wajib Bulanan: ${s.SesiWajibBulanan || 0}\nWajib Efektif: ${s.WajibEfektif || 0}\nReguler: ${s.Reguler || 0}\nTukar Masuk: ${s.TukarMasuk || 0}\nInval: ${s.Inval || 0}\nStandby: ${s.Standby || 0}\nTidak Hadir: ${s.TidakHadir || 0}\nTotal Aktivitas: ${s.TotalAktivitas || 0}`;
+            alert(msg);
+
+            const note = document.getElementById('rekap-summary-note');
+            if (note) note.innerText = `Rekap bulanan ${safeText(data.bulan)} ${safeText(data.tahun)} dibuat dari ${data.jumlahTanggal || 0} tanggal Rekap_Guru. Baris baru: ${data.rowsAdded || 0}.`;
+        })
+        .catch(()=>{
+            alert('Gagal koneksi saat membuat rekap guru bulanan.');
+        })
+        .finally(()=>{
+            if (btn) { btn.disabled = false; btn.innerText = oldText || 'Generate Rekap Bulanan'; }
+            if (btnHarian) btnHarian.disabled = false;
             if (btnSesi) btnSesi.disabled = false;
         });
     }
