@@ -20,6 +20,10 @@
     .sticky-top-bar { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #0f172a; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
     .sticky-top-bar::after { content: ''; position: absolute; bottom: -16px; left: 0; width: 100%; height: 16px; background: linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 100%); pointer-events: none; }
     
+    /* GAYA BARU: DYNAMIC ISLAND SESI */
+    .dynamic-island-badge { background: #000; color: #fff; padding: 6px 14px; border-radius: 24px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .dynamic-island-badge:active { transform: scale(0.92); }
+    
     .app-brand { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; color: #064e3b; display: flex; align-items: center; gap: 8px; }
     .app-brand-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; }
     .header-greeting { padding: 24px 24px 16px 24px; background: #fff; }
@@ -36,7 +40,6 @@
     .section-title { font-size: 14px; color: #0f172a; font-weight: 800; margin: 28px 0 16px 0; letter-spacing: -0.3px; display: flex; justify-content: space-between; align-items: center; }
     .input-field { width: 100%; padding: 16px; margin-bottom: 16px; border: 1.5px solid #e2e8f0; border-radius: 14px; font-size: 15px; font-family: inherit; background-color: #f8fafc; color: #0f172a; transition: all 0.2s ease; outline: none; }
     .input-field:focus { border-color: #064e3b; background-color: #fff; box-shadow: 0 0 0 4px rgba(6,78,59,0.05); }
-    .select-session { padding: 8px 12px; border-radius: 10px; border: 1px solid #e2e8f0; background-color: #fff; color: #0f172a; font-weight: 600; font-size: 13px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .btn { background: #064e3b; color: #fff; border: none; padding: 16px; width: 100%; border-radius: 14px; font-size: 15px; font-weight: 600; margin-bottom: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(6,78,59,0.15); font-family: inherit; }
     .btn:active { transform: scale(0.98); box-shadow: 0 2px 6px rgba(6,78,59,0.1); }
     .btn:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
@@ -110,8 +113,15 @@
 </head>
 <body>
 <div id="app-container">
+  
   <div class="sticky-top-bar hidden" id="top-bar">
-    <div class="app-brand"><div class="app-brand-dot"></div> MMU-B08</div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="app-brand"><div class="app-brand-dot"></div> MMU-B08</div>
+      <div id="dynamic-session-badge" class="dynamic-island-badge" onclick="openSessionDrawer()">
+        <span id="top-sesi-lbl">Sesi 1</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+    </div>
     <div id="sticky-class-header" class="hidden" style="font-weight:700;font-size:14px;">Presensi Kelas</div>
   </div>
 
@@ -150,13 +160,8 @@
 
     <div class="main-content">
       <div id="tab-beranda" class="tab-content active">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="margin-bottom:20px;">
           <span style="font-weight:700;color:#0f172a;font-size:16px;letter-spacing:-0.3px;">Target Presensi</span>
-          <select id="session-selector" class="select-session" onchange="updateSesiManual(this.value)">
-            <option value="1">Sesi 1 (07.00)</option>
-            <option value="2">Sesi 2 (08.50)</option>
-            <option value="3">Sesi 3 (10.30)</option>
-          </select>
         </div>
         
         <div id="outbox-banner" class="hidden" style="background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
@@ -280,6 +285,33 @@
   <div id="screen-preview" class="hidden"><div class="main-content" style="padding-top:24px;"><p style="text-align:center;color:#64748b;font-size:14px;font-weight:600;margin-bottom:20px;">Ringkasan Presensi Sesi <span id="prev-sesi"></span></p><div class="card-soft" id="preview-summary" style="font-size:15px;color:#0f172a;line-height:2;margin-bottom:24px;padding:24px;"></div><button class="btn" id="btn-submit" onclick="submitData()">Kunci & Kirim Data</button><button class="btn btn-outline" style="margin-top:8px;" onclick="switchScreen('screen-attendance')">Koreksi Kembali</button></div></div>
 </div>
 
+<div id="session-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeSessionDrawer()">
+  <div class="bottom-drawer" onclick="event.stopPropagation()">
+    <button class="drawer-close" onclick="closeSessionDrawer()">×</button>
+    <div class="drawer-handle"></div>
+    <div class="drawer-header">
+      <div>
+        <div class="drawer-title">Pilih Sesi Presensi</div>
+        <div class="drawer-subtitle">Tentukan sesi waktu yang sedang berlangsung.</div>
+      </div>
+    </div>
+    <div>
+      <div class="card-soft" style="cursor:pointer; margin-bottom:12px; border:2px solid transparent; transition:0.2s;" id="opt-sesi-1" onclick="selectSession(1)">
+        <div style="font-weight:800; color:#0f172a; font-size:15px; margin-bottom:4px;">Sesi 1</div>
+        <div style="font-size:13px; color:#64748b;">07.00 - 08.20 WIB</div>
+      </div>
+      <div class="card-soft" style="cursor:pointer; margin-bottom:12px; border:2px solid transparent; transition:0.2s;" id="opt-sesi-2" onclick="selectSession(2)">
+        <div style="font-weight:800; color:#0f172a; font-size:15px; margin-bottom:4px;">Sesi 2</div>
+        <div style="font-size:13px; color:#64748b;">08.50 - 10.10 WIB</div>
+      </div>
+      <div class="card-soft" style="cursor:pointer; margin-bottom:12px; border:2px solid transparent; transition:0.2s;" id="opt-sesi-3" onclick="selectSession(3)">
+        <div style="font-weight:800; color:#0f172a; font-size:15px; margin-bottom:4px;">Sesi 3</div>
+        <div style="font-size:13px; color:#64748b;">10.30 - Selesai</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="adjustment-modal" class="modal-overlay hidden">
   <div class="modal-box">
     <div style="font-weight:800;font-size:16px;color:#0f172a;margin-bottom:20px;">Penyesuaian Kalender Hijriah</div>
@@ -289,11 +321,8 @@
 </div>
 
 <div id="inval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeInvalDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeInvalDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Akses Inval</div><div class="drawer-subtitle">Pilih kelas yang akan Anda ampu.</div></div></div><div id="inval-drawer-list"></div></div></div>
-
 <div id="tukar-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeTukarDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeTukarDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Ajukan Tukar Tugas</div><div class="drawer-subtitle">Pilih jadwal Anda dan tentukan pengganti.</div></div></div><div class="tukar-row"><div><div class="tukar-field-label">Tanggal</div><div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="tukar-tanggal" class="input-field" onchange="loadTukarOptions()"></div></div><div><div class="tukar-field-label">Sesi</div><select id="tukar-sesi" class="input-field" onchange="loadTukarOptions()"><option value="1">Sesi 1</option><option value="2">Sesi 2</option><option value="3">Sesi 3</option></select></div></div><div class="tukar-field-label">Kelas yang Ditukar</div><select id="tukar-kelas" class="input-field" onchange="selectTukarClass()"><option value="">Pilih tanggal dan sesi dulu</option></select><div class="tukar-field-label">Mata Pelajaran</div><div id="tukar-mapel" class="tukar-readonly">-</div><div class="tukar-field-label">Guru Jadwal Asli</div><div id="tukar-guru-asli" class="tukar-readonly">-</div><div class="tukar-field-label">Guru Pengisi</div><select id="tukar-guru-pengisi" class="input-field"><option value="">Pilih kelas terlebih dahulu</option></select><div class="tukar-field-label">Keterangan</div><textarea id="tukar-keterangan" class="input-field" rows="3" placeholder="Contoh: Keperluan keluarga..."></textarea><div id="tukar-status" class="tukar-status">Status awal akan tersimpan sebagai Diajukan.</div><button class="btn" id="btn-submit-tukar" onclick="submitTukarTugas()">Kirim Pengajuan</button></div></div>
-
 <div id="izin-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeIzinDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeIzinDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Ajukan Sakit / Izin</div><div class="drawer-subtitle">Menunggu persetujuan pimpinan.</div></div></div><div class="tukar-row"><div><div class="tukar-field-label">Mulai</div><div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="izin-tanggal-mulai" class="input-field"></div></div><div><div class="tukar-field-label">Selesai</div><div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="izin-tanggal-selesai" class="input-field"></div></div></div><div class="tukar-row"><div><div class="tukar-field-label">Sesi</div><select id="izin-sesi" class="input-field"><option value="Semua">Semua Sesi</option><option value="1">Sesi 1</option><option value="2">Sesi 2</option><option value="3">Sesi 3</option></select></div><div><div class="tukar-field-label">Jenis</div><select id="izin-jenis" class="input-field"><option value="Sakit">Sakit</option><option value="Izin">Izin</option></select></div></div><div class="tukar-field-label">Keterangan</div><textarea id="izin-keterangan" class="input-field" rows="3" placeholder="Contoh: Sakit demam..."></textarea><div id="izin-status" class="tukar-status">Status awal akan tersimpan sebagai Diajukan.</div><button class="btn" id="btn-submit-izin" onclick="submitIzinGuru()" style="background:#064e3b;">Kirim Pengajuan</button></div></div>
-
 <div id="approval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeTukarApprovalDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeTukarApprovalDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Persetujuan Tukar Tugas</div><div class="drawer-subtitle">Setujui atau batalkan pengajuan tukar.</div></div></div><div id="approval-drawer-list"></div></div></div>
 <div id="izin-approval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeIzinApprovalDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeIzinApprovalDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Persetujuan Sakit/Izin</div><div class="drawer-subtitle">Setujui atau batalkan pengajuan izin guru.</div></div></div><div id="izin-approval-drawer-list"></div></div></div>
 <div id="audit-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeAuditRekapDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeAuditRekapDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Audit Rekap Harian</div><div class="drawer-subtitle" id="audit-drawer-subtitle">Memuat data...</div></div></div><div id="audit-drawer-list"></div></div></div>
@@ -354,7 +383,7 @@ function updateOutboxUI(isSyncing = false) {
   
   if (outbox.length > 0) {
     banner.classList.remove("hidden");
-    title.innerText = `${outbox.length} Presensi Tersimpan Offline`;
+    title.innerText = `${outbox.length} Presensi Tertunda`;
     
     if (isSyncing) {
       desc.innerText = "Mengirim data ke server...";
@@ -371,41 +400,27 @@ function updateOutboxUI(isSyncing = false) {
 function syncOutbox() {
   if (!navigator.onLine || outboxSyncing) return;
   let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]');
-  if (outbox.length === 0) {
-    updateOutboxUI();
-    return;
-  }
+  if (outbox.length === 0) { updateOutboxUI(); return; }
 
   outboxSyncing = true;
   updateOutboxUI(true);
 
-  // Ambil data paling lama (antrean pertama)
   const item = outbox[0];
-
   postJSON({ action: "submitAttendance", data: item.data })
     .then((res) => {
       if(res.status !== "gagal") {
-         // Sukses terkirim! Hapus dari antrean
          outbox.shift();
          localStorage.setItem('mmu_outbox', JSON.stringify(outbox));
-         dashboardCache = {}; // Paksa refresh tampilan dashboard
-         
-         // Lanjut sinkronisasi antrean berikutnya
+         dashboardCache = {};
          outboxSyncing = false;
          syncOutbox();
       } else {
-         outboxSyncing = false;
-         updateOutboxUI();
+         outboxSyncing = false; updateOutboxUI();
       }
     })
-    .catch(() => {
-      // Masih gagal (mungkin sinyal putus nyambung)
-      outboxSyncing = false;
-      updateOutboxUI();
-    });
+    .catch(() => { outboxSyncing = false; updateOutboxUI(); });
 }
 
-// Pantau jaringan HP secara otomatis (Background Sync)
 window.addEventListener('online', syncOutbox);
 window.addEventListener('offline', updateOutboxUI);
 
@@ -425,41 +440,27 @@ function formatIsoToId(iso) { if (!iso) return ""; const m = iso.match(/^(\d{4})
 
 function initMasterData() {
   const cachedStudents = localStorage.getItem('mmu_students_cache');
-  if (cachedStudents) {
-    try { allStudents = JSON.parse(cachedStudents); } catch (e) {}
-  }
-  fetch(API_URL)
-    .then(r => r.json())
-    .then(stData => {
-      if (Array.isArray(stData) && stData.length > 0) {
-        allStudents = stData;
-        localStorage.setItem('mmu_students_cache', JSON.stringify(stData));
-      }
-    }).catch(() => {});
+  if (cachedStudents) { try { allStudents = JSON.parse(cachedStudents); } catch (e) {} }
+  fetch(API_URL).then(r => r.json()).then(stData => {
+      if (Array.isArray(stData) && stData.length > 0) { allStudents = stData; localStorage.setItem('mmu_students_cache', JSON.stringify(stData)); }
+  }).catch(() => {});
 }
 
 // =====================================================
 // DRAWER / MODAL
 // =====================================================
 function animateOpen(overlay) {
-  if (!overlay) return;
-  document.body.classList.add("drawer-open"); 
-  overlay.classList.remove("hidden");
-  requestAnimationFrame(() => overlay.classList.add("show"));
+  if (!overlay) return; document.body.classList.add("drawer-open"); 
+  overlay.classList.remove("hidden"); requestAnimationFrame(() => overlay.classList.add("show"));
 }
 function animateClose(overlay) {
-  if (!overlay) return;
-  document.body.classList.remove("drawer-open"); 
-  overlay.classList.remove("show");
-  const drawer = overlay.querySelector(".bottom-drawer");
-  if (drawer) drawer.style.transform = "";
-  setTimeout(() => overlay.classList.add("hidden"), 300);
+  if (!overlay) return; document.body.classList.remove("drawer-open"); 
+  overlay.classList.remove("show"); const drawer = overlay.querySelector(".bottom-drawer");
+  if (drawer) drawer.style.transform = ""; setTimeout(() => overlay.classList.add("hidden"), 300);
 }
 function initSwipeToClose() {
   document.querySelectorAll(".bottom-drawer").forEach((drawer) => {
-    let startY = 0, currentY = 0, isDragging = false;
-    const headerArea = drawer.querySelector('.drawer-header');
-    const handleArea = drawer.querySelector('.drawer-handle');
+    let startY = 0, currentY = 0, isDragging = false; const headerArea = drawer.querySelector('.drawer-header'); const handleArea = drawer.querySelector('.drawer-handle');
     const startDrag = (e) => { if (drawer.scrollTop > 0) return; startY = e.touches[0].clientY; currentY = startY; isDragging = true; drawer.style.transition = "none"; };
     const moveDrag = (e) => { if (!isDragging) return; currentY = e.touches[0].clientY; const deltaY = currentY - startY; if (deltaY > 0) { drawer.style.transform = `translateY(${deltaY}px)`; e.preventDefault(); } };
     const endDrag = () => { if (!isDragging) return; isDragging = false; drawer.style.transition = ""; const deltaY = currentY - startY; if (deltaY > 100) { const overlay = drawer.closest(".bottom-drawer-overlay"); if (overlay) animateClose(overlay); } else { drawer.style.transform = ""; } };
@@ -467,20 +468,38 @@ function initSwipeToClose() {
     if(headerArea) { headerArea.addEventListener("touchstart", startDrag, { passive: true }); headerArea.addEventListener("touchmove", moveDrag, { passive: false }); headerArea.addEventListener("touchend", endDrag); }
   });
 }
+
+// LACI SESI DYNAMIC ISLAND
+function openSessionDrawer() {
+  const ov = $("session-drawer-overlay"); if (!ov) return;
+  [1, 2, 3].forEach(s => {
+    const el = $("opt-sesi-" + s);
+    if (el) {
+      if (s === currentSesi) { el.style.borderColor = "#064e3b"; el.style.background = "#f0fdf4"; } 
+      else { el.style.borderColor = "transparent"; el.style.background = "#fff"; }
+    }
+  });
+  animateOpen(ov);
+}
+function closeSessionDrawer() { animateClose($("session-drawer-overlay")); }
+function selectSession(val) {
+  if (currentSesi === val) { closeSessionDrawer(); return; }
+  currentSesi = val;
+  if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi;
+  closeSessionDrawer();
+  loadDashboardData();
+}
+
 function openAdjustmentModal() {
-  const modal = $("adjustment-modal"); if (!modal) return;
-  modal.classList.remove("hidden");
+  const modal = $("adjustment-modal"); if (!modal) return; modal.classList.remove("hidden");
   ["adj-min1", "adj-0", "adj-plus1"].forEach((id) => $(id)?.classList.remove("active"));
-  if (hijriOffset === -1) $("adj-min1")?.classList.add("active");
-  else if (hijriOffset === 1) $("adj-plus1")?.classList.add("active");
-  else $("adj-0")?.classList.add("active");
+  if (hijriOffset === -1) $("adj-min1")?.classList.add("active"); else if (hijriOffset === 1) $("adj-plus1")?.classList.add("active"); else $("adj-0")?.classList.add("active");
 }
 function setHijriAdjustment(val) { hijriOffset = val; localStorage.setItem("hijri_offset", String(val)); openAdjustmentModal(); renderDates(); }
 function closeAdjustmentModal() { $("adjustment-modal")?.classList.add("hidden"); }
 
 function openInvalDrawer() {
-  const ov = $("inval-drawer-overlay"); const list = $("inval-drawer-list"); if (!ov || !list) return;
-  list.innerHTML = "";
+  const ov = $("inval-drawer-overlay"); const list = $("inval-drawer-list"); if (!ov || !list) return; list.innerHTML = "";
   if (!latestInvalList || latestInvalList.length === 0) { list.innerHTML = '<div class="drawer-empty">Alhamdulillah, tidak ada kelas kosong.</div>'; } else {
     latestInvalList.forEach((j) => {
       const card = document.createElement("div"); card.className = "card-soft"; card.style.cursor = "pointer"; card.style.border = "1px solid #fecaca"; card.style.background = "#fef2f2";
@@ -511,23 +530,36 @@ function openPeriodeDrawer(mode) {
   else { if (title) title.innerText = "Generate Rekap Periode"; if (sub) sub.innerText = "Pilih periode yang akan dihitung."; if (btn) btn.innerText = "Generate Rekap"; }
   animateOpen(ov);
 }
-document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; closeInvalDrawer(); closeTukarDrawer(); closeIzinDrawer(); closeTukarApprovalDrawer(); closeIzinApprovalDrawer(); closePeriodeDrawer(); closeAuditRekapDrawer(); closeAuditBulananDrawer(); });
+document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; closeSessionDrawer(); closeInvalDrawer(); closeTukarDrawer(); closeIzinDrawer(); closeTukarApprovalDrawer(); closeIzinApprovalDrawer(); closePeriodeDrawer(); closeAuditRekapDrawer(); closeAuditBulananDrawer(); });
 
 // =====================================================
-// NAVIGASI
+// NAVIGASI DENGAN PENYEMBUNYIAN DYNAMIC ISLAND
 // =====================================================
 function switchMainTab(tabId) {
   ["beranda", "layanan", "pimpinan", "akun"].forEach((id) => { $("tab-" + id)?.classList.remove("active"); $("nav-" + id)?.classList.remove("active"); });
   $("tab-" + tabId)?.classList.add("active"); $("nav-" + tabId)?.classList.add("active"); window.scrollTo(0, 0);
 }
+
 function switchScreen(id, isPopState = false) {
   ["screen-login", "screen-loading", "screen-dashboard", "screen-attendance", "screen-preview"].forEach((s) => $(s)?.classList.add("hidden"));
   $(id)?.classList.remove("hidden");
-  const topBar = $("top-bar"); const clsHeader = $("sticky-class-header");
+  
+  const topBar = $("top-bar"); const clsHeader = $("sticky-class-header"); const dynBadge = $("dynamic-session-badge");
   if (topBar) { if (id === "screen-login" || id === "screen-loading") topBar.classList.add("hidden"); else topBar.classList.remove("hidden"); }
-  if (clsHeader) { if (id === "screen-attendance" || id === "screen-preview") { clsHeader.innerText = id === "screen-attendance" ? "Presensi " + activeClassTitle : "Pratinjau"; clsHeader.classList.remove("hidden"); } else { clsHeader.classList.add("hidden"); } }
+  
+  if (clsHeader) { 
+    if (id === "screen-attendance" || id === "screen-preview") { 
+      clsHeader.innerText = id === "screen-attendance" ? "Presensi " + activeClassTitle : "Pratinjau"; 
+      clsHeader.classList.remove("hidden"); 
+      if(dynBadge) dynBadge.style.display = "none"; // Sembunyikan badge sesi saat di dalam kelas
+    } else { 
+      clsHeader.classList.add("hidden"); 
+      if(dynBadge) dynBadge.style.display = "flex"; // Tampilkan badge sesi di dashboard utama
+    } 
+  }
   if (!isPopState) history.pushState({ screen: id }, "");
 }
+
 window.onpopstate = function(event) { if (event.state && event.state.screen) switchScreen(event.state.screen, true); else if (currentUser) switchScreen("screen-dashboard", true); else switchScreen("screen-login", true); };
 
 // =====================================================
@@ -537,7 +569,10 @@ function renderDates() {
   const now = new Date(); const dm = $("date-masehi"); if (dm) dm.innerText = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(now);
   const jam = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   if (jam >= "07:00" && jam <= "08:20") currentSesi = 1; else if (jam > "08:20" && jam <= "10:10") currentSesi = 2; else currentSesi = 3;
-  if ($("session-selector")) $("session-selector").value = String(currentSesi);
+  
+  // PEMBARUAN: Ubah label Dynamic Island sesuai sesi aktif
+  if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi;
+  
   const dateStr = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
   const cacheDate = localStorage.getItem("hijri_date"); const cacheData = localStorage.getItem("hijri_data");
   const applyHijri = (h) => {
@@ -549,8 +584,6 @@ function renderDates() {
   if (cacheDate === dateStr && cacheData) { try { applyHijri(JSON.parse(cacheData)); return; } catch (e) {} }
   fetch(`https://api.aladhan.com/v1/gToH?date=${dateStr}`).then((res) => res.json()).then((d) => { localStorage.setItem("hijri_date", dateStr); localStorage.setItem("hijri_data", JSON.stringify(d.data.hijri)); applyHijri(d.data.hijri); }).catch(() => { if ($("date-hijri")) $("date-hijri").innerText = "Hijriah offline"; });
 }
-
-function updateSesiManual(val) { currentSesi = parseInt(val, 10); loadDashboardData(); }
 
 function doLogin() {
   const hp = $("input-hp")?.value || ""; const pin = $("input-pin")?.value || ""; const err = $("login-error");
@@ -616,7 +649,7 @@ function prefetchOtherSessions() {
 
 function loadDashboardData() {
   if (!currentUser) return;
-  if ($("lbl-sesi")) $("lbl-sesi").innerText = currentSesi;
+  if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi;
   if (dashboardCache[currentSesi]) {
     switchScreen("screen-dashboard"); renderDashboardUI(dashboardCache[currentSesi]);
     postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { if (d.status !== "gagal") { dashboardCache[currentSesi] = d; renderDashboardUI(d); } }).catch(() => {});
@@ -718,13 +751,8 @@ function showPreview() {
 function finishSubmitOffline(payload) {
   saveToOutbox(payload, activeClassTitle);
   alert(`Sinyal lemah! Tapi tenang, data presensi kelas ${activeClassTitle} aman tersimpan di HP Anda.\nAplikasi akan mengirimkannya otomatis saat sinyal kembali.`);
-  updateOutboxUI();
-  dashboardCache = {};
-  loadDashboardData();
-  
-  isSubmitting = false;
-  const btn = $("btn-submit");
-  if (btn) { btn.innerText = "Kunci & Kirim Data"; btn.disabled = false; }
+  updateOutboxUI(); dashboardCache = {}; loadDashboardData();
+  isSubmitting = false; const btn = $("btn-submit"); if (btn) { btn.innerText = "Kunci & Kirim Data"; btn.disabled = false; }
 }
 
 function submitData() {
@@ -737,11 +765,7 @@ function submitData() {
     Tanggal: new Date().toLocaleDateString("id-ID"), Sesi: currentSesi, ID_Siswa: s.ID_Siswa, Nama_Siswa: s.Nama_Siswa, Kelas: s.Kelas, Status: attendanceData[s.ID_Siswa] || "H", Nama_Guru: currentUser
   }));
 
-  // Jaring Pengaman 1: Jika HP terdeteksi benar-benar offline (Mode Pesawat / Hilang Sinyal)
-  if (!navigator.onLine) {
-    finishSubmitOffline(payload);
-    return;
-  }
+  if (!navigator.onLine) { finishSubmitOffline(payload); return; }
 
   postJSON({ action: "submitAttendance", data: payload })
     .then((data) => {
@@ -749,10 +773,7 @@ function submitData() {
       else { alert(data.pesan || "Data sukses terkunci."); dashboardCache = {}; loadDashboardData(); }
       isSubmitting = false; if (btn) { btn.innerText = oldText; btn.disabled = false; }
     })
-    .catch(() => {
-      // Jaring Pengaman 2: Jika awalnya ada sinyal, tapi putus di tengah jalan saat mengirim
-      finishSubmitOffline(payload);
-    });
+    .catch(() => { finishSubmitOffline(payload); });
 }
 
 // =====================================================
@@ -782,9 +803,7 @@ function checkSession() {
     
     renderDates(); switchMainTab("beranda"); dashboardCache = {}; loadDashboardData(); initMasterData(); 
     
-    // Periksa apakah ada antrean yang belum terkirim saat pertama buka
-    updateOutboxUI();
-    syncOutbox();
+    updateOutboxUI(); syncOutbox();
     
     return true;
   }
