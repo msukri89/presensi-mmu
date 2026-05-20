@@ -70,7 +70,20 @@
     .nav-item.active { color: #064e3b; }
     .bottom-drawer-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); z-index: 1200; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
     .bottom-drawer-overlay.show { opacity: 1; pointer-events: auto; }
-    .bottom-drawer { background: #fff; width: 100%; max-width: 480px; max-height: 85vh; border-radius: 32px 32px 0 0; padding: 16px 24px 32px 24px; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); overflow-y: auto; position: relative; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+    .bottom-drawer { 
+      background: #fff; width: 100%; max-width: 480px; max-height: 85vh; 
+      border-radius: 32px 32px 0 0; padding: 16px 24px 32px 24px; 
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.1); overflow-y: auto; 
+      position: relative; transform: translateY(100%); 
+      
+      /* Animasi kurva "Spring" agar membal halus ala Telegram */
+      transition: transform 0.45s cubic-bezier(0.32, 1.2, 0.6, 1); 
+      
+      /* Memutus rantai scroll agar tidak tembus ke layar belakang */
+      overscroll-behavior-y: contain; 
+    }
+    /* Mengunci layar utama agar diam saat laci terbuka */
+    body.drawer-open { overflow: hidden !important; touch-action: none; overscroll-behavior: none; }
     .bottom-drawer-overlay.show .bottom-drawer { transform: translateY(0); }
     .drawer-handle { width: 40px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: 0 auto 24px auto; }
     .drawer-header { margin-bottom: 24px; padding-right: 40px; position: relative; }
@@ -385,12 +398,14 @@ function formatIsoToId(iso) {
 // =====================================================
 function animateOpen(overlay) {
   if (!overlay) return;
+  document.body.classList.add("drawer-open"); // Kunci layar belakang
   overlay.classList.remove("hidden");
   requestAnimationFrame(() => overlay.classList.add("show"));
 }
 
 function animateClose(overlay) {
   if (!overlay) return;
+  document.body.classList.remove("drawer-open"); // Buka kunci layar belakang
   overlay.classList.remove("show");
   const drawer = overlay.querySelector(".bottom-drawer");
   if (drawer) drawer.style.transform = "";
@@ -399,40 +414,62 @@ function animateClose(overlay) {
 
 function initSwipeToClose() {
   document.querySelectorAll(".bottom-drawer").forEach((drawer) => {
-    let startY = 0;
-    let currentY = 0;
-    let isDragging = false;
+    let startY = 0, currentY = 0, isDragging = false;
+    
+    // Kita isolasi area tarikan HANYA pada bagian header dan handle laci
+    const headerArea = drawer.querySelector('.drawer-header');
+    const handleArea = drawer.querySelector('.drawer-handle');
 
-    drawer.addEventListener("touchstart", (e) => {
+    const startDrag = (e) => {
       if (drawer.scrollTop > 0) return;
       startY = e.touches[0].clientY;
       currentY = startY;
       isDragging = true;
-      drawer.style.transition = "none";
-    }, { passive: true });
+      drawer.style.transition = "none"; // Matikan efek membal agar laci lengket dengan jari
+    };
 
-    drawer.addEventListener("touchmove", (e) => {
+    const moveDrag = (e) => {
       if (!isDragging) return;
       currentY = e.touches[0].clientY;
       const deltaY = currentY - startY;
-      if (deltaY > 0) drawer.style.transform = `translateY(${deltaY}px)`;
-    }, { passive: true });
+      if (deltaY > 0) {
+        drawer.style.transform = `translateY(${deltaY}px)`;
+        // KUNCI UTAMA: Memblokir perintah "Tarik untuk Refresh" bawaan browser
+        e.preventDefault(); 
+      }
+    };
 
-    drawer.addEventListener("touchend", () => {
+    const endDrag = () => {
       if (!isDragging) return;
       isDragging = false;
-      drawer.style.transition = "";
+      drawer.style.transition = ""; // Nyalakan lagi efek membal saat jari dilepas
       const deltaY = currentY - startY;
+      
+      // Jika ditarik cukup jauh ke bawah, laci akan menutup
       if (deltaY > 100) {
         const overlay = drawer.closest(".bottom-drawer-overlay");
         if (overlay) animateClose(overlay);
       } else {
-        drawer.style.transform = "";
+        // Jika tarikan kurang jauh, laci akan membal kembali ke atas
+        drawer.style.transform = ""; 
       }
-    });
+    };
+
+    // Memasang sensor usapan HANYA di bagian atas (handle)
+    if(handleArea) {
+        handleArea.addEventListener("touchstart", startDrag, { passive: true });
+        // passive: false penting agar kita bisa mematikan refresh browser (preventDefault)
+        handleArea.addEventListener("touchmove", moveDrag, { passive: false });
+        handleArea.addEventListener("touchend", endDrag);
+    }
+    if(headerArea) {
+        headerArea.addEventListener("touchstart", startDrag, { passive: true });
+        headerArea.addEventListener("touchmove", moveDrag, { passive: false });
+        headerArea.addEventListener("touchend", endDrag);
+    }
   });
 }
-
+  
 function openAdjustmentModal() {
   const modal = $("adjustment-modal");
   if (!modal) return;
