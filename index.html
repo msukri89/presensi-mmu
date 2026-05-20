@@ -6,6 +6,8 @@
     <title>Presensi MMU B-08</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1b5e20">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* MODERN UI CSS RESET & BASE */
@@ -559,6 +561,9 @@
         }
     };
 
+    /* * PERBAIKAN 1: Optimasi Tanggal Hijriah dengan Caching
+     * Agar tidak selalu membebani loading dan menembak API setiap kali halaman dibuka.
+     */
     function renderDates() {
         const now = new Date();
         document.getElementById('date-masehi').innerText = new Intl.DateTimeFormat('id-ID', {weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
@@ -570,13 +575,27 @@
         
         const sel = document.getElementById('session-selector'); if(sel) sel.value = currentSesi;
         
-        fetch(`https://api.aladhan.com/v1/gToH?date=${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}`)
-        .then(res=>res.json()).then(d=>{
-            let h = d.data.hijri; let finalDay = parseInt(h.day) + hijriOffset;
+        const dateStr = `${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}`;
+        const cacheDate = localStorage.getItem('hijri_date');
+        const cacheData = localStorage.getItem('hijri_data');
+
+        const applyHijri = (h) => {
+            let finalDay = parseInt(h.day) + hijriOffset;
             if(finalDay < 1) finalDay = 30; if(finalDay > 30) finalDay = 1;
             const ms = ["Muharram","Safar","Rabi'ul Awal","Rabi'ul Akhir","Jumadil Awal","Jumadil Akhir","Rajab","Sya'ban","Ramadhan","Syawal","Dzulqa'dah","Dzulhijjah"];
             document.getElementById('date-hijri').innerText = `${finalDay} ${ms[h.month.number-1]} ${h.year} H`;
-        });
+        };
+
+        if (cacheDate === dateStr && cacheData) {
+            applyHijri(JSON.parse(cacheData));
+        } else {
+            fetch(`https://api.aladhan.com/v1/gToH?date=${dateStr}`)
+            .then(res=>res.json()).then(d=>{
+                localStorage.setItem('hijri_date', dateStr);
+                localStorage.setItem('hijri_data', JSON.stringify(d.data.hijri));
+                applyHijri(d.data.hijri);
+            }).catch(() => { document.getElementById('date-hijri').innerText = "Gagal memuat tanggal"; });
+        }
     }
 
     function openAdjustmentModal() {
@@ -590,12 +609,19 @@
     function closeAdjustmentModal() { document.getElementById('adjustment-modal').classList.add('hidden'); }
     function updateSesiManual(val) { currentSesi = parseInt(val); loadDashboardData(); }
 
+    /*
+     * PERBAIKAN 2: Eksekusi Beban Paralel 
+     * Saat login berhasil, langsung jalankan Dashboard (loadDashboardData), 
+     * SEKALIGUS mulai mengunduh Data_Siswa di latar belakang tanpa menahan Dashboard.
+     */
     function doLogin(){
         const hp=document.getElementById('input-hp').value, pin=document.getElementById('input-pin').value;
         const err = document.getElementById('login-error');
         if(!hp || !pin) { err.innerText="Mohon isi HP & PIN"; err.style.display="block"; return; }
         
         err.style.display="none"; switchScreen('screen-loading');
+        document.getElementById('loading-text').innerText="Memverifikasi akun...";
+        
         fetch(API_URL,{method:'POST',body:JSON.stringify({action:"login",ID_Pengguna:hp,Kata_Sandi:pin})})
         .then(res=>res.json()).then(data=>{
             if(data.status==="sukses"){
@@ -605,7 +631,12 @@
                 document.getElementById('top-name').innerText=currentUser;
                 document.getElementById('config-gear').classList.remove('hidden');
                 renderDates(); 
-                fetch(API_URL).then(r=>r.json()).then(stData=>{ allStudents=stData; loadDashboardData(); });
+                
+                // 1. Langsung request data Dashboard untuk ditampilkan segera
+                loadDashboardData();
+                
+                // 2. Request Data Siswa di-run diam-diam di background
+                fetch(API_URL).then(r=>r.json()).then(stData=>{ allStudents=stData; }).catch(e=>console.log("Siswa lambat dimuat: ", e));
             } else { switchScreen('screen-login'); err.innerText=data.pesan; err.style.display="block"; }
         }).catch(()=>{ switchScreen('screen-login'); err.innerText="Gangguan server."; err.style.display="block"; });
     }
@@ -1035,10 +1066,38 @@
         .then(res=>res.json()).then(data=>{ if(data.status === "gagal") alert(data.pesan || "Gagal mencatat."); loadDashboardData(); }).catch(()=>{ alert("Gagal koneksi."); switchScreen('screen-dashboard'); }).finally(()=>{ standbyBusy = false; });
     }
 
+    /*
+     * PERBAIKAN 3: Lazy-rendering untuk Kelas
+     * Mencegah aplikasi menjadi blank jika Anda mengeklik kelas 
+     * sebelum data siswa selesai diunduh di latar belakang.
+     */
     function openClass(c){
-        closeInvalDrawer(); switchScreen('screen-attendance'); currentClassStudents=allStudents.filter(s=>s.Kelas===c);
-        const div=document.getElementById('student-list'); div.innerHTML='';
-        if (currentClassStudents.length === 0) { div.innerHTML = `<div class="card-soft" style="cursor:default; text-align:center; color:#ef4444; font-size:13px; line-height:1.6;">Data siswa untuk kelas ${safeText(c)} kosong.</div>`; return; }
+        closeInvalDrawer(); 
+        switchScreen('screen-attendance'); 
+        const div=document.getElementById('student-list');
+
+        if (allStudents.length === 0) {
+            div.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#1b5e20; font-weight:600; font-size:14px;">Memuat data siswa dari server... Mohon tunggu sebentar.</div>`;
+            fetch(API_URL).then(r=>r.json()).then(stData=>{
+                allStudents=stData;
+                renderStudentList(c, div);
+            }).catch(()=>{
+                div.innerHTML = `<div class="card-soft" style="text-align:center; color:#ef4444;">Gagal memuat data siswa. Coba kembali.</div>`;
+            });
+            return;
+        }
+
+        renderStudentList(c, div);
+    }
+
+    function renderStudentList(c, div) {
+        currentClassStudents=allStudents.filter(s=>s.Kelas===c);
+        div.innerHTML='';
+        
+        if (currentClassStudents.length === 0) { 
+            div.innerHTML = `<div class="card-soft" style="cursor:default; text-align:center; color:#ef4444; font-size:13px; line-height:1.6;">Data siswa untuk kelas ${safeText(c)} kosong.</div>`; 
+            return; 
+        }
         
         currentClassStudents.forEach(s=>{
             attendanceData[s.ID_Siswa]='H'; 
