@@ -1259,7 +1259,7 @@
             if (auditTotal) auditTotal.innerText = data.rowsAdded || 0;
             if (auditNote) {
                 const cAudit = data.counts || {};
-                auditNote.innerText = `Harian terbaru: Reguler ${cAudit.Reguler || 0}, Tukar ${cAudit.Tukar || 0}, Inval ${cAudit.Inval || 0}, Standby ${cAudit.Standby || 0}, Tidak Hadir ${cAudit.TidakHadir || 0}.`;
+                auditNote.innerText = `Harian terbaru: Reguler ${cAudit.Reguler || 0}, Tukar ${cAudit.Tukar || 0}, Inval ${cAudit.Inval || 0}, Standby ${cAudit.Standby || 0}, Sakit ${cAudit.Sakit || 0}, Izin ${cAudit.Izin || 0}, Tidak Hadir ${cAudit.TidakHadir || 0}.`;
             }
         })
         .catch(()=>{
@@ -1305,7 +1305,7 @@
             const auditBulananNote = document.getElementById('audit-bulanan-summary-note');
             const auditBulananTotal = document.getElementById('audit-bulanan-total-label');
             if (auditBulananTotal) auditBulananTotal.innerText = data.summary?.guru || 0;
-            if (auditBulananNote) auditBulananNote.innerText = `Bulanan terbaru: ${safeText(data.bulan)} ${safeText(data.tahun)} • Guru ${data.summary?.guru || 0}, Tidak Hadir ${data.summary?.TidakHadir || 0}, Total Aktivitas ${data.summary?.TotalAktivitas || 0}.`;
+            if (auditBulananNote) auditBulananNote.innerText = `Bulanan terbaru: ${safeText(data.bulan)} ${safeText(data.tahun)} • Guru ${data.summary?.guru || 0}, Sakit ${data.summary?.Sakit || 0}, Izin ${data.summary?.Izin || 0}, Tidak Hadir ${data.summary?.TidakHadir || 0}, Total Aktivitas ${data.summary?.TotalAktivitas || 0}.`;
         })
         .catch(()=>{
             alert('Gagal koneksi saat membuat rekap guru bulanan.');
@@ -1331,7 +1331,7 @@
         const c = latestAuditRekap.counts || {};
         if (totalEl) totalEl.innerText = latestAuditRekap.totalRows || 0;
         if (noteEl) {
-            noteEl.innerText = `Hari ini: Reguler ${c.Reguler || 0}, Tukar ${c.Tukar || 0}, Inval ${c.Inval || 0}, Standby ${c.Standby || 0}, Tidak Hadir ${c.TidakHadir || 0}.`;
+            noteEl.innerText = `Hari ini: Reguler ${c.Reguler || 0}, Tukar ${c.Tukar || 0}, Inval ${c.Inval || 0}, Standby ${c.Standby || 0}, Sakit ${c.Sakit || 0}, Izin ${c.Izin || 0}, Tidak Hadir ${c.TidakHadir || 0}.`;
         }
     }
 
@@ -1429,6 +1429,8 @@
                 <div class="audit-box"><div class="audit-box-lbl">Tukar</div><div class="audit-box-val">${c.Tukar || 0}</div></div>
                 <div class="audit-box"><div class="audit-box-lbl">Inval</div><div class="audit-box-val">${c.Inval || 0}</div></div>
                 <div class="audit-box"><div class="audit-box-lbl">Standby</div><div class="audit-box-val">${c.Standby || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Sakit</div><div class="audit-box-val" style="color:#f57f17;">${c.Sakit || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Izin</div><div class="audit-box-val" style="color:#f57f17;">${c.Izin || 0}</div></div>
                 <div class="audit-box"><div class="audit-box-lbl">Tidak Hadir</div><div class="audit-box-val" style="color:#d32f2f;">${c.TidakHadir || 0}</div></div>
                 <div class="audit-box"><div class="audit-box-lbl">Total</div><div class="audit-box-val">${data.totalRows || 0}</div></div>
             </div>
@@ -1436,6 +1438,8 @@
 
         const lists = data.lists || {};
         html += renderAuditSection('Tidak Hadir', lists.tidakHadir || [], 'tidak-hadir');
+        html += renderAuditSection('Sakit', lists.sakit || [], 'inval');
+        html += renderAuditSection('Izin', lists.izin || [], 'inval');
         html += renderAuditSection('Tukar', lists.tukar || [], 'tukar');
         html += renderAuditSection('Inval', lists.inval || [], 'inval');
         html += renderAuditSection('Standby', lists.standby || [], 'standby');
@@ -1477,7 +1481,7 @@
         const s = latestAuditBulanan.summary || {};
         if (totalEl) totalEl.innerText = latestAuditBulanan.totalRows || 0;
         if (noteEl) {
-            noteEl.innerText = `${safeText(latestAuditBulanan.bulan)} ${safeText(latestAuditBulanan.tahun)}: Wajib efektif ${s.WajibEfektif || 0}, Aktivitas ${s.TotalAktivitas || 0}, Tidak Hadir ${s.TidakHadir || 0}, Persentase ${safeText(s.PersentaseTotal || '0%')}.`;
+            noteEl.innerText = `${safeText(latestAuditBulanan.bulan)} ${safeText(latestAuditBulanan.tahun)}: Wajib efektif ${s.WajibEfektif || 0}, Aktivitas ${s.TotalAktivitas || 0}, Sakit ${s.Sakit || 0}, Izin ${s.Izin || 0}, Tidak Hadir ${s.TidakHadir || 0}, Persentase ${safeText(s.PersentaseTotal || '0%')}.`;
         }
     }
 
@@ -1532,6 +1536,8 @@
                 <div class="audit-box"><div class="audit-box-lbl">Guru</div><div class="audit-box-val">${s.guru || 0}</div></div>
                 <div class="audit-box"><div class="audit-box-lbl">Wajib Efektif</div><div class="audit-box-val">${s.WajibEfektif || 0}</div></div>
                 <div class="audit-box"><div class="audit-box-lbl">Aktivitas</div><div class="audit-box-val">${s.TotalAktivitas || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Sakit</div><div class="audit-box-val" style="color:#f57f17;">${s.Sakit || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Izin</div><div class="audit-box-val" style="color:#f57f17;">${s.Izin || 0}</div></div>
                 <div class="audit-box"><div class="audit-box-lbl">Tidak Hadir</div><div class="audit-box-val" style="color:#d32f2f;">${s.TidakHadir || 0}</div></div>
                 <div class="audit-box"><div class="audit-box-lbl">Tukar Masuk</div><div class="audit-box-val">${s.TukarMasuk || 0}</div></div>
                 <div class="audit-box"><div class="audit-box-lbl">Persentase</div><div class="audit-box-val">${escapeHTML(s.PersentaseTotal || '0%')}</div></div>
@@ -1557,7 +1563,7 @@
                 <div class="audit-list-card ${cls}">
                     <div class="audit-name">${escapeHTML(it.namaGuru || '-')} — ${escapeHTML(it.persentaseWajib || '0%')}</div>
                     <div class="audit-meta">
-                        Wajib efektif: ${it.wajibEfektif || 0} • Aktivitas: ${it.totalAktivitas || 0} • Tidak hadir: ${it.tidakHadir || 0}<br>
+                        Wajib efektif: ${it.wajibEfektif || 0} • Aktivitas: ${it.totalAktivitas || 0} • Sakit: ${it.sakit || 0} • Izin: ${it.izin || 0} • Tidak hadir: ${it.tidakHadir || 0}<br>
                         Reguler: ${it.reguler || 0} • Tukar Masuk: ${it.tukarMasuk || 0} • Inval: ${it.inval || 0} • Standby: ${it.standby || 0}<br>
                         Sesi wajib bulanan: ${it.sesiWajibBulanan || 0} • Tukar keluar: ${it.tukarKeluar || 0}${it.keterangan ? `<br><span style="color:#777;">${escapeHTML(it.keterangan)}</span>` : ''}
                     </div>
