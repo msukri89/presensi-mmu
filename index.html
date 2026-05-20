@@ -95,6 +95,22 @@
         .approval-card { cursor: default; border-left: 3px solid #1976d2; }
         .approval-count-badge { background:#e3f2fd; color:#0d47a1; border-radius:20px; padding:6px 10px; font-size:12px; font-weight:600; white-space:nowrap; }
         .approval-item { background:#fff; border-radius:14px; padding:16px; margin-bottom:10px; border-left:3px solid #1976d2; box-shadow:0 4px 12px rgba(0,0,0,0.02); }
+        .audit-card { cursor: default; border-left: 3px solid #6a1b9a; }
+        .audit-count-badge { background:#f3e5f5; color:#6a1b9a; border-radius:20px; padding:6px 10px; font-size:12px; font-weight:600; white-space:nowrap; }
+        .audit-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+        .audit-box { background:#fff; border-radius:14px; padding:12px; border:1px solid #e0e4e2; }
+        .audit-box-lbl { font-size:11px; color:#777; text-transform:uppercase; margin-bottom:4px; }
+        .audit-box-val { font-size:20px; color:#1b5e20; font-weight:600; }
+        .audit-section-title { font-size:12px; color:#777; font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin:18px 0 8px 0; }
+        .audit-list-card { background:#fff; border-radius:14px; padding:14px; margin-bottom:9px; border-left:3px solid #d2d8d4; box-shadow:0 4px 12px rgba(0,0,0,0.02); }
+        .audit-list-card.tidak-hadir { border-left-color:#d32f2f; }
+        .audit-list-card.tukar { border-left-color:#1976d2; }
+        .audit-list-card.inval { border-left-color:#f57f17; }
+        .audit-list-card.standby { border-left-color:#2e7d32; }
+        .audit-list-card.reguler { border-left-color:#1b5e20; }
+        .audit-name { font-size:13px; font-weight:600; color:#333; margin-bottom:4px; }
+        .audit-meta { font-size:12px; color:#666; line-height:1.45; }
+
         .approval-meta { font-size:12px; color:#777; margin-top:4px; line-height:1.45; }
         .approval-teachers { font-size:12px; color:#333; margin-top:8px; line-height:1.55; background:#f7f9f8; border-radius:10px; padding:10px; }
         .approval-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
@@ -228,6 +244,15 @@
                     <button class="inval-btn-small" id="btn-generate-rekap" onclick="generateRekapGuruSesi()">Generate Rekap Sesi Ini</button>
                     <button class="inval-btn-small" id="btn-generate-rekap-harian" onclick="generateRekapGuruHarian()" style="margin-top:8px; background:#fff; color:#1b5e20; border:1px solid #1b5e20;">Generate Rekap Harian</button>
                 </div>
+
+                <div class="card-soft audit-card" id="card-audit-rekap" style="cursor:default;">
+                    <div class="inval-summary-head">
+                        <div class="inval-summary-title">Audit Rekap Harian</div>
+                        <div class="audit-count-badge"><span id="audit-total-label">-</span> baris</div>
+                    </div>
+                    <div class="inval-summary-note" id="audit-summary-note">Lihat ringkasan dan daftar detail Rekap_Guru hari ini.</div>
+                    <button class="inval-btn-small" id="btn-open-audit" onclick="openAuditRekapDrawer()" style="background:#6a1b9a;">Lihat Audit Harian</button>
+                </div>
             </div>
 
             <button class="btn btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar Sistem</button>
@@ -338,6 +363,20 @@
     </div>
 </div>
 
+<div id="audit-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeAuditRekapDrawer()">
+    <div class="bottom-drawer" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <div>
+                <div class="drawer-title">Audit Rekap Harian</div>
+                <div class="drawer-subtitle" id="audit-drawer-subtitle">Memuat data Rekap_Guru hari ini...</div>
+            </div>
+            <button class="drawer-close" onclick="closeAuditRekapDrawer()" aria-label="Tutup">×</button>
+        </div>
+        <div id="audit-drawer-list"></div>
+    </div>
+</div>
+
     <script>
     // PASTIKAN BARIS INI ADA DI PALING ATAS
     const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
@@ -346,8 +385,9 @@
     let latestTukarOptions = [];
     let latestTukarRequests = [];
     let latestTukarJadwal = [];
+    let latestAuditRekap = null;
     let selectedTukarSchedule = null;
-    let isSubmitting=false, standbyBusy=false, tukarBusy=false, approvalBusy=false;
+    let isSubmitting=false, standbyBusy=false, tukarBusy=false, approvalBusy=false, auditBusy=false;
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
     // SISTEM PROTEKSI NAVIGASI TOMBOL BACK/SWIPE HP (SPA ROUTER)
@@ -440,6 +480,15 @@
 
     function safeText(val) {
         return (val === undefined || val === null) ? "" : String(val);
+    }
+
+    function escapeHTML(val) {
+        return safeText(val)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     function renderInvalAccessCard(prefix) {
@@ -891,6 +940,14 @@
 
             const note = document.getElementById('rekap-summary-note');
             if (note) note.innerText = `Terakhir dibuat: Rekap harian ${safeText(data.hari)}, ${safeText(data.tanggal)}. Baris baru: ${data.rowsAdded || 0}.`;
+            latestAuditRekap = null;
+            const auditTotal = document.getElementById('audit-total-label');
+            const auditNote = document.getElementById('audit-summary-note');
+            if (auditTotal) auditTotal.innerText = data.rowsAdded || 0;
+            if (auditNote) {
+                const cAudit = data.counts || {};
+                auditNote.innerText = `Harian terbaru: Reguler ${cAudit.Reguler || 0}, Tukar ${cAudit.Tukar || 0}, Inval ${cAudit.Inval || 0}, Standby ${cAudit.Standby || 0}, Tidak Hadir ${cAudit.TidakHadir || 0}.`;
+            }
         })
         .catch(()=>{
             alert('Gagal koneksi saat membuat rekap guru harian.');
@@ -901,6 +958,111 @@
         });
     }
 
+
+
+    function updateAuditCardFromData(data) {
+        latestAuditRekap = data || latestAuditRekap;
+        const totalEl = document.getElementById('audit-total-label');
+        const noteEl = document.getElementById('audit-summary-note');
+        if (!latestAuditRekap) {
+            if (totalEl) totalEl.innerText = '-';
+            if (noteEl) noteEl.innerText = 'Lihat ringkasan dan daftar detail Rekap_Guru hari ini.';
+            return;
+        }
+        const c = latestAuditRekap.counts || {};
+        if (totalEl) totalEl.innerText = latestAuditRekap.totalRows || 0;
+        if (noteEl) {
+            noteEl.innerText = `Hari ini: Reguler ${c.Reguler || 0}, Tukar ${c.Tukar || 0}, Inval ${c.Inval || 0}, Standby ${c.Standby || 0}, Tidak Hadir ${c.TidakHadir || 0}.`;
+        }
+    }
+
+    function closeAuditRekapDrawer() {
+        document.getElementById('audit-drawer-overlay').classList.add('hidden');
+    }
+
+    function openAuditRekapDrawer() {
+        document.getElementById('audit-drawer-overlay').classList.remove('hidden');
+        const list = document.getElementById('audit-drawer-list');
+        const subtitle = document.getElementById('audit-drawer-subtitle');
+        if (subtitle) subtitle.innerText = 'Memuat data Rekap_Guru hari ini...';
+        if (list) list.innerHTML = '<div class="drawer-empty">Memuat audit rekap...</div>';
+
+        if (auditBusy) return;
+        auditBusy = true;
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:'auditRekapGuruHarian', nama:currentUser})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if (data.status !== 'sukses') {
+                if (list) list.innerHTML = `<div class="drawer-empty" style="color:#d32f2f;">${escapeHTML(data.pesan || 'Gagal memuat audit rekap.')}</div>`;
+                return;
+            }
+            latestAuditRekap = data;
+            updateAuditCardFromData(data);
+            renderAuditRekapDrawer(data);
+        })
+        .catch(()=>{
+            if (list) list.innerHTML = '<div class="drawer-empty" style="color:#d32f2f;">Gagal koneksi saat memuat audit rekap.</div>';
+        })
+        .finally(()=>{ auditBusy = false; });
+    }
+
+    function renderAuditRekapDrawer(data) {
+        const list = document.getElementById('audit-drawer-list');
+        const subtitle = document.getElementById('audit-drawer-subtitle');
+        if (!list) return;
+
+        const c = data.counts || {};
+        if (subtitle) subtitle.innerText = `${safeText(data.hari)}, ${safeText(data.tanggal)} • Total ${data.totalRows || 0} baris Rekap_Guru`;
+
+        if (!data.totalRows) {
+            list.innerHTML = '<div class="drawer-empty">Belum ada Rekap_Guru hari ini. Jalankan Generate Rekap Harian terlebih dahulu.</div>';
+            return;
+        }
+
+        let html = `
+            <div class="audit-grid">
+                <div class="audit-box"><div class="audit-box-lbl">Reguler</div><div class="audit-box-val">${c.Reguler || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Tukar</div><div class="audit-box-val">${c.Tukar || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Inval</div><div class="audit-box-val">${c.Inval || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Standby</div><div class="audit-box-val">${c.Standby || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Tidak Hadir</div><div class="audit-box-val" style="color:#d32f2f;">${c.TidakHadir || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Total</div><div class="audit-box-val">${data.totalRows || 0}</div></div>
+            </div>
+        `;
+
+        const lists = data.lists || {};
+        html += renderAuditSection('Tidak Hadir', lists.tidakHadir || [], 'tidak-hadir');
+        html += renderAuditSection('Tukar', lists.tukar || [], 'tukar');
+        html += renderAuditSection('Inval', lists.inval || [], 'inval');
+        html += renderAuditSection('Standby', lists.standby || [], 'standby');
+        html += renderAuditSection('Reguler', lists.reguler || [], 'reguler');
+
+        list.innerHTML = html;
+    }
+
+    function renderAuditSection(title, items, cls) {
+        if (!items || items.length === 0) {
+            return `<div class="audit-section-title">${escapeHTML(title)}</div><div class="drawer-empty">Tidak ada data ${escapeHTML(title)}.</div>`;
+        }
+        let html = `<div class="audit-section-title">${escapeHTML(title)} (${items.length})</div>`;
+        items.forEach(it => {
+            const kelas = it.kelas ? ` • ${escapeHTML(it.kelas)}` : '';
+            const mapel = it.mapel ? ` • ${escapeHTML(it.mapel)}` : '';
+            const terkait = it.guruTerkait ? `<br>Guru terkait: ${escapeHTML(it.guruTerkait)}` : '';
+            const idTukar = it.idTukar ? `<br>ID Tukar: ${escapeHTML(it.idTukar)}` : '';
+            const ket = it.keterangan ? `<br><span style="color:#777;">${escapeHTML(it.keterangan)}</span>` : '';
+            html += `
+                <div class="audit-list-card ${cls}">
+                    <div class="audit-name">Sesi ${escapeHTML(it.sesi)} — ${escapeHTML(it.namaGuru)}</div>
+                    <div class="audit-meta">${escapeHTML(it.aktivitas)}${kelas}${mapel}${terkait}${idTukar}${ket}</div>
+                </div>
+            `;
+        });
+        return html;
+    }
     function loadDashboardData(){
         switchScreen('screen-loading'); document.getElementById('loading-text').innerText="Menyusun data sesi "+currentSesi+"... ";
         document.getElementById('lbl-sesi').innerText = currentSesi;
