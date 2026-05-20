@@ -254,6 +254,15 @@
                     <div class="inval-summary-note" id="audit-summary-note">Lihat ringkasan dan daftar detail Rekap_Guru hari ini.</div>
                     <button class="inval-btn-small" id="btn-open-audit" onclick="openAuditRekapDrawer()" style="background:#6a1b9a;">Lihat Audit Harian</button>
                 </div>
+
+                <div class="card-soft audit-card" id="card-audit-bulanan" style="cursor:default;">
+                    <div class="inval-summary-head">
+                        <div class="inval-summary-title">Audit Rekap Bulanan</div>
+                        <div class="audit-count-badge"><span id="audit-bulanan-total-label">-</span> guru</div>
+                    </div>
+                    <div class="inval-summary-note" id="audit-bulanan-summary-note">Lihat ringkasan dan daftar detail Rekap_Guru_Bulanan bulan berjalan.</div>
+                    <button class="inval-btn-small" id="btn-open-audit-bulanan" onclick="openAuditBulananDrawer()" style="background:#0d47a1;">Lihat Audit Bulanan</button>
+                </div>
             </div>
 
             <button class="btn btn-outline" onclick="location.reload()" style="margin-top:20px;">Keluar Sistem</button>
@@ -378,6 +387,20 @@
     </div>
 </div>
 
+<div id="audit-bulanan-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeAuditBulananDrawer()">
+    <div class="bottom-drawer" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <div>
+                <div class="drawer-title">Audit Rekap Bulanan</div>
+                <div class="drawer-subtitle" id="audit-bulanan-drawer-subtitle">Memuat data Rekap_Guru_Bulanan bulan berjalan...</div>
+            </div>
+            <button class="drawer-close" onclick="closeAuditBulananDrawer()" aria-label="Tutup">×</button>
+        </div>
+        <div id="audit-bulanan-drawer-list"></div>
+    </div>
+</div>
+
     <script>
     // PASTIKAN BARIS INI ADA DI PALING ATAS
     const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
@@ -387,8 +410,9 @@
     let latestTukarRequests = [];
     let latestTukarJadwal = [];
     let latestAuditRekap = null;
+    let latestAuditBulanan = null;
     let selectedTukarSchedule = null;
-    let isSubmitting=false, standbyBusy=false, tukarBusy=false, approvalBusy=false, auditBusy=false;
+    let isSubmitting=false, standbyBusy=false, tukarBusy=false, approvalBusy=false, auditBusy=false, auditBulananBusy=false;
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
     // SISTEM PROTEKSI NAVIGASI TOMBOL BACK/SWIPE HP (SPA ROUTER)
@@ -989,6 +1013,11 @@
 
             const note = document.getElementById('rekap-summary-note');
             if (note) note.innerText = `Rekap bulanan ${safeText(data.bulan)} ${safeText(data.tahun)} dibuat dari ${data.jumlahTanggal || 0} tanggal Rekap_Guru. Baris baru: ${data.rowsAdded || 0}.`;
+            latestAuditBulanan = null;
+            const auditBulananNote = document.getElementById('audit-bulanan-summary-note');
+            const auditBulananTotal = document.getElementById('audit-bulanan-total-label');
+            if (auditBulananTotal) auditBulananTotal.innerText = data.summary?.guru || 0;
+            if (auditBulananNote) auditBulananNote.innerText = `Bulanan terbaru: ${safeText(data.bulan)} ${safeText(data.tahun)} • Guru ${data.summary?.guru || 0}, Tidak Hadir ${data.summary?.TidakHadir || 0}, Total Aktivitas ${data.summary?.TotalAktivitas || 0}.`;
         })
         .catch(()=>{
             alert('Gagal koneksi saat membuat rekap guru bulanan.');
@@ -1105,6 +1134,109 @@
         });
         return html;
     }
+
+    function updateAuditBulananCardFromData(data) {
+        latestAuditBulanan = data || latestAuditBulanan;
+        const totalEl = document.getElementById('audit-bulanan-total-label');
+        const noteEl = document.getElementById('audit-bulanan-summary-note');
+        if (!latestAuditBulanan) {
+            if (totalEl) totalEl.innerText = '-';
+            if (noteEl) noteEl.innerText = 'Lihat ringkasan dan daftar detail Rekap_Guru_Bulanan bulan berjalan.';
+            return;
+        }
+        const s = latestAuditBulanan.summary || {};
+        if (totalEl) totalEl.innerText = latestAuditBulanan.totalRows || 0;
+        if (noteEl) {
+            noteEl.innerText = `${safeText(latestAuditBulanan.bulan)} ${safeText(latestAuditBulanan.tahun)}: Wajib efektif ${s.WajibEfektif || 0}, Aktivitas ${s.TotalAktivitas || 0}, Tidak Hadir ${s.TidakHadir || 0}, Persentase ${safeText(s.PersentaseTotal || '0%')}.`;
+        }
+    }
+
+    function closeAuditBulananDrawer() {
+        document.getElementById('audit-bulanan-drawer-overlay').classList.add('hidden');
+    }
+
+    function openAuditBulananDrawer() {
+        document.getElementById('audit-bulanan-drawer-overlay').classList.remove('hidden');
+        const list = document.getElementById('audit-bulanan-drawer-list');
+        const subtitle = document.getElementById('audit-bulanan-drawer-subtitle');
+        if (subtitle) subtitle.innerText = 'Memuat data Rekap_Guru_Bulanan bulan berjalan...';
+        if (list) list.innerHTML = '<div class="drawer-empty">Memuat audit rekap bulanan...</div>';
+
+        if (auditBulananBusy) return;
+        auditBulananBusy = true;
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:'auditRekapGuruBulanan', nama:currentUser})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if (data.status !== 'sukses') {
+                if (list) list.innerHTML = `<div class="drawer-empty" style="color:#d32f2f;">${escapeHTML(data.pesan || 'Gagal memuat audit rekap bulanan.')}</div>`;
+                return;
+            }
+            latestAuditBulanan = data;
+            updateAuditBulananCardFromData(data);
+            renderAuditBulananDrawer(data);
+        })
+        .catch(()=>{
+            if (list) list.innerHTML = '<div class="drawer-empty" style="color:#d32f2f;">Gagal koneksi saat memuat audit rekap bulanan.</div>';
+        })
+        .finally(()=>{ auditBulananBusy = false; });
+    }
+
+    function renderAuditBulananDrawer(data) {
+        const list = document.getElementById('audit-bulanan-drawer-list');
+        const subtitle = document.getElementById('audit-bulanan-drawer-subtitle');
+        if (!list) return;
+
+        const s = data.summary || {};
+        if (subtitle) subtitle.innerText = `${safeText(data.bulan)} ${safeText(data.tahun)} • Total ${data.totalRows || 0} guru`;
+
+        if (!data.totalRows) {
+            list.innerHTML = '<div class="drawer-empty">Belum ada Rekap_Guru_Bulanan bulan berjalan. Jalankan Generate Rekap Bulanan terlebih dahulu.</div>';
+            return;
+        }
+
+        let html = `
+            <div class="audit-grid">
+                <div class="audit-box"><div class="audit-box-lbl">Guru</div><div class="audit-box-val">${s.guru || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Wajib Efektif</div><div class="audit-box-val">${s.WajibEfektif || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Aktivitas</div><div class="audit-box-val">${s.TotalAktivitas || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Tidak Hadir</div><div class="audit-box-val" style="color:#d32f2f;">${s.TidakHadir || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Tukar Masuk</div><div class="audit-box-val">${s.TukarMasuk || 0}</div></div>
+                <div class="audit-box"><div class="audit-box-lbl">Persentase</div><div class="audit-box-val">${escapeHTML(s.PersentaseTotal || '0%')}</div></div>
+            </div>
+        `;
+
+        const lists = data.lists || {};
+        html += renderAuditBulananSection('Perlu Perhatian', lists.perluPerhatian || [], 'tidak-hadir');
+        html += renderAuditBulananSection('Tukar/Inval Tambahan', lists.tambahan || [], 'inval');
+        html += renderAuditBulananSection('Tuntas', lists.tuntas || [], 'standby');
+        html += renderAuditBulananSection('Semua Guru', lists.semua || [], 'reguler');
+
+        list.innerHTML = html;
+    }
+
+    function renderAuditBulananSection(title, items, cls) {
+        if (!items || items.length === 0) {
+            return `<div class="audit-section-title">${escapeHTML(title)}</div><div class="drawer-empty">Tidak ada data ${escapeHTML(title)}.</div>`;
+        }
+        let html = `<div class="audit-section-title">${escapeHTML(title)} (${items.length})</div>`;
+        items.forEach(it => {
+            html += `
+                <div class="audit-list-card ${cls}">
+                    <div class="audit-name">${escapeHTML(it.namaGuru || '-')} — ${escapeHTML(it.persentaseWajib || '0%')}</div>
+                    <div class="audit-meta">
+                        Wajib efektif: ${it.wajibEfektif || 0} • Aktivitas: ${it.totalAktivitas || 0} • Tidak hadir: ${it.tidakHadir || 0}<br>
+                        Reguler: ${it.reguler || 0} • Tukar Masuk: ${it.tukarMasuk || 0} • Inval: ${it.inval || 0} • Standby: ${it.standby || 0}<br>
+                        Sesi wajib bulanan: ${it.sesiWajibBulanan || 0} • Tukar keluar: ${it.tukarKeluar || 0}${it.keterangan ? `<br><span style="color:#777;">${escapeHTML(it.keterangan)}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        return html;
+    }
+
     function loadDashboardData(){
         switchScreen('screen-loading'); document.getElementById('loading-text').innerText="Menyusun data sesi "+currentSesi+"... ";
         document.getElementById('lbl-sesi').innerText = currentSesi;
