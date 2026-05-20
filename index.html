@@ -243,6 +243,15 @@
                     <button class="inval-btn-small" id="btn-open-approval" onclick="openTukarApprovalDrawer()">Kelola Pengajuan</button>
                 </div>
 
+                <div class="card-soft approval-card" id="card-izin-approval" style="border-left-color:#f57f17;">
+                    <div class="inval-summary-head">
+                        <div class="inval-summary-title">Pengajuan Sakit/Izin Guru</div>
+                        <div class="approval-count-badge" style="background:#fff3e0; color:#e65100;"><span id="izin-approval-count">0</span> diajukan</div>
+                    </div>
+                    <div class="inval-summary-note" id="izin-approval-summary-note">Memuat pengajuan Sakit/Izin guru...</div>
+                    <button class="inval-btn-small" id="btn-open-izin-approval" onclick="openIzinApprovalDrawer()" style="background:#f57f17;">Kelola Sakit/Izin</button>
+                </div>
+
 
                 <div class="card-soft" id="card-rekap-guru" style="cursor:default;">
                     <div class="inval-summary-head">
@@ -441,6 +450,20 @@
     </div>
 </div>
 
+<div id="izin-approval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeIzinApprovalDrawer()">
+    <div class="bottom-drawer" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <div>
+                <div class="drawer-title">Persetujuan Sakit / Izin Guru</div>
+                <div class="drawer-subtitle">Pengajuan yang disetujui akan masuk rekap sebagai Sakit/Izin, bukan Tidak Hadir.</div>
+            </div>
+            <button class="drawer-close" onclick="closeIzinApprovalDrawer()" aria-label="Tutup">×</button>
+        </div>
+        <div id="izin-approval-drawer-list"></div>
+    </div>
+</div>
+
 <div id="audit-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeAuditRekapDrawer()">
     <div class="bottom-drawer" onclick="event.stopPropagation()">
         <div class="drawer-handle"></div>
@@ -476,11 +499,12 @@
     let latestInvalList = [];
     let latestTukarOptions = [];
     let latestTukarRequests = [];
+    let latestIzinRequests = [];
     let latestTukarJadwal = [];
     let latestAuditRekap = null;
     let latestAuditBulanan = null;
     let selectedTukarSchedule = null;
-    let isSubmitting=false, standbyBusy=false, tukarBusy=false, approvalBusy=false, auditBusy=false, auditBulananBusy=false, izinBusy=false;
+    let isSubmitting=false, standbyBusy=false, tukarBusy=false, approvalBusy=false, izinApprovalBusy=false, auditBusy=false, auditBulananBusy=false, izinBusy=false;
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
     // SISTEM PROTEKSI NAVIGASI TOMBOL BACK/SWIPE HP (SPA ROUTER)
@@ -655,7 +679,7 @@
     }
 
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') { closeInvalDrawer(); closeTukarDrawer(); closeIzinDrawer(); closeTukarApprovalDrawer(); }
+        if (e.key === 'Escape') { closeInvalDrawer(); closeTukarDrawer(); closeIzinDrawer(); closeTukarApprovalDrawer(); closeIzinApprovalDrawer(); }
     });
 
 
@@ -770,6 +794,121 @@
         })
         .finally(()=>{
             approvalBusy = false;
+        });
+    }
+
+    function renderIzinApprovalAccessCard() {
+        const countEl = document.getElementById('izin-approval-count');
+        const noteEl = document.getElementById('izin-approval-summary-note');
+        const btn = document.getElementById('btn-open-izin-approval');
+        const total = latestIzinRequests.length;
+
+        if (countEl) countEl.innerText = total;
+        if (noteEl) {
+            noteEl.innerText = total > 0
+                ? 'Ada pengajuan Sakit/Izin guru yang menunggu keputusan pimpinan.'
+                : 'Tidak ada pengajuan Sakit/Izin guru yang menunggu persetujuan.';
+        }
+        if (btn) {
+            btn.disabled = total === 0;
+            btn.innerText = total > 0 ? 'Kelola Sakit/Izin' : 'Tidak Ada Pengajuan';
+        }
+    }
+
+    function loadIzinApprovals() {
+        if (currentRole !== 'pimpinan') return;
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({action:'listIzinGuruPengajuan', nama:currentUser, statusFilter:'Diajukan'})
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if (data.status === 'gagal') {
+                latestIzinRequests = [];
+                renderIzinApprovalAccessCard();
+                return;
+            }
+            latestIzinRequests = Array.isArray(data.requests) ? data.requests : [];
+            renderIzinApprovalAccessCard();
+            renderIzinApprovalList();
+        })
+        .catch(()=>{
+            latestIzinRequests = [];
+            renderIzinApprovalAccessCard();
+        });
+    }
+
+    function openIzinApprovalDrawer() {
+        const overlay = document.getElementById('izin-approval-drawer-overlay');
+        if (!overlay) return;
+        renderIzinApprovalList();
+        overlay.classList.remove('hidden');
+        loadIzinApprovals();
+    }
+
+    function closeIzinApprovalDrawer() {
+        const overlay = document.getElementById('izin-approval-drawer-overlay');
+        if (overlay) overlay.classList.add('hidden');
+    }
+
+    function renderIzinApprovalList() {
+        const list = document.getElementById('izin-approval-drawer-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        if (!latestIzinRequests || latestIzinRequests.length === 0) {
+            list.innerHTML = '<div class="drawer-empty">Tidak ada pengajuan Sakit/Izin guru yang menunggu persetujuan.</div>';
+            return;
+        }
+
+        latestIzinRequests.forEach(req => {
+            const periode = safeText(req.tanggalMulai) === safeText(req.tanggalSelesai)
+                ? safeText(req.tanggalMulai)
+                : `${safeText(req.tanggalMulai)} s.d. ${safeText(req.tanggalSelesai)}`;
+            const card = document.createElement('div');
+            card.className = 'approval-item';
+            card.innerHTML = `
+                <div style="font-weight:700; font-size:14px; color:#e65100; margin-bottom:4px;">${safeText(req.idIzin)} — ${safeText(req.jenis)}</div>
+                <div class="approval-meta">${periode} • ${safeText(req.sesi) === 'Semua' ? 'Semua Sesi' : 'Sesi ' + safeText(req.sesi)}</div>
+                <div class="approval-teachers">
+                    <div>Nama Guru: <b>${safeText(req.namaGuru)}</b></div>
+                    <div style="margin-top:6px; color:#777;">${safeText(req.keterangan) || 'Tidak ada keterangan.'}</div>
+                </div>
+                <div class="approval-actions">
+                    <button class="approval-btn approve" onclick="decideIzin('${safeText(req.idIzin)}','Disetujui')">Setujui</button>
+                    <button class="approval-btn cancel" onclick="decideIzin('${safeText(req.idIzin)}','Batal')">Batalkan</button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function decideIzin(idIzin, newStatus) {
+        if (izinApprovalBusy) return;
+        const catatan = prompt(newStatus === 'Disetujui' ? 'Catatan persetujuan Sakit/Izin (boleh kosong):' : 'Alasan pembatalan (disarankan diisi):', '');
+        if (catatan === null) return;
+
+        izinApprovalBusy = true;
+        fetch(API_URL,{
+            method:'POST',
+            body:JSON.stringify({
+                action:'updateIzinGuruStatus',
+                nama:currentUser,
+                idIzin:idIzin,
+                newStatus:newStatus,
+                catatan:catatan
+            })
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            alert(data.pesan || (data.status === 'sukses' ? 'Status Sakit/Izin berhasil diperbarui.' : 'Keputusan gagal diproses.'));
+            loadIzinApprovals();
+        })
+        .catch(()=>{
+            alert('Gagal koneksi saat memproses keputusan Sakit/Izin guru.');
+        })
+        .finally(()=>{
+            izinApprovalBusy = false;
         });
     }
 
@@ -1501,6 +1640,7 @@
                 renderPimpinanInvalCard();
                 updateRekapCard();
                 loadTukarApprovals();
+                loadIzinApprovals();
             } else { secPimpinan.classList.add('hidden'); }
         });
     }
