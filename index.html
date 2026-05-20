@@ -191,6 +191,15 @@
                 </div>
             </div>
 
+            <div id="section-izin">
+                <div class="section-title">Sakit / Izin Guru</div>
+                <div class="card-soft tukar-summary-card">
+                    <div class="tukar-summary-title">Ajukan Sakit / Izin</div>
+                    <div class="tukar-summary-note">Pengajuan tersimpan sebagai Diajukan dan belum memengaruhi rekap sampai disetujui pimpinan.</div>
+                    <button class="inval-btn-small" onclick="openIzinDrawer()" style="background:#f57f17;">Ajukan Sakit/Izin</button>
+                </div>
+            </div>
+
             <div id="section-inval" class="hidden">
                 <div class="section-title">Akses Inval</div>
                 <div class="card-soft inval-summary-card">
@@ -368,6 +377,56 @@
     </div>
 </div>
 
+
+<div id="izin-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeIzinDrawer()">
+    <div class="bottom-drawer" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <div>
+                <div class="drawer-title">Ajukan Sakit / Izin</div>
+                <div class="drawer-subtitle">Pengajuan ini akan menunggu persetujuan pimpinan sebelum masuk rekap.</div>
+            </div>
+            <button class="drawer-close" onclick="closeIzinDrawer()" aria-label="Tutup">×</button>
+        </div>
+
+        <div class="tukar-row">
+            <div>
+                <div class="tukar-field-label">Tanggal Mulai</div>
+                <input type="date" id="izin-tanggal-mulai" class="input-field">
+            </div>
+            <div>
+                <div class="tukar-field-label">Tanggal Selesai</div>
+                <input type="date" id="izin-tanggal-selesai" class="input-field">
+            </div>
+        </div>
+
+        <div class="tukar-row">
+            <div>
+                <div class="tukar-field-label">Sesi</div>
+                <select id="izin-sesi" class="input-field">
+                    <option value="Semua">Semua Sesi</option>
+                    <option value="1">Sesi 1</option>
+                    <option value="2">Sesi 2</option>
+                    <option value="3">Sesi 3</option>
+                </select>
+            </div>
+            <div>
+                <div class="tukar-field-label">Jenis</div>
+                <select id="izin-jenis" class="input-field">
+                    <option value="Sakit">Sakit</option>
+                    <option value="Izin">Izin</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="tukar-field-label">Keterangan</div>
+        <textarea id="izin-keterangan" class="input-field" rows="3" placeholder="Contoh: Sakit demam / izin keperluan keluarga."></textarea>
+
+        <div id="izin-status" class="tukar-status">Status awal pengajuan akan tersimpan sebagai Diajukan.</div>
+        <button class="btn" id="btn-submit-izin" onclick="submitIzinGuru()" style="background:#f57f17;">Kirim Pengajuan</button>
+    </div>
+</div>
+
 <div id="approval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeTukarApprovalDrawer()">
     <div class="bottom-drawer" onclick="event.stopPropagation()">
         <div class="drawer-handle"></div>
@@ -421,7 +480,7 @@
     let latestAuditRekap = null;
     let latestAuditBulanan = null;
     let selectedTukarSchedule = null;
-    let isSubmitting=false, standbyBusy=false, tukarBusy=false, approvalBusy=false, auditBusy=false, auditBulananBusy=false;
+    let isSubmitting=false, standbyBusy=false, tukarBusy=false, approvalBusy=false, auditBusy=false, auditBulananBusy=false, izinBusy=false;
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
     // SISTEM PROTEKSI NAVIGASI TOMBOL BACK/SWIPE HP (SPA ROUTER)
@@ -596,7 +655,7 @@
     }
 
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') { closeInvalDrawer(); closeTukarDrawer(); closeTukarApprovalDrawer(); }
+        if (e.key === 'Escape') { closeInvalDrawer(); closeTukarDrawer(); closeIzinDrawer(); closeTukarApprovalDrawer(); }
     });
 
 
@@ -906,6 +965,87 @@
         });
     }
 
+
+
+    function setIzinStatus(msg, type) {
+        const el = document.getElementById('izin-status');
+        if (!el) return;
+        el.innerText = msg || '';
+        el.className = 'tukar-status' + (type ? ' ' + type : '');
+    }
+
+    function openIzinDrawer() {
+        const ov = document.getElementById('izin-drawer-overlay');
+        if (!ov) return;
+        const today = formatLocalDateInput(new Date());
+        document.getElementById('izin-tanggal-mulai').value = today;
+        document.getElementById('izin-tanggal-selesai').value = today;
+        document.getElementById('izin-sesi').value = 'Semua';
+        document.getElementById('izin-jenis').value = 'Sakit';
+        document.getElementById('izin-keterangan').value = '';
+        setIzinStatus('Status awal pengajuan akan tersimpan sebagai Diajukan dan belum memengaruhi rekap sampai disetujui pimpinan.', '');
+        ov.classList.remove('hidden');
+        history.pushState({ screen: 'screen-dashboard', drawer: 'izin' }, '');
+    }
+
+    function closeIzinDrawer() {
+        const ov = document.getElementById('izin-drawer-overlay');
+        if (ov) ov.classList.add('hidden');
+    }
+
+    function submitIzinGuru() {
+        if (izinBusy) return;
+        const tglMulai = document.getElementById('izin-tanggal-mulai').value;
+        const tglSelesai = document.getElementById('izin-tanggal-selesai').value;
+        const sesi = document.getElementById('izin-sesi').value;
+        const jenis = document.getElementById('izin-jenis').value;
+        const ket = document.getElementById('izin-keterangan').value;
+
+        if (!tglMulai || !tglSelesai) {
+            setIzinStatus('Tanggal mulai dan tanggal selesai wajib dipilih.', 'error');
+            return;
+        }
+        if (new Date(tglMulai) > new Date(tglSelesai)) {
+            setIzinStatus('Tanggal mulai tidak boleh lebih besar daripada tanggal selesai.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('btn-submit-izin');
+        const oldText = btn ? btn.innerText : '';
+        izinBusy = true;
+        if (btn) { btn.disabled = true; btn.innerText = 'Mengirim...'; }
+        setIzinStatus('Mengirim pengajuan...', '');
+
+        fetch(API_URL, {
+            method:'POST',
+            body:JSON.stringify({
+                action:'submitIzinGuru',
+                nama:currentUser,
+                tanggalMulai:tglMulai,
+                tanggalSelesai:tglSelesai,
+                sesi:sesi,
+                jenis:jenis,
+                keterangan:ket
+            })
+        })
+        .then(res=>res.json())
+        .then(data=>{
+            if(!data || data.status !== 'sukses') {
+                setIzinStatus((data && data.pesan) ? data.pesan : 'Pengajuan ditolak server.', 'error');
+                return;
+            }
+            setIzinStatus(data.pesan || 'Pengajuan berhasil dibuat.', 'success');
+            alert(data.pesan || 'Pengajuan berhasil dibuat.');
+            closeIzinDrawer();
+        })
+        .catch(()=>{
+            setIzinStatus('Gagal koneksi saat mengirim pengajuan.', 'error');
+        })
+        .finally(()=>{
+            izinBusy = false;
+            if (btn) { btn.disabled = false; btn.innerText = oldText || 'Kirim Pengajuan'; }
+        });
+    }
 
     function updateRekapCard() {
         const lbl = document.getElementById('rekap-sesi-label');
