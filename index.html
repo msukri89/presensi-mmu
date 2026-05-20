@@ -326,6 +326,9 @@ let attendanceData = {};
 let currentSesi = 1;
 let activeClassTitle = "";
 
+// VARIABEL BARU: BUKU SAKU (CACHE) UNTUK DASHBOARD SESI
+let dashboardCache = {};
+
 let latestInvalList = [];
 let latestTukarOptions = [];
 let latestTukarRequests = [];
@@ -355,36 +358,26 @@ function firstDayOfMonthIso() { const d = new Date(); return `${d.getFullYear()}
 function formatIsoToId(iso) { if (!iso) return ""; const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}/${m[2]}/${m[1]}` : iso; }
 
 // =====================================================
-// FUNGSI BARU: BUKU SAKU (LOCAL CACHE) MASTER DATA
+// BUKU SAKU (LOCAL CACHE) MASTER DATA SISWA
 // =====================================================
 function initMasterData() {
-  // 1. Baca Cepat: Tarik data dari memori HP (jika ada) agar bisa dibuka instan tanpa loading
   const cachedStudents = localStorage.getItem('mmu_students_cache');
   if (cachedStudents) {
-    try {
-      allStudents = JSON.parse(cachedStudents);
-    } catch (e) {
-      console.warn("Gagal membaca cache lokal.");
-    }
+    try { allStudents = JSON.parse(cachedStudents); } catch (e) { console.warn("Gagal membaca cache lokal."); }
   }
-
-  // 2. Pembaruan Senyap: Diam-diam hubungi server di latar belakang untuk mengecek siswa baru
   fetch(API_URL)
     .then(r => r.json())
     .then(stData => {
       if (Array.isArray(stData) && stData.length > 0) {
         allStudents = stData;
-        // Simpan versi terbaru ke memori HP untuk besok/kelas selanjutnya
         localStorage.setItem('mmu_students_cache', JSON.stringify(stData));
       }
     })
-    .catch(() => {
-      console.log("Internet sedang gangguan, tetap menggunakan data dari Buku Saku (Offline).");
-    });
+    .catch(() => { console.log("Gagal background update siswa."); });
 }
 
 // =====================================================
-// DRAWER / MODAL (TIDAK ADA YANG DIUBAH)
+// DRAWER / MODAL
 // =====================================================
 function animateOpen(overlay) {
   if (!overlay) return;
@@ -670,9 +663,12 @@ function renderDates() {
     .catch(() => { if ($("date-hijri")) $("date-hijri").innerText = "Hijriah offline"; });
 }
 
+// -----------------------------------------------------
+// FUNGSI BARU: Ganti Sesi Instan via Dropdown
+// -----------------------------------------------------
 function updateSesiManual(val) {
   currentSesi = parseInt(val, 10);
-  loadDashboardData();
+  loadDashboardData(); 
 }
 
 function doLogin() {
@@ -705,9 +701,11 @@ function doLogin() {
 
       renderDates();
       switchMainTab("beranda");
+      
+      // Kosongkan cache lama saat login baru, lalu muat dashboard
+      dashboardCache = {};
       loadDashboardData();
       
-      // Panggil fungsi Pembaruan Senyap
       initMasterData();
     })
     .catch((e) => {
@@ -723,7 +721,7 @@ function doLogout() {
 }
 
 // =====================================================
-// DASHBOARD
+// DASHBOARD & PREFETCH LOGIC
 // =====================================================
 function renderPimpinanRingkas(d) {
   if (currentRole !== "pimpinan") return;
@@ -745,93 +743,139 @@ function renderPimpinanRingkas(d) {
   }
 }
 
+// -----------------------------------------------------
+// FUNGSI BARU: Render UI Dashboard terpisah agar bisa dipanggil instan
+// -----------------------------------------------------
+function renderDashboardUI(d) {
+  latestInvalList = Array.isArray(d.kelasInvalKosong) ? d.kelasInvalKosong : [];
+  latestTukarJadwal = Array.isArray(d.jadwalTukar) ? d.jadwalTukar : [];
+
+  const bHadir = $("hadir-badge");
+  const cStandby = $("standby-container");
+  bHadir?.classList.add("hidden");
+  cStandby?.classList.add("hidden");
+
+  if (d.isPresent) {
+    if (bHadir) {
+      bHadir.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg><span>${escapeHTML(d.currentActivity || "Aktivitas terkunci")}</span>`;
+      bHadir.classList.remove("hidden");
+    }
+  } else if (d.canStandby) {
+    cStandby?.classList.remove("hidden");
+  }
+
+  const secJadwal = $("section-jadwal");
+  const divJadwal = $("jadwal-container");
+  const jadwal = Array.isArray(d.jadwalPribadi) ? d.jadwalPribadi : [];
+  if (jadwal.length > 0 && secJadwal && divJadwal) {
+    secJadwal.classList.remove("hidden");
+    divJadwal.innerHTML = "";
+    jadwal.forEach((j) => {
+      const div = document.createElement("div");
+      div.className = "card-soft";
+      div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); };
+      div.innerHTML = `<div style="font-weight:800; font-size:16px; color:#0f172a; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#64748b;">${escapeHTML(j.mapel)}</div>`;
+      divJadwal.appendChild(div);
+    });
+  } else {
+    secJadwal?.classList.add("hidden");
+  }
+
+  const secJadwalTukar = $("section-jadwal-tukar");
+  const divJadwalTukar = $("jadwal-tukar-container");
+  if (latestTukarJadwal.length > 0 && secJadwalTukar && divJadwalTukar) {
+    secJadwalTukar.classList.remove("hidden");
+    divJadwalTukar.innerHTML = "";
+    latestTukarJadwal.forEach((j) => {
+      const div = document.createElement("div");
+      div.className = "card-soft";
+      div.style.border = "1px solid #bfdbfe";
+      div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); };
+      div.innerHTML = `<div class="badge-tukar">Tukar Resmi</div><div style="font-weight:800; font-size:16px; color:#1e40af; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#3b82f6; margin-bottom:8px;">${escapeHTML(j.mapel)}</div><div style="font-size:12px; color:#1e3a8a;">Guru Asli: <b>${escapeHTML(j.guru)}</b></div>`;
+      divJadwalTukar.appendChild(div);
+    });
+  } else {
+    secJadwalTukar?.classList.add("hidden");
+  }
+
+  const canInval = !!d.canAccessInval;
+  const menuInval = $("menu-inval");
+  const invalNote = $("inval-summary-note");
+  const quick = $("section-inval-quick");
+  if (canInval) {
+    if (menuInval) menuInval.style.display = "flex";
+    if (invalNote) invalNote.innerText = latestInvalList.length > 0 ? `Ada ${latestInvalList.length} kelas kosong sesi ini.` : "Semua kelas terisi.";
+    if (quick) {
+      if (latestInvalList.length > 0) {
+        quick.classList.remove("hidden");
+        if ($("inval-count-quick")) $("inval-count-quick").innerText = latestInvalList.length;
+      } else {
+        quick.classList.add("hidden");
+      }
+    }
+  } else {
+    if (menuInval) menuInval.style.display = "none";
+    quick?.classList.add("hidden");
+  }
+
+  renderPimpinanRingkas(d);
+  if (currentRole === "pimpinan") {
+    loadTukarApprovals(false);
+    loadIzinApprovals(false);
+  }
+}
+
+// -----------------------------------------------------
+// FUNGSI BARU: Download semua sesi lainnya di latar belakang
+// -----------------------------------------------------
+function prefetchOtherSessions() {
+  [1, 2, 3].forEach(s => {
+    if (s !== currentSesi) {
+      postJSON({ action: "syncDashboard", sesi: s, nama: currentUser })
+        .then(d => { if (d.status !== "gagal") dashboardCache[s] = d; })
+        .catch(e => console.log("Prefetch gagal (background) untuk sesi", s));
+    }
+  });
+}
+
+// -----------------------------------------------------
+// PEMBARUAN: Load Dashboard Instan via Cache
+// -----------------------------------------------------
 function loadDashboardData() {
   if (!currentUser) return;
+  if ($("lbl-sesi")) $("lbl-sesi").innerText = currentSesi;
+
+  // JIKA DATA SUDAH ADA DI BUKU SAKU, TAMPILKAN INSTAN (0 detik loading!)
+  if (dashboardCache[currentSesi]) {
+    switchScreen("screen-dashboard"); // Pastikan layar loading tidak mengganggu
+    renderDashboardUI(dashboardCache[currentSesi]);
+    
+    // Namun tetap lakukan sinkronisasi diam-diam untuk memastikan data akurat
+    postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser })
+      .then((d) => {
+        if (d.status !== "gagal") {
+          dashboardCache[currentSesi] = d;
+          renderDashboardUI(d); // Perbarui tampilan tanpa mengganggu interaksi guru
+        }
+      }).catch(() => {});
+    return; // Berhenti di sini
+  }
+
+  // JIKA BELUM ADA SAMA SEKALI (Misalnya baru pertama kali buka aplikasi)
   switchScreen("screen-loading");
   if ($("loading-text")) $("loading-text").innerText = `Menyiapkan data sesi ${currentSesi}...`;
-  if ($("lbl-sesi")) $("lbl-sesi").innerText = currentSesi;
 
   postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser })
     .then((d) => {
       if (d.status === "gagal") throw new Error(d.pesan || "Gagal memuat dashboard");
+      
+      // Simpan ke Buku Saku lalu tampilkan
+      dashboardCache[currentSesi] = d;
       switchScreen("screen-dashboard");
-
-      latestInvalList = Array.isArray(d.kelasInvalKosong) ? d.kelasInvalKosong : [];
-      latestTukarJadwal = Array.isArray(d.jadwalTukar) ? d.jadwalTukar : [];
-
-      const bHadir = $("hadir-badge");
-      const cStandby = $("standby-container");
-      bHadir?.classList.add("hidden");
-      cStandby?.classList.add("hidden");
-
-      if (d.isPresent) {
-        if (bHadir) {
-          bHadir.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg><span>${escapeHTML(d.currentActivity || "Aktivitas terkunci")}</span>`;
-          bHadir.classList.remove("hidden");
-        }
-      } else if (d.canStandby) {
-        cStandby?.classList.remove("hidden");
-      }
-
-      const secJadwal = $("section-jadwal");
-      const divJadwal = $("jadwal-container");
-      const jadwal = Array.isArray(d.jadwalPribadi) ? d.jadwalPribadi : [];
-      if (jadwal.length > 0 && secJadwal && divJadwal) {
-        secJadwal.classList.remove("hidden");
-        divJadwal.innerHTML = "";
-        jadwal.forEach((j) => {
-          const div = document.createElement("div");
-          div.className = "card-soft";
-          div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); };
-          div.innerHTML = `<div style="font-weight:800; font-size:16px; color:#0f172a; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#64748b;">${escapeHTML(j.mapel)}</div>`;
-          divJadwal.appendChild(div);
-        });
-      } else {
-        secJadwal?.classList.add("hidden");
-      }
-
-      const secJadwalTukar = $("section-jadwal-tukar");
-      const divJadwalTukar = $("jadwal-tukar-container");
-      if (latestTukarJadwal.length > 0 && secJadwalTukar && divJadwalTukar) {
-        secJadwalTukar.classList.remove("hidden");
-        divJadwalTukar.innerHTML = "";
-        latestTukarJadwal.forEach((j) => {
-          const div = document.createElement("div");
-          div.className = "card-soft";
-          div.style.border = "1px solid #bfdbfe";
-          div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); };
-          div.innerHTML = `<div class="badge-tukar">Tukar Resmi</div><div style="font-weight:800; font-size:16px; color:#1e40af; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#3b82f6; margin-bottom:8px;">${escapeHTML(j.mapel)}</div><div style="font-size:12px; color:#1e3a8a;">Guru Asli: <b>${escapeHTML(j.guru)}</b></div>`;
-          divJadwalTukar.appendChild(div);
-        });
-      } else {
-        secJadwalTukar?.classList.add("hidden");
-      }
-
-      const canInval = !!d.canAccessInval;
-      const menuInval = $("menu-inval");
-      const invalNote = $("inval-summary-note");
-      const quick = $("section-inval-quick");
-      if (canInval) {
-        if (menuInval) menuInval.style.display = "flex";
-        if (invalNote) invalNote.innerText = latestInvalList.length > 0 ? `Ada ${latestInvalList.length} kelas kosong sesi ini.` : "Semua kelas terisi.";
-        if (quick) {
-          if (latestInvalList.length > 0) {
-            quick.classList.remove("hidden");
-            if ($("inval-count-quick")) $("inval-count-quick").innerText = latestInvalList.length;
-          } else {
-            quick.classList.add("hidden");
-          }
-        }
-      } else {
-        if (menuInval) menuInval.style.display = "none";
-        quick?.classList.add("hidden");
-      }
-
-      renderPimpinanRingkas(d);
-      if (currentRole === "pimpinan") {
-        loadTukarApprovals(false);
-        loadIzinApprovals(false);
-      }
+      renderDashboardUI(d);
+      
+      // Jalankan misi pencarian data untuk sesi lainnya secara diam-diam
+      prefetchOtherSessions();
     })
     .catch((e) => {
       alert(e.message || "Gagal memuat dashboard.");
@@ -1096,7 +1140,11 @@ function markStandby() {
   standbyBusy = true;
   switchScreen("screen-loading");
   postJSON({ action: "markStandby", sesi: currentSesi, nama: currentUser })
-    .then((data) => { if (data.status === "gagal") alert(data.pesan || "Gagal mencatat."); loadDashboardData(); })
+    .then((data) => { 
+      if (data.status === "gagal") alert(data.pesan || "Gagal mencatat."); 
+      dashboardCache = {}; // Hapus cache agar dashboard dipaksa mengunduh status baru
+      loadDashboardData(); 
+    })
     .catch(() => { alert("Gagal koneksi."); switchScreen("screen-dashboard"); })
     .finally(() => { standbyBusy = false; });
 }
@@ -1108,17 +1156,15 @@ function openClass(c) {
   const div = $("student-list");
   if (!div) return;
   
-  // Karena data sudah masuk ke Buku Saku (Cache), tidak perlu loading lama lagi.
   if (allStudents.length > 0) {
     renderStudentList(c, div);
   } else {
-    // Jika entah kenapa Buku Saku kosong (misal baru pertama kali buka), berikan pesan elegan
     div.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#0f172a; font-weight:600; font-size:14px;">Menyiapkan data kelas dari server, mohon tunggu sebentar...</div>`;
     fetch(API_URL)
       .then((r) => r.json())
       .then((stData) => { 
         allStudents = Array.isArray(stData) ? stData : []; 
-        localStorage.setItem('mmu_students_cache', JSON.stringify(stData)); // Simpan ke Buku Saku
+        localStorage.setItem('mmu_students_cache', JSON.stringify(stData)); 
         renderStudentList(c, div); 
       })
       .catch(() => { div.innerHTML = '<div class="card-soft" style="text-align:center; color:#ef4444;">Gagal memuat siswa. Pastikan sinyal internet stabil.</div>'; });
@@ -1227,6 +1273,7 @@ function submitData() {
         switchScreen("screen-dashboard");
       } else {
         alert(data.pesan || "Data sukses terkunci.");
+        dashboardCache = {}; // Hapus cache agar dashboard mengambil status terbaru ("Aktivitas terkunci")
         loadDashboardData();
       }
     })
@@ -1354,9 +1401,10 @@ function checkSession() {
 
     renderDates();
     switchMainTab("beranda");
-    loadDashboardData();
     
-    // Panggil fungsi Pembaruan Senyap
+    // Kosongkan cache untuk memastikan data awal fresh, lalu jalankan
+    dashboardCache = {};
+    loadDashboardData();
     initMasterData();
     return true;
   }
