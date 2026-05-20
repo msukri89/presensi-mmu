@@ -492,6 +492,38 @@
     </div>
 </div>
 
+
+<div id="periode-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closePeriodeDrawer()">
+    <div class="bottom-drawer" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <div>
+                <div class="drawer-title" id="periode-drawer-title">Generate Rekap Periode</div>
+                <div class="drawer-subtitle" id="periode-drawer-subtitle">Pilih periode tanggal mulai dan tanggal selesai.</div>
+            </div>
+            <button class="drawer-close" onclick="closePeriodeDrawer()" aria-label="Tutup">×</button>
+        </div>
+
+        <div class="tukar-row">
+            <div>
+                <div class="tukar-field-label">Tanggal Mulai</div>
+                <input type="date" id="periode-tanggal-mulai" class="input-field">
+            </div>
+            <div>
+                <div class="tukar-field-label">Tanggal Selesai</div>
+                <input type="date" id="periode-tanggal-selesai" class="input-field">
+            </div>
+        </div>
+
+        <div class="tukar-status" style="margin-bottom:14px;">
+            Pastikan Rekap Harian untuk tanggal-tanggal dalam periode ini sudah dibuat sebelum generate rekap periode/laporan.
+        </div>
+
+        <button class="btn" id="btn-submit-periode" onclick="submitPeriodeAction()" style="background:#0d47a1;">Generate Rekap Periode</button>
+        <button class="btn btn-outline" onclick="closePeriodeDrawer()" style="border:none; color:#777; margin-top:4px;">Batal</button>
+    </div>
+</div>
+
     <script>
     // PASTIKAN BARIS INI ADA DI PALING ATAS
     const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
