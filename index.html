@@ -266,11 +266,11 @@
 
                 <div class="card-soft audit-card" id="card-laporan-yayasan" style="cursor:default; border-left-color:#4e342e;">
                     <div class="inval-summary-head">
-                        <div class="inval-summary-title">Laporan Yayasan</div>
+                        <div class="inval-summary-title">Laporan Yayasan Siap Cetak</div>
                         <div class="audit-count-badge" style="background:#efebe9; color:#4e342e;">Ringkas</div>
                     </div>
-                    <div class="inval-summary-note" id="laporan-yayasan-summary-note">Buat format laporan ringkas dari Rekap_Guru_Bulanan bulan berjalan ke sheet Laporan_Yayasan.</div>
-                    <button class="inval-btn-small" id="btn-generate-laporan-yayasan" onclick="generateLaporanYayasan()" style="background:#4e342e;">Generate Laporan Yayasan</button>
+                    <div class="inval-summary-note" id="laporan-yayasan-summary-note">Buat laporan ringkas dengan format cetak, ringkasan umum, tabel per guru, catatan verifikasi, dan area tanda tangan.</div>
+                    <button class="inval-btn-small" id="btn-generate-laporan-yayasan" onclick="generateLaporanYayasan()" style="background:#4e342e;">Generate Laporan Siap Cetak</button>
                 </div>
             </div>
 
@@ -1061,10 +1061,10 @@
     function generateLaporanYayasan() {
         const btn = document.getElementById('btn-generate-laporan-yayasan');
         const btnBulanan = document.getElementById('btn-generate-rekap-bulanan');
-        if (!confirm('Buat/perbarui Laporan_Yayasan dari Rekap_Guru_Bulanan bulan berjalan? Pastikan Rekap Bulanan sudah digenerate dan diaudit.')) return;
+        if (!confirm('Buat/perbarui Laporan_Yayasan dengan format cetak? Pastikan Rekap Bulanan sudah digenerate dan diaudit.')) return;
 
         const oldText = btn ? btn.innerText : '';
-        if (btn) { btn.disabled = true; btn.innerText = 'Membuat laporan...'; }
+        if (btn) { btn.disabled = true; btn.innerText = 'Memformat laporan...'; }
         if (btnBulanan) btnBulanan.disabled = true;
 
         fetch(API_URL,{
@@ -1093,7 +1093,7 @@
             alert('Gagal koneksi saat membuat Laporan_Yayasan.');
         })
         .finally(()=>{
-            if (btn) { btn.disabled = false; btn.innerText = oldText || 'Generate Laporan Yayasan'; }
+            if (btn) { btn.disabled = false; btn.innerText = oldText || 'Generate Laporan Siap Cetak'; }
             if (btnBulanan) btnBulanan.disabled = false;
         });
     }
