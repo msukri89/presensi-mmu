@@ -70,20 +70,20 @@
     .nav-item.active { color: #064e3b; }
     .bottom-drawer-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); z-index: 1200; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
     .bottom-drawer-overlay.show { opacity: 1; pointer-events: auto; }
+    
+    /* STYLE LACI DENGAN EFEK MEMBAL */
     .bottom-drawer { 
       background: #fff; width: 100%; max-width: 480px; max-height: 85vh; 
       border-radius: 32px 32px 0 0; padding: 16px 24px 32px 24px; 
       box-shadow: 0 -10px 40px rgba(0,0,0,0.1); overflow-y: auto; 
       position: relative; transform: translateY(100%); 
-      
-      /* Animasi kurva "Spring" agar membal halus ala Telegram */
       transition: transform 0.45s cubic-bezier(0.32, 1.2, 0.6, 1); 
-      
-      /* Memutus rantai scroll agar tidak tembus ke layar belakang */
       overscroll-behavior-y: contain; 
     }
-    /* Mengunci layar utama agar diam saat laci terbuka */
+    
+    /* Kunci Layar Belakang saat laci terbuka */
     body.drawer-open { overflow: hidden !important; touch-action: none; overscroll-behavior: none; }
+    
     .bottom-drawer-overlay.show .bottom-drawer { transform: translateY(0); }
     .drawer-handle { width: 40px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: 0 auto 24px auto; }
     .drawer-header { margin-bottom: 24px; padding-right: 40px; position: relative; }
@@ -96,19 +96,19 @@
     .date-wrapper input[type="date"], .date-wrapper input.flatpickr-input { width: 100%; padding: 16px 16px 16px 48px; border: 1.5px solid #e2e8f0; border-radius: 14px; font-size: 15px; font-family: inherit; background-color: #f8fafc; color: #0f172a; outline: none; margin-bottom: 0; appearance: none; -webkit-appearance: none; cursor: pointer; transition: 0.2s; }
     .date-wrapper .cal-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #064e3b; width: 20px; height: 20px; z-index: 2; }
     
-    /* FIX POSISI KALENDER: Ditengah dan tidak terpotong */
+    /* KALENDER POP-UP */
     .flatpickr-calendar { 
       font-family: 'Inter', sans-serif !important; 
       border-radius: 20px !important; 
       box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important; 
       border: none !important; 
-      padding: 5px !important; /* Padding diperkecil agar tidak memakan tempat */
-      width: auto !important; /* Lebar dibiarkan otomatis mengikuti standar HP */
+      padding: 5px !important; 
+      width: auto !important; 
       left: 50% !important; 
-      right: auto !important; /* Mencegah kalender tertarik ke sebelah kanan layar */
+      right: auto !important; 
       transform: translateX(-50%) !important; 
       margin-top: 8px !important; 
-      z-index: 9999 !important; /* Memastikan kalender tidak tertimpa elemen lain */
+      z-index: 9999 !important; 
     }
     .flatpickr-day.selected { background: #064e3b !important; border-color: #064e3b !important; border-radius: 12px !important; }
     .flatpickr-day { border-radius: 12px !important; }
@@ -302,7 +302,7 @@
 
 <div id="inval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeInvalDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeInvalDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Akses Inval</div><div class="drawer-subtitle">Pilih kelas yang akan Anda ampu.</div></div></div><div id="inval-drawer-list"></div></div></div>
 
-<div id="tukar-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeTukarDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeTukarDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Ajukan Tukar Tugas</div><div class="drawer-subtitle">Pilih jadwal Anda dan tentukan pengganti.</div></div></div><div class="tukar-row"><div><div class="tukar-field-label">Tanggal</div><div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="tukar-tanggal" class="input-field" onchange="loadTukarOptions()"></div></div><div><div class="tukar-field-label">Sesi</div><select id="tukar-sesi" class="input-field" onchange="loadTukarOptions()"><option value="1">Sesi 1</option><option value="2">Sesi 2</option><option value="3">Sesi 3</option></select></div></div><div class="tukar-field-label">Kelas yang Ditukar</div><select id="tukar-kelas" class="input-field" onchange="selectTukarClass()"><option value="">Pilih tanggal dan sesi dulu</option></select><div class="tukar-field-label">Mata Pelajaran</div><div id="tukar-mapel" class="tukar-readonly">-</div><div class="tukar-field-label">Guru Jadwal Asli</div><div id="tukar-guru-asli" class="tukar-readonly">-</div><div class="tukar-field-label">Guru Pengisi</div><select id="tukar-guru-pengisi" class="input-field"><option value="">Pilih kelas terlebih dahulu</option></select><div class="tukar-field-label">Keterangan</div><textarea id="tukar-keterangan" class="input-field" rows="3" placeholder="Contoh: Keperluan keluarga..."></textarea><div id="tukar-status" class="tukar-status">Status awal akan tersimpan sebagai Diajukan.</div><button class="btn" id="btn-submit-tukar" onclick="submitTukarTugas()"></button></div></div>
+<div id="tukar-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeTukarDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeTukarDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Ajukan Tukar Tugas</div><div class="drawer-subtitle">Pilih jadwal Anda dan tentukan pengganti.</div></div></div><div class="tukar-row"><div><div class="tukar-field-label">Tanggal</div><div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="tukar-tanggal" class="input-field" onchange="loadTukarOptions()"></div></div><div><div class="tukar-field-label">Sesi</div><select id="tukar-sesi" class="input-field" onchange="loadTukarOptions()"><option value="1">Sesi 1</option><option value="2">Sesi 2</option><option value="3">Sesi 3</option></select></div></div><div class="tukar-field-label">Kelas yang Ditukar</div><select id="tukar-kelas" class="input-field" onchange="selectTukarClass()"><option value="">Pilih tanggal dan sesi dulu</option></select><div class="tukar-field-label">Mata Pelajaran</div><div id="tukar-mapel" class="tukar-readonly">-</div><div class="tukar-field-label">Guru Jadwal Asli</div><div id="tukar-guru-asli" class="tukar-readonly">-</div><div class="tukar-field-label">Guru Pengisi</div><select id="tukar-guru-pengisi" class="input-field"><option value="">Pilih kelas terlebih dahulu</option></select><div class="tukar-field-label">Keterangan</div><textarea id="tukar-keterangan" class="input-field" rows="3" placeholder="Contoh: Keperluan keluarga..."></textarea><div id="tukar-status" class="tukar-status">Status awal akan tersimpan sebagai Diajukan.</div><button class="btn" id="btn-submit-tukar" onclick="submitTukarTugas()">Kirim Pengajuan</button></div></div>
 
 <div id="izin-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeIzinDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeIzinDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Ajukan Sakit / Izin</div><div class="drawer-subtitle">Menunggu persetujuan pimpinan.</div></div></div><div class="tukar-row"><div><div class="tukar-field-label">Mulai</div><div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="izin-tanggal-mulai" class="input-field"></div></div><div><div class="tukar-field-label">Selesai</div><div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="izin-tanggal-selesai" class="input-field"></div></div></div><div class="tukar-row"><div><div class="tukar-field-label">Sesi</div><select id="izin-sesi" class="input-field"><option value="Semua">Semua Sesi</option><option value="1">Sesi 1</option><option value="2">Sesi 2</option><option value="3">Sesi 3</option></select></div><div><div class="tukar-field-label">Jenis</div><select id="izin-jenis" class="input-field"><option value="Sakit">Sakit</option><option value="Izin">Izin</option></select></div></div><div class="tukar-field-label">Keterangan</div><textarea id="izin-keterangan" class="input-field" rows="3" placeholder="Contoh: Sakit demam..."></textarea><div id="izin-status" class="tukar-status">Status awal akan tersimpan sebagai Diajukan.</div><button class="btn" id="btn-submit-izin" onclick="submitIzinGuru()" style="background:#064e3b;">Kirim Pengajuan</button></div></div>
 
@@ -344,68 +344,58 @@ let hijriOffset = parseInt(localStorage.getItem("hijri_offset"), 10) || 0;
 
 const $ = (id) => document.getElementById(id);
 
-function safeText(val) {
-  return val === undefined || val === null ? "" : String(val);
-}
+function safeText(val) { return val === undefined || val === null ? "" : String(val); }
+function escapeHTML(val) { return safeText(val).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+function normalizeKey(val) { return safeText(val).trim().replace(/\s+/g, " ").toLowerCase(); }
+function parseMaybeJson(text) { try { return JSON.parse(text); } catch (e) { return { status: "sukses", pesan: text || "Sukses" }; } }
+function postJSON(payload) { return fetch(API_URL, { method: "POST", body: JSON.stringify(payload) }).then((res) => res.text()).then(parseMaybeJson); }
+function formatLocalDateInput(dateObj) { const y = dateObj.getFullYear(); const m = String(dateObj.getMonth() + 1).padStart(2, "0"); const d = String(dateObj.getDate()).padStart(2, "0"); return `${y}-${m}-${d}`; }
+function todayIsoDate() { return formatLocalDateInput(new Date()); }
+function firstDayOfMonthIso() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`; }
+function formatIsoToId(iso) { if (!iso) return ""; const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}/${m[2]}/${m[1]}` : iso; }
 
-function escapeHTML(val) {
-  return safeText(val)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+// =====================================================
+// FUNGSI BARU: BUKU SAKU (LOCAL CACHE) MASTER DATA
+// =====================================================
+function initMasterData() {
+  // 1. Baca Cepat: Tarik data dari memori HP (jika ada) agar bisa dibuka instan tanpa loading
+  const cachedStudents = localStorage.getItem('mmu_students_cache');
+  if (cachedStudents) {
+    try {
+      allStudents = JSON.parse(cachedStudents);
+    } catch (e) {
+      console.warn("Gagal membaca cache lokal.");
+    }
+  }
 
-function normalizeKey(val) {
-  return safeText(val).trim().replace(/\s+/g, " ").toLowerCase();
-}
-
-function parseMaybeJson(text) {
-  try { return JSON.parse(text); } catch (e) { return { status: "sukses", pesan: text || "Sukses" }; }
-}
-
-function postJSON(payload) {
-  return fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
-    .then((res) => res.text())
-    .then(parseMaybeJson);
-}
-
-function formatLocalDateInput(dateObj) {
-  const y = dateObj.getFullYear();
-  const m = String(dateObj.getMonth() + 1).padStart(2, "0");
-  const d = String(dateObj.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function todayIsoDate() {
-  return formatLocalDateInput(new Date());
-}
-
-function firstDayOfMonthIso() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
-}
-
-function formatIsoToId(iso) {
-  if (!iso) return "";
-  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso;
+  // 2. Pembaruan Senyap: Diam-diam hubungi server di latar belakang untuk mengecek siswa baru
+  fetch(API_URL)
+    .then(r => r.json())
+    .then(stData => {
+      if (Array.isArray(stData) && stData.length > 0) {
+        allStudents = stData;
+        // Simpan versi terbaru ke memori HP untuk besok/kelas selanjutnya
+        localStorage.setItem('mmu_students_cache', JSON.stringify(stData));
+      }
+    })
+    .catch(() => {
+      console.log("Internet sedang gangguan, tetap menggunakan data dari Buku Saku (Offline).");
+    });
 }
 
 // =====================================================
-// DRAWER / MODAL
+// DRAWER / MODAL (TIDAK ADA YANG DIUBAH)
 // =====================================================
 function animateOpen(overlay) {
   if (!overlay) return;
-  document.body.classList.add("drawer-open"); // Kunci layar belakang
+  document.body.classList.add("drawer-open"); 
   overlay.classList.remove("hidden");
   requestAnimationFrame(() => overlay.classList.add("show"));
 }
 
 function animateClose(overlay) {
   if (!overlay) return;
-  document.body.classList.remove("drawer-open"); // Buka kunci layar belakang
+  document.body.classList.remove("drawer-open"); 
   overlay.classList.remove("show");
   const drawer = overlay.querySelector(".bottom-drawer");
   if (drawer) drawer.style.transform = "";
@@ -415,8 +405,6 @@ function animateClose(overlay) {
 function initSwipeToClose() {
   document.querySelectorAll(".bottom-drawer").forEach((drawer) => {
     let startY = 0, currentY = 0, isDragging = false;
-    
-    // Kita isolasi area tarikan HANYA pada bagian header dan handle laci
     const headerArea = drawer.querySelector('.drawer-header');
     const handleArea = drawer.querySelector('.drawer-handle');
 
@@ -425,7 +413,7 @@ function initSwipeToClose() {
       startY = e.touches[0].clientY;
       currentY = startY;
       isDragging = true;
-      drawer.style.transition = "none"; // Matikan efek membal agar laci lengket dengan jari
+      drawer.style.transition = "none"; 
     };
 
     const moveDrag = (e) => {
@@ -434,7 +422,6 @@ function initSwipeToClose() {
       const deltaY = currentY - startY;
       if (deltaY > 0) {
         drawer.style.transform = `translateY(${deltaY}px)`;
-        // KUNCI UTAMA: Memblokir perintah "Tarik untuk Refresh" bawaan browser
         e.preventDefault(); 
       }
     };
@@ -442,23 +429,18 @@ function initSwipeToClose() {
     const endDrag = () => {
       if (!isDragging) return;
       isDragging = false;
-      drawer.style.transition = ""; // Nyalakan lagi efek membal saat jari dilepas
+      drawer.style.transition = ""; 
       const deltaY = currentY - startY;
-      
-      // Jika ditarik cukup jauh ke bawah, laci akan menutup
       if (deltaY > 100) {
         const overlay = drawer.closest(".bottom-drawer-overlay");
         if (overlay) animateClose(overlay);
       } else {
-        // Jika tarikan kurang jauh, laci akan membal kembali ke atas
         drawer.style.transform = ""; 
       }
     };
 
-    // Memasang sensor usapan HANYA di bagian atas (handle)
     if(handleArea) {
         handleArea.addEventListener("touchstart", startDrag, { passive: true });
-        // passive: false penting agar kita bisa mematikan refresh browser (preventDefault)
         handleArea.addEventListener("touchmove", moveDrag, { passive: false });
         handleArea.addEventListener("touchend", endDrag);
     }
@@ -487,9 +469,7 @@ function setHijriAdjustment(val) {
   renderDates();
 }
 
-function closeAdjustmentModal() {
-  $("adjustment-modal")?.classList.add("hidden");
-}
+function closeAdjustmentModal() { $("adjustment-modal")?.classList.add("hidden"); }
 
 function openInvalDrawer() {
   const ov = $("inval-drawer-overlay");
@@ -534,10 +514,7 @@ function openTukarDrawer() {
   if (!ov) return;
   const tgl = $("tukar-tanggal");
   const sesi = $("tukar-sesi");
-  if (tgl && !tgl.value) {
-      tgl.value = todayIsoDate();
-      if(tgl._flatpickr) tgl._flatpickr.setDate(todayIsoDate());
-  }
+  if (tgl && !tgl.value) { tgl.value = todayIsoDate(); if(tgl._flatpickr) tgl._flatpickr.setDate(todayIsoDate()); }
   if (sesi) sesi.value = String(currentSesi || 1);
   if ($("tukar-keterangan")) $("tukar-keterangan").value = "";
   selectedTukarSchedule = null;
@@ -550,12 +527,10 @@ function openIzinDrawer() {
   const ov = $("izin-drawer-overlay");
   if (!ov) return;
   const today = todayIsoDate();
-  
   const tglMulai = $("izin-tanggal-mulai");
   const tglSelesai = $("izin-tanggal-selesai");
   if (tglMulai) { tglMulai.value = today; if(tglMulai._flatpickr) tglMulai._flatpickr.setDate(today); }
   if (tglSelesai) { tglSelesai.value = today; if(tglSelesai._flatpickr) tglSelesai._flatpickr.setDate(today); }
-  
   if ($("izin-sesi")) $("izin-sesi").value = "Semua";
   if ($("izin-jenis")) $("izin-jenis").value = "Sakit";
   if ($("izin-keterangan")) $("izin-keterangan").value = "";
@@ -610,14 +585,9 @@ function openPeriodeDrawer(mode) {
 
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
-  closeInvalDrawer();
-  closeTukarDrawer();
-  closeIzinDrawer();
-  closeTukarApprovalDrawer();
-  closeIzinApprovalDrawer();
-  closePeriodeDrawer();
-  closeAuditRekapDrawer();
-  closeAuditBulananDrawer();
+  closeInvalDrawer(); closeTukarDrawer(); closeIzinDrawer();
+  closeTukarApprovalDrawer(); closeIzinApprovalDrawer();
+  closePeriodeDrawer(); closeAuditRekapDrawer(); closeAuditBulananDrawer();
 });
 
 // =====================================================
@@ -651,7 +621,6 @@ function switchScreen(id, isPopState = false) {
       clsHeader.classList.add("hidden");
     }
   }
-
   if (!isPopState) history.pushState({ screen: id }, "");
 }
 
@@ -738,7 +707,8 @@ function doLogin() {
       switchMainTab("beranda");
       loadDashboardData();
       
-      fetch(API_URL).then(r=>r.json()).then(stData=>{ allStudents = Array.isArray(stData) ? stData : []; }).catch(()=>{});
+      // Panggil fungsi Pembaruan Senyap
+      initMasterData();
     })
     .catch((e) => {
       switchScreen("screen-login");
@@ -1137,17 +1107,22 @@ function openClass(c) {
   switchScreen("screen-attendance");
   const div = $("student-list");
   if (!div) return;
-  div.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#0f172a; font-weight:600; font-size:14px;">Memuat data siswa ${escapeHTML(c)}...</div>`;
-
-  const render = () => renderStudentList(c, div);
+  
+  // Karena data sudah masuk ke Buku Saku (Cache), tidak perlu loading lama lagi.
   if (allStudents.length > 0) {
-    render();
-    return;
+    renderStudentList(c, div);
+  } else {
+    // Jika entah kenapa Buku Saku kosong (misal baru pertama kali buka), berikan pesan elegan
+    div.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#0f172a; font-weight:600; font-size:14px;">Menyiapkan data kelas dari server, mohon tunggu sebentar...</div>`;
+    fetch(API_URL)
+      .then((r) => r.json())
+      .then((stData) => { 
+        allStudents = Array.isArray(stData) ? stData : []; 
+        localStorage.setItem('mmu_students_cache', JSON.stringify(stData)); // Simpan ke Buku Saku
+        renderStudentList(c, div); 
+      })
+      .catch(() => { div.innerHTML = '<div class="card-soft" style="text-align:center; color:#ef4444;">Gagal memuat siswa. Pastikan sinyal internet stabil.</div>'; });
   }
-  fetch(API_URL)
-    .then((r) => r.json())
-    .then((stData) => { allStudents = Array.isArray(stData) ? stData : []; render(); })
-    .catch(() => { div.innerHTML = '<div class="card-soft" style="text-align:center; color:#ef4444;">Gagal memuat siswa.</div>'; });
 }
 
 function renderStudentList(c, div) {
@@ -1381,7 +1356,8 @@ function checkSession() {
     switchMainTab("beranda");
     loadDashboardData();
     
-    fetch(API_URL).then(r=>r.json()).then(stData=>{ allStudents = Array.isArray(stData) ? stData : []; }).catch(()=>{});
+    // Panggil fungsi Pembaruan Senyap
+    initMasterData();
     return true;
   }
   return false;
@@ -1400,7 +1376,8 @@ window.onload = function() {
       flatpickr("input[type='date']", {
           disableMobile: "true", 
           dateFormat: "Y-m-d",
-          locale: "id" // MEMAKSA PENGGUNAAN BAHASA INDONESIA
+          locale: "id",
+          position: "auto center"
       });
   }
 };
