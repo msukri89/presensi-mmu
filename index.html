@@ -17,14 +17,14 @@
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; color: #0f172a; font-weight: 400; line-height: 1.5; padding-bottom: env(safe-area-inset-bottom); overflow-x: hidden; }
     #app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: #f8fafc; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.02); }
     
-    .sticky-top-bar { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #0f172a; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+    /* GAYA BARU: KONTROL POSISI HEADER AGAR DYNAMIC ISLAND PRESISI DI TENGAH */
+    .sticky-top-bar { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #0f172a; padding: 0 24px; display: flex; justify-content: center; align-items: center; z-index: 100; min-height: 64px; }
     .sticky-top-bar::after { content: ''; position: absolute; bottom: -16px; left: 0; width: 100%; height: 16px; background: linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 100%); pointer-events: none; }
     
-    /* GAYA BARU: DYNAMIC ISLAND SESI */
     .dynamic-island-badge { background: #000; color: #fff; padding: 6px 14px; border-radius: 24px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .dynamic-island-badge:active { transform: scale(0.92); }
     
-    .app-brand { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; color: #064e3b; display: flex; align-items: center; gap: 8px; }
+    .app-brand { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; color: #064e3b; display: flex; align-items: center; gap: 8px; position: absolute; left: 24px; }
     .app-brand-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; }
     .header-greeting { padding: 24px 24px 16px 24px; background: #fff; }
     .header-greeting-title { font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -38,8 +38,14 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { 100% { transform: rotate(360deg); } }
     .section-title { font-size: 14px; color: #0f172a; font-weight: 800; margin: 28px 0 16px 0; letter-spacing: -0.3px; display: flex; justify-content: space-between; align-items: center; }
+    
     .input-field { width: 100%; padding: 16px; margin-bottom: 16px; border: 1.5px solid #e2e8f0; border-radius: 14px; font-size: 15px; font-family: inherit; background-color: #f8fafc; color: #0f172a; transition: all 0.2s ease; outline: none; }
     .input-field:focus { border-color: #064e3b; background-color: #fff; box-shadow: 0 0 0 4px rgba(6,78,59,0.05); }
+    
+    /* GAYA BARU: SELECT BOX ESTETIK PENGGANTI DROPDOWN BAWAAN */
+    .select-box { display: flex !important; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+    .select-box::after { content: "▼"; font-size: 10px; color: #64748b; }
+    
     .btn { background: #064e3b; color: #fff; border: none; padding: 16px; width: 100%; border-radius: 14px; font-size: 15px; font-weight: 600; margin-bottom: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(6,78,59,0.15); font-family: inherit; }
     .btn:active { transform: scale(0.98); box-shadow: 0 2px 6px rgba(6,78,59,0.1); }
     .btn:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
@@ -115,14 +121,12 @@
 <div id="app-container">
   
   <div class="sticky-top-bar hidden" id="top-bar">
-    <div style="display:flex; align-items:center; gap:12px;">
-      <div class="app-brand"><div class="app-brand-dot"></div> MMU-B08</div>
-      <div id="dynamic-session-badge" class="dynamic-island-badge" onclick="openSessionDrawer()">
-        <span id="top-sesi-lbl">Sesi 1</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
-      </div>
+    <div class="app-brand"><div class="app-brand-dot"></div> MMU-B08</div>
+    <div id="dynamic-session-badge" class="dynamic-island-badge" onclick="openSessionDrawer()">
+      <span id="top-sesi-lbl">Sesi 1</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
     </div>
-    <div id="sticky-class-header" class="hidden" style="font-weight:700;font-size:14px;">Presensi Kelas</div>
+    <div id="sticky-class-header" class="hidden" style="position: absolute; right: 24px; font-weight:700;font-size:14px;">Presensi Kelas</div>
   </div>
 
   <div id="screen-login">
@@ -297,18 +301,24 @@
     </div>
     <div>
       <div class="card-soft" style="cursor:pointer; margin-bottom:12px; border:2px solid transparent; transition:0.2s;" id="opt-sesi-1" onclick="selectSession(1)">
-        <div style="font-weight:800; color:#0f172a; font-size:15px; margin-bottom:4px;">Sesi 1</div>
-        <div style="font-size:13px; color:#64748b;">07.00 - 08.20 WIB</div>
+        <div style="font-weight:800; color:#0f172a; font-size:15px; margin-bottom:4px;">Sesi 1</div><div style="font-size:13px; color:#64748b;">07.00 - 08.20 WIB</div>
       </div>
       <div class="card-soft" style="cursor:pointer; margin-bottom:12px; border:2px solid transparent; transition:0.2s;" id="opt-sesi-2" onclick="selectSession(2)">
-        <div style="font-weight:800; color:#0f172a; font-size:15px; margin-bottom:4px;">Sesi 2</div>
-        <div style="font-size:13px; color:#64748b;">08.50 - 10.10 WIB</div>
+        <div style="font-weight:800; color:#0f172a; font-size:15px; margin-bottom:4px;">Sesi 2</div><div style="font-size:13px; color:#64748b;">08.50 - 10.10 WIB</div>
       </div>
       <div class="card-soft" style="cursor:pointer; margin-bottom:12px; border:2px solid transparent; transition:0.2s;" id="opt-sesi-3" onclick="selectSession(3)">
-        <div style="font-weight:800; color:#0f172a; font-size:15px; margin-bottom:4px;">Sesi 3</div>
-        <div style="font-size:13px; color:#64748b;">10.30 - Selesai</div>
+        <div style="font-weight:800; color:#0f172a; font-size:15px; margin-bottom:4px;">Sesi 3</div><div style="font-size:13px; color:#64748b;">10.30 - Selesai</div>
       </div>
     </div>
+  </div>
+</div>
+
+<div id="generic-select-drawer" class="bottom-drawer-overlay hidden" onclick="closeGenericSelect()">
+  <div class="bottom-drawer" onclick="event.stopPropagation()">
+    <button class="drawer-close" onclick="closeGenericSelect()">×</button>
+    <div class="drawer-handle"></div>
+    <div class="drawer-header"><div><div class="drawer-title" id="generic-select-title">Pilih</div></div></div>
+    <div id="generic-select-list"></div>
   </div>
 </div>
 
@@ -321,8 +331,77 @@
 </div>
 
 <div id="inval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeInvalDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeInvalDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Akses Inval</div><div class="drawer-subtitle">Pilih kelas yang akan Anda ampu.</div></div></div><div id="inval-drawer-list"></div></div></div>
-<div id="tukar-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeTukarDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeTukarDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Ajukan Tukar Tugas</div><div class="drawer-subtitle">Pilih jadwal Anda dan tentukan pengganti.</div></div></div><div class="tukar-row"><div><div class="tukar-field-label">Tanggal</div><div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="tukar-tanggal" class="input-field" onchange="loadTukarOptions()"></div></div><div><div class="tukar-field-label">Sesi</div><select id="tukar-sesi" class="input-field" onchange="loadTukarOptions()"><option value="1">Sesi 1</option><option value="2">Sesi 2</option><option value="3">Sesi 3</option></select></div></div><div class="tukar-field-label">Kelas yang Ditukar</div><select id="tukar-kelas" class="input-field" onchange="selectTukarClass()"><option value="">Pilih tanggal dan sesi dulu</option></select><div class="tukar-field-label">Mata Pelajaran</div><div id="tukar-mapel" class="tukar-readonly">-</div><div class="tukar-field-label">Guru Jadwal Asli</div><div id="tukar-guru-asli" class="tukar-readonly">-</div><div class="tukar-field-label">Guru Pengisi</div><select id="tukar-guru-pengisi" class="input-field"><option value="">Pilih kelas terlebih dahulu</option></select><div class="tukar-field-label">Keterangan</div><textarea id="tukar-keterangan" class="input-field" rows="3" placeholder="Contoh: Keperluan keluarga..."></textarea><div id="tukar-status" class="tukar-status">Status awal akan tersimpan sebagai Diajukan.</div><button class="btn" id="btn-submit-tukar" onclick="submitTukarTugas()">Kirim Pengajuan</button></div></div>
-<div id="izin-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeIzinDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeIzinDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Ajukan Sakit / Izin</div><div class="drawer-subtitle">Menunggu persetujuan pimpinan.</div></div></div><div class="tukar-row"><div><div class="tukar-field-label">Mulai</div><div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="izin-tanggal-mulai" class="input-field"></div></div><div><div class="tukar-field-label">Selesai</div><div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="izin-tanggal-selesai" class="input-field"></div></div></div><div class="tukar-row"><div><div class="tukar-field-label">Sesi</div><select id="izin-sesi" class="input-field"><option value="Semua">Semua Sesi</option><option value="1">Sesi 1</option><option value="2">Sesi 2</option><option value="3">Sesi 3</option></select></div><div><div class="tukar-field-label">Jenis</div><select id="izin-jenis" class="input-field"><option value="Sakit">Sakit</option><option value="Izin">Izin</option></select></div></div><div class="tukar-field-label">Keterangan</div><textarea id="izin-keterangan" class="input-field" rows="3" placeholder="Contoh: Sakit demam..."></textarea><div id="izin-status" class="tukar-status">Status awal akan tersimpan sebagai Diajukan.</div><button class="btn" id="btn-submit-izin" onclick="submitIzinGuru()" style="background:#064e3b;">Kirim Pengajuan</button></div></div>
+
+<div id="tukar-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeTukarDrawer()">
+  <div class="bottom-drawer" onclick="event.stopPropagation()">
+    <button class="drawer-close" onclick="closeTukarDrawer()">×</button><div class="drawer-handle"></div>
+    <div class="drawer-header"><div><div class="drawer-title">Ajukan Tukar Tugas</div><div class="drawer-subtitle">Pilih jadwal Anda dan tentukan pengganti.</div></div></div>
+    <div class="tukar-row">
+      <div>
+        <div class="tukar-field-label">Tanggal</div>
+        <div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="tukar-tanggal" class="input-field" onchange="loadTukarOptions()"></div>
+      </div>
+      <div>
+        <div class="tukar-field-label">Sesi</div>
+        <input type="hidden" id="tukar-sesi" value="1">
+        <div class="input-field select-box" id="lbl-tukar-sesi" onclick="openSelectTukarSesi()">Sesi 1</div>
+      </div>
+    </div>
+    
+    <div class="tukar-field-label">Kelas yang Ditukar</div>
+    <input type="hidden" id="tukar-kelas" value="">
+    <div class="input-field select-box" id="lbl-tukar-kelas" onclick="openSelectTukarKelas()">Pilih tanggal dan sesi dulu</div>
+    
+    <div class="tukar-field-label">Mata Pelajaran</div>
+    <div id="tukar-mapel" class="tukar-readonly">-</div>
+    
+    <div class="tukar-field-label">Guru Jadwal Asli</div>
+    <div id="tukar-guru-asli" class="tukar-readonly">-</div>
+    
+    <div class="tukar-field-label">Guru Pengisi</div>
+    <input type="hidden" id="tukar-guru-pengisi" value="">
+    <div class="input-field select-box" id="lbl-tukar-guru" onclick="openSelectTukarGuru()">Pilih kelas terlebih dahulu</div>
+    
+    <div class="tukar-field-label">Keterangan</div>
+    <textarea id="tukar-keterangan" class="input-field" rows="3" placeholder="Contoh: Keperluan keluarga..."></textarea>
+    <div id="tukar-status" class="tukar-status">Status awal akan tersimpan sebagai Diajukan.</div>
+    <button class="btn" id="btn-submit-tukar" onclick="submitTukarTugas()">Kirim Pengajuan</button>
+  </div>
+</div>
+
+<div id="izin-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeIzinDrawer()">
+  <div class="bottom-drawer" onclick="event.stopPropagation()">
+    <button class="drawer-close" onclick="closeIzinDrawer()">×</button><div class="drawer-handle"></div>
+    <div class="drawer-header"><div><div class="drawer-title">Ajukan Sakit / Izin</div><div class="drawer-subtitle">Menunggu persetujuan pimpinan.</div></div></div>
+    <div class="tukar-row">
+      <div>
+        <div class="tukar-field-label">Mulai</div>
+        <div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="izin-tanggal-mulai" class="input-field"></div>
+      </div>
+      <div>
+        <div class="tukar-field-label">Selesai</div>
+        <div class="date-wrapper"><svg class="cal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" id="izin-tanggal-selesai" class="input-field"></div>
+      </div>
+    </div>
+    <div class="tukar-row">
+      <div>
+        <div class="tukar-field-label">Sesi</div>
+        <input type="hidden" id="izin-sesi" value="Semua">
+        <div class="input-field select-box" id="lbl-izin-sesi" onclick="openSelectIzinSesi()">Semua Sesi</div>
+      </div>
+      <div>
+        <div class="tukar-field-label">Jenis</div>
+        <input type="hidden" id="izin-jenis" value="Sakit">
+        <div class="input-field select-box" id="lbl-izin-jenis" onclick="openSelectIzinJenis()">Sakit</div>
+      </div>
+    </div>
+    <div class="tukar-field-label">Keterangan</div>
+    <textarea id="izin-keterangan" class="input-field" rows="3" placeholder="Contoh: Sakit demam..."></textarea>
+    <div id="izin-status" class="tukar-status">Status awal akan tersimpan sebagai Diajukan.</div>
+    <button class="btn" id="btn-submit-izin" onclick="submitIzinGuru()" style="background:#064e3b;">Kirim Pengajuan</button>
+  </div>
+</div>
+
 <div id="approval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeTukarApprovalDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeTukarApprovalDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Persetujuan Tukar Tugas</div><div class="drawer-subtitle">Setujui atau batalkan pengajuan tukar.</div></div></div><div id="approval-drawer-list"></div></div></div>
 <div id="izin-approval-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeIzinApprovalDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeIzinApprovalDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Persetujuan Sakit/Izin</div><div class="drawer-subtitle">Setujui atau batalkan pengajuan izin guru.</div></div></div><div id="izin-approval-drawer-list"></div></div></div>
 <div id="audit-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeAuditRekapDrawer()"><div class="bottom-drawer" onclick="event.stopPropagation()"><button class="drawer-close" onclick="closeAuditRekapDrawer()">×</button><div class="drawer-handle"></div><div class="drawer-header"><div><div class="drawer-title">Audit Rekap Harian</div><div class="drawer-subtitle" id="audit-drawer-subtitle">Memuat data...</div></div></div><div id="audit-drawer-list"></div></div></div>
@@ -335,94 +414,33 @@
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbzlFp0HrlOFc8xLQcEqH4h9yB_F_t5Ww5OlUS4a5JF3v0lxzbTn9KDhrjYGxxBHbZ-D/exec";
 
-let currentUser = "";
-let currentRole = "";
-let allStudents = [];
-let currentClassStudents = [];
-let attendanceData = {};
-let currentSesi = 1;
-let activeClassTitle = "";
-
+let currentUser = ""; let currentRole = ""; let allStudents = []; let currentClassStudents = []; let attendanceData = {}; let currentSesi = 1; let activeClassTitle = "";
 let dashboardCache = {};
-
-let latestInvalList = [];
-let latestTukarOptions = [];
-let latestTukarRequests = [];
-let latestIzinRequests = [];
-let latestTukarJadwal = [];
-let selectedTukarSchedule = null;
-
-let isSubmitting = false;
-let standbyBusy = false;
-let tukarBusy = false;
-let approvalBusy = false;
-let izinApprovalBusy = false;
-let izinBusy = false;
-let periodeActionMode = "rekap";
+let latestInvalList = []; let latestTukarOptions = []; let latestTukarRequests = []; let latestIzinRequests = []; let latestTukarJadwal = []; let selectedTukarSchedule = null;
+let isSubmitting = false; let standbyBusy = false; let tukarBusy = false; let approvalBusy = false; let izinApprovalBusy = false; let izinBusy = false; let periodeActionMode = "rekap";
 let hijriOffset = parseInt(localStorage.getItem("hijri_offset"), 10) || 0;
 
 // =====================================================
-// FUNGSI BARU: SISTEM ANTREAN OFFLINE (KOTAK KELUAR)
+// KOTAK KELUAR OFFLINE
 // =====================================================
 let outboxSyncing = false;
-
-function saveToOutbox(payload, kelas) {
-  let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]');
-  outbox.push({ id: Date.now(), kelas: kelas, sesi: currentSesi, data: payload });
-  localStorage.setItem('mmu_outbox', JSON.stringify(outbox));
-}
-
+function saveToOutbox(payload, kelas) { let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]'); outbox.push({ id: Date.now(), kelas: kelas, sesi: currentSesi, data: payload }); localStorage.setItem('mmu_outbox', JSON.stringify(outbox)); }
 function updateOutboxUI(isSyncing = false) {
-  const banner = $("outbox-banner");
-  const title = $("outbox-title");
-  const desc = $("outbox-desc");
-  const btn = $("btn-sync-outbox");
-  if (!banner || !title || !desc) return;
-
+  const banner = $("outbox-banner"); const title = $("outbox-title"); const desc = $("outbox-desc"); const btn = $("btn-sync-outbox"); if (!banner || !title || !desc) return;
   let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]');
-  
   if (outbox.length > 0) {
-    banner.classList.remove("hidden");
-    title.innerText = `${outbox.length} Presensi Tertunda`;
-    
-    if (isSyncing) {
-      desc.innerText = "Mengirim data ke server...";
-      if(btn) { btn.innerText = "Proses..."; btn.disabled = true; }
-    } else {
-      desc.innerText = navigator.onLine ? "Sinyal tersedia. Siap dikirim." : "Menunggu koneksi internet...";
-      if(btn) { btn.innerText = "Kirim"; btn.disabled = false; }
-    }
-  } else {
-    banner.classList.add("hidden");
-  }
+    banner.classList.remove("hidden"); title.innerText = `${outbox.length} Presensi Tertunda`;
+    if (isSyncing) { desc.innerText = "Mengirim data ke server..."; if(btn) { btn.innerText = "Proses..."; btn.disabled = true; } } 
+    else { desc.innerText = navigator.onLine ? "Sinyal tersedia. Siap dikirim." : "Menunggu koneksi internet..."; if(btn) { btn.innerText = "Kirim"; btn.disabled = false; } }
+  } else { banner.classList.add("hidden"); }
 }
-
 function syncOutbox() {
   if (!navigator.onLine || outboxSyncing) return;
-  let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]');
-  if (outbox.length === 0) { updateOutboxUI(); return; }
-
-  outboxSyncing = true;
-  updateOutboxUI(true);
-
-  const item = outbox[0];
-  postJSON({ action: "submitAttendance", data: item.data })
-    .then((res) => {
-      if(res.status !== "gagal") {
-         outbox.shift();
-         localStorage.setItem('mmu_outbox', JSON.stringify(outbox));
-         dashboardCache = {};
-         outboxSyncing = false;
-         syncOutbox();
-      } else {
-         outboxSyncing = false; updateOutboxUI();
-      }
-    })
-    .catch(() => { outboxSyncing = false; updateOutboxUI(); });
+  let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]'); if (outbox.length === 0) { updateOutboxUI(); return; }
+  outboxSyncing = true; updateOutboxUI(true); const item = outbox[0];
+  postJSON({ action: "submitAttendance", data: item.data }).then((res) => { if(res.status !== "gagal") { outbox.shift(); localStorage.setItem('mmu_outbox', JSON.stringify(outbox)); dashboardCache = {}; outboxSyncing = false; syncOutbox(); } else { outboxSyncing = false; updateOutboxUI(); } }).catch(() => { outboxSyncing = false; updateOutboxUI(); });
 }
-
-window.addEventListener('online', syncOutbox);
-window.addEventListener('offline', updateOutboxUI);
+window.addEventListener('online', syncOutbox); window.addEventListener('offline', updateOutboxUI);
 
 // =====================================================
 // UTILS
@@ -439,25 +457,15 @@ function firstDayOfMonthIso() { const d = new Date(); return `${d.getFullYear()}
 function formatIsoToId(iso) { if (!iso) return ""; const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}/${m[2]}/${m[1]}` : iso; }
 
 function initMasterData() {
-  const cachedStudents = localStorage.getItem('mmu_students_cache');
-  if (cachedStudents) { try { allStudents = JSON.parse(cachedStudents); } catch (e) {} }
-  fetch(API_URL).then(r => r.json()).then(stData => {
-      if (Array.isArray(stData) && stData.length > 0) { allStudents = stData; localStorage.setItem('mmu_students_cache', JSON.stringify(stData)); }
-  }).catch(() => {});
+  const cachedStudents = localStorage.getItem('mmu_students_cache'); if (cachedStudents) { try { allStudents = JSON.parse(cachedStudents); } catch (e) {} }
+  fetch(API_URL).then(r => r.json()).then(stData => { if (Array.isArray(stData) && stData.length > 0) { allStudents = stData; localStorage.setItem('mmu_students_cache', JSON.stringify(stData)); } }).catch(() => {});
 }
 
 // =====================================================
 // DRAWER / MODAL
 // =====================================================
-function animateOpen(overlay) {
-  if (!overlay) return; document.body.classList.add("drawer-open"); 
-  overlay.classList.remove("hidden"); requestAnimationFrame(() => overlay.classList.add("show"));
-}
-function animateClose(overlay) {
-  if (!overlay) return; document.body.classList.remove("drawer-open"); 
-  overlay.classList.remove("show"); const drawer = overlay.querySelector(".bottom-drawer");
-  if (drawer) drawer.style.transform = ""; setTimeout(() => overlay.classList.add("hidden"), 300);
-}
+function animateOpen(overlay) { if (!overlay) return; document.body.classList.add("drawer-open"); overlay.classList.remove("hidden"); requestAnimationFrame(() => overlay.classList.add("show")); }
+function animateClose(overlay) { if (!overlay) return; document.body.classList.remove("drawer-open"); overlay.classList.remove("show"); const drawer = overlay.querySelector(".bottom-drawer"); if (drawer) drawer.style.transform = ""; setTimeout(() => overlay.classList.add("hidden"), 300); }
 function initSwipeToClose() {
   document.querySelectorAll(".bottom-drawer").forEach((drawer) => {
     let startY = 0, currentY = 0, isDragging = false; const headerArea = drawer.querySelector('.drawer-header'); const handleArea = drawer.querySelector('.drawer-handle');
@@ -469,45 +477,44 @@ function initSwipeToClose() {
   });
 }
 
+// FUNGSI BARU: LACI UNIVERSAL PENGGANTI DROPDOWN
+function openCustomSelect(title, options, callback) {
+  $("generic-select-title").innerText = title; const list = $("generic-select-list"); list.innerHTML = "";
+  options.forEach(opt => {
+    const el = document.createElement("div"); el.className = "card-soft"; el.style.cursor = "pointer"; el.style.marginBottom = "12px"; el.style.padding = "16px 20px";
+    el.innerHTML = `<div style="font-weight:700; font-size:15px; color:#0f172a;">${escapeHTML(opt.text)}</div>`;
+    el.onclick = () => { closeGenericSelect(); callback(opt.value, opt.text); };
+    list.appendChild(el);
+  });
+  animateOpen($("generic-select-drawer"));
+}
+function closeGenericSelect() { animateClose($("generic-select-drawer")); }
+
+// KONEKSI LACI UNIVERSAL KE INPUT
+function openSelectTukarSesi() { openCustomSelect("Pilih Sesi", [{value:"1",text:"Sesi 1"},{value:"2",text:"Sesi 2"},{value:"3",text:"Sesi 3"}], (v, t) => { $("tukar-sesi").value = v; $("lbl-tukar-sesi").innerText = t; loadTukarOptions(); }); }
+function openSelectTukarKelas() { if (latestTukarOptions.length === 0) { setTukarStatus("Tidak ada jadwal untuk dipilih.", "error"); return; } const opts = latestTukarOptions.map((j, idx) => ({ value: String(idx), text: `${j.kelas} - ${j.mapel}` })); openCustomSelect("Pilih Kelas", opts, (v, t) => { $("tukar-kelas").value = v; $("lbl-tukar-kelas").innerText = t; selectTukarClass(); }); }
+function openSelectTukarGuru() { if (!selectedTukarSchedule) return; const candidates = selectedTukarSchedule.guruPengisiOptions || []; if (candidates.length === 0) return; const opts = candidates.map(nama => ({ value: nama, text: nama })); openCustomSelect("Pilih Guru Pengganti", opts, (v, t) => { $("tukar-guru-pengisi").value = v; $("lbl-tukar-guru").innerText = t; }); }
+function openSelectIzinSesi() { openCustomSelect("Pilih Sesi", [{value:"Semua",text:"Semua Sesi"},{value:"1",text:"Sesi 1"},{value:"2",text:"Sesi 2"},{value:"3",text:"Sesi 3"}], (v, t) => { $("izin-sesi").value = v; $("lbl-izin-sesi").innerText = t; }); }
+function openSelectIzinJenis() { openCustomSelect("Jenis Pengajuan", [{value:"Sakit",text:"Sakit"},{value:"Izin",text:"Izin"}], (v, t) => { $("izin-jenis").value = v; $("lbl-izin-jenis").innerText = t; }); }
+
 // LACI SESI DYNAMIC ISLAND
 function openSessionDrawer() {
   const ov = $("session-drawer-overlay"); if (!ov) return;
-  [1, 2, 3].forEach(s => {
-    const el = $("opt-sesi-" + s);
-    if (el) {
-      if (s === currentSesi) { el.style.borderColor = "#064e3b"; el.style.background = "#f0fdf4"; } 
-      else { el.style.borderColor = "transparent"; el.style.background = "#fff"; }
-    }
-  });
+  [1, 2, 3].forEach(s => { const el = $("opt-sesi-" + s); if (el) { if (s === currentSesi) { el.style.borderColor = "#064e3b"; el.style.background = "#f0fdf4"; } else { el.style.borderColor = "transparent"; el.style.background = "#fff"; } } });
   animateOpen(ov);
 }
 function closeSessionDrawer() { animateClose($("session-drawer-overlay")); }
-function selectSession(val) {
-  if (currentSesi === val) { closeSessionDrawer(); return; }
-  currentSesi = val;
-  if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi;
-  closeSessionDrawer();
-  loadDashboardData();
-}
+function selectSession(val) { if (currentSesi === val) { closeSessionDrawer(); return; } currentSesi = val; if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi; closeSessionDrawer(); loadDashboardData(); }
 
-function openAdjustmentModal() {
-  const modal = $("adjustment-modal"); if (!modal) return; modal.classList.remove("hidden");
-  ["adj-min1", "adj-0", "adj-plus1"].forEach((id) => $(id)?.classList.remove("active"));
-  if (hijriOffset === -1) $("adj-min1")?.classList.add("active"); else if (hijriOffset === 1) $("adj-plus1")?.classList.add("active"); else $("adj-0")?.classList.add("active");
-}
+function openAdjustmentModal() { const modal = $("adjustment-modal"); if (!modal) return; modal.classList.remove("hidden"); ["adj-min1", "adj-0", "adj-plus1"].forEach((id) => $(id)?.classList.remove("active")); if (hijriOffset === -1) $("adj-min1")?.classList.add("active"); else if (hijriOffset === 1) $("adj-plus1")?.classList.add("active"); else $("adj-0")?.classList.add("active"); }
 function setHijriAdjustment(val) { hijriOffset = val; localStorage.setItem("hijri_offset", String(val)); openAdjustmentModal(); renderDates(); }
 function closeAdjustmentModal() { $("adjustment-modal")?.classList.add("hidden"); }
 
 function openInvalDrawer() {
   const ov = $("inval-drawer-overlay"); const list = $("inval-drawer-list"); if (!ov || !list) return; list.innerHTML = "";
   if (!latestInvalList || latestInvalList.length === 0) { list.innerHTML = '<div class="drawer-empty">Alhamdulillah, tidak ada kelas kosong.</div>'; } else {
-    latestInvalList.forEach((j) => {
-      const card = document.createElement("div"); card.className = "card-soft"; card.style.cursor = "pointer"; card.style.border = "1px solid #fecaca"; card.style.background = "#fef2f2";
-      card.innerHTML = `<div style="font-weight:800; font-size:15px; color:#b91c1c; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#991b1b; margin-bottom:8px;">${escapeHTML(j.mapel)}</div><div style="font-size:12px; color:#7f1d1d;">Asli: <b>${escapeHTML(j.guru)}</b></div>`;
-      card.onclick = () => { closeInvalDrawer(); activeClassTitle = j.kelas; openClass(j.kelas); }; list.appendChild(card);
-    });
-  }
-  animateOpen(ov);
+    latestInvalList.forEach((j) => { const card = document.createElement("div"); card.className = "card-soft"; card.style.cursor = "pointer"; card.style.border = "1px solid #fecaca"; card.style.background = "#fef2f2"; card.innerHTML = `<div style="font-weight:800; font-size:15px; color:#b91c1c; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#991b1b; margin-bottom:8px;">${escapeHTML(j.mapel)}</div><div style="font-size:12px; color:#7f1d1d;">Asli: <b>${escapeHTML(j.guru)}</b></div>`; card.onclick = () => { closeInvalDrawer(); activeClassTitle = j.kelas; openClass(j.kelas); }; list.appendChild(card); });
+  } animateOpen(ov);
 }
 function closeInvalDrawer() { animateClose($("inval-drawer-overlay")); }
 function closeTukarDrawer() { animateClose($("tukar-drawer-overlay")); }
@@ -518,48 +525,47 @@ function closeAuditRekapDrawer() { animateClose($("audit-drawer-overlay")); }
 function closeAuditBulananDrawer() { animateClose($("audit-bulanan-drawer-overlay")); }
 function closePeriodeDrawer() { animateClose($("periode-drawer-overlay")); }
 
-function openTukarDrawer() { const ov = $("tukar-drawer-overlay"); if (!ov) return; const tgl = $("tukar-tanggal"); const sesi = $("tukar-sesi"); if (tgl && !tgl.value) { tgl.value = todayIsoDate(); if(tgl._flatpickr) tgl._flatpickr.setDate(todayIsoDate()); } if (sesi) sesi.value = String(currentSesi || 1); if ($("tukar-keterangan")) $("tukar-keterangan").value = ""; selectedTukarSchedule = null; setTukarStatus("Menunggu pengajuan.", ""); animateOpen(ov); loadTukarOptions(); }
-function openIzinDrawer() { const ov = $("izin-drawer-overlay"); if (!ov) return; const today = todayIsoDate(); const tglMulai = $("izin-tanggal-mulai"); const tglSelesai = $("izin-tanggal-selesai"); if (tglMulai) { tglMulai.value = today; if(tglMulai._flatpickr) tglMulai._flatpickr.setDate(today); } if (tglSelesai) { tglSelesai.value = today; if(tglSelesai._flatpickr) tglSelesai._flatpickr.setDate(today); } if ($("izin-sesi")) $("izin-sesi").value = "Semua"; if ($("izin-jenis")) $("izin-jenis").value = "Sakit"; if ($("izin-keterangan")) $("izin-keterangan").value = ""; setIzinStatus("Menunggu pengajuan.", ""); animateOpen(ov); }
+// RESET UI SAAT MEMBUKA LACI TUKAR/IZIN
+function openTukarDrawer() { 
+  const ov = $("tukar-drawer-overlay"); if (!ov) return; const tgl = $("tukar-tanggal"); 
+  if (tgl && !tgl.value) { tgl.value = todayIsoDate(); if(tgl._flatpickr) tgl._flatpickr.setDate(todayIsoDate()); } 
+  if ($("tukar-sesi")) { $("tukar-sesi").value = String(currentSesi || 1); $("lbl-tukar-sesi").innerText = "Sesi " + (currentSesi || 1); }
+  if ($("tukar-keterangan")) $("tukar-keterangan").value = ""; 
+  selectedTukarSchedule = null; setTukarStatus("Menunggu pengajuan.", ""); animateOpen(ov); loadTukarOptions(); 
+}
+function openIzinDrawer() { 
+  const ov = $("izin-drawer-overlay"); if (!ov) return; const today = todayIsoDate(); const tglMulai = $("izin-tanggal-mulai"); const tglSelesai = $("izin-tanggal-selesai"); 
+  if (tglMulai) { tglMulai.value = today; if(tglMulai._flatpickr) tglMulai._flatpickr.setDate(today); } 
+  if (tglSelesai) { tglSelesai.value = today; if(tglSelesai._flatpickr) tglSelesai._flatpickr.setDate(today); } 
+  if ($("izin-sesi")) { $("izin-sesi").value = "Semua"; $("lbl-izin-sesi").innerText = "Semua Sesi"; }
+  if ($("izin-jenis")) { $("izin-jenis").value = "Sakit"; $("lbl-izin-jenis").innerText = "Sakit"; }
+  if ($("izin-keterangan")) $("izin-keterangan").value = ""; setIzinStatus("Menunggu pengajuan.", ""); animateOpen(ov); 
+}
+
 function openTukarApprovalDrawer() { const ov = $("approval-drawer-overlay"); if (!ov) return; renderTukarApprovalList(); animateOpen(ov); loadTukarApprovals(true); }
 function openIzinApprovalDrawer() { const ov = $("izin-approval-drawer-overlay"); if (!ov) return; renderIzinApprovalList(); animateOpen(ov); loadIzinApprovals(true); }
 function openPeriodeDrawer(mode) {
   periodeActionMode = mode || "rekap"; const ov = $("periode-drawer-overlay"); const title = $("periode-drawer-title"); const sub = $("periode-drawer-subtitle"); const btn = $("btn-submit-periode"); const mulai = $("periode-tanggal-mulai"); const selesai = $("periode-tanggal-selesai");
   if (mulai) { mulai.value = firstDayOfMonthIso(); if(mulai._flatpickr) mulai._flatpickr.setDate(firstDayOfMonthIso()); } if (selesai) { selesai.value = todayIsoDate(); if(selesai._flatpickr) selesai._flatpickr.setDate(todayIsoDate()); }
-  if (mode === "audit") { if (title) title.innerText = "Audit Rekap Periode"; if (sub) sub.innerText = "Pilih periode yang ingin diaudit."; if (btn) btn.innerText = "Lihat Audit"; }
-  else if (mode === "laporan") { if (title) title.innerText = "Generate Data Laporan"; if (sub) sub.innerText = "Pilih periode untuk data laporan yayasan."; if (btn) btn.innerText = "Generate Data"; }
-  else { if (title) title.innerText = "Generate Rekap Periode"; if (sub) sub.innerText = "Pilih periode yang akan dihitung."; if (btn) btn.innerText = "Generate Rekap"; }
+  if (mode === "audit") { if (title) title.innerText = "Audit Rekap Periode"; if (sub) sub.innerText = "Pilih periode yang ingin diaudit."; if (btn) btn.innerText = "Lihat Audit"; } else if (mode === "laporan") { if (title) title.innerText = "Generate Data Laporan"; if (sub) sub.innerText = "Pilih periode untuk data laporan yayasan."; if (btn) btn.innerText = "Generate Data"; } else { if (title) title.innerText = "Generate Rekap Periode"; if (sub) sub.innerText = "Pilih periode yang akan dihitung."; if (btn) btn.innerText = "Generate Rekap"; }
   animateOpen(ov);
 }
-document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; closeSessionDrawer(); closeInvalDrawer(); closeTukarDrawer(); closeIzinDrawer(); closeTukarApprovalDrawer(); closeIzinApprovalDrawer(); closePeriodeDrawer(); closeAuditRekapDrawer(); closeAuditBulananDrawer(); });
+document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; closeGenericSelect(); closeSessionDrawer(); closeInvalDrawer(); closeTukarDrawer(); closeIzinDrawer(); closeTukarApprovalDrawer(); closeIzinApprovalDrawer(); closePeriodeDrawer(); closeAuditRekapDrawer(); closeAuditBulananDrawer(); });
 
 // =====================================================
-// NAVIGASI DENGAN PENYEMBUNYIAN DYNAMIC ISLAND
+// NAVIGASI
 // =====================================================
-function switchMainTab(tabId) {
-  ["beranda", "layanan", "pimpinan", "akun"].forEach((id) => { $("tab-" + id)?.classList.remove("active"); $("nav-" + id)?.classList.remove("active"); });
-  $("tab-" + tabId)?.classList.add("active"); $("nav-" + tabId)?.classList.add("active"); window.scrollTo(0, 0);
-}
-
+function switchMainTab(tabId) { ["beranda", "layanan", "pimpinan", "akun"].forEach((id) => { $("tab-" + id)?.classList.remove("active"); $("nav-" + id)?.classList.remove("active"); }); $("tab-" + tabId)?.classList.add("active"); $("nav-" + tabId)?.classList.add("active"); window.scrollTo(0, 0); }
 function switchScreen(id, isPopState = false) {
-  ["screen-login", "screen-loading", "screen-dashboard", "screen-attendance", "screen-preview"].forEach((s) => $(s)?.classList.add("hidden"));
-  $(id)?.classList.remove("hidden");
-  
+  ["screen-login", "screen-loading", "screen-dashboard", "screen-attendance", "screen-preview"].forEach((s) => $(s)?.classList.add("hidden")); $(id)?.classList.remove("hidden");
   const topBar = $("top-bar"); const clsHeader = $("sticky-class-header"); const dynBadge = $("dynamic-session-badge");
   if (topBar) { if (id === "screen-login" || id === "screen-loading") topBar.classList.add("hidden"); else topBar.classList.remove("hidden"); }
-  
   if (clsHeader) { 
-    if (id === "screen-attendance" || id === "screen-preview") { 
-      clsHeader.innerText = id === "screen-attendance" ? "Presensi " + activeClassTitle : "Pratinjau"; 
-      clsHeader.classList.remove("hidden"); 
-      if(dynBadge) dynBadge.style.display = "none"; // Sembunyikan badge sesi saat di dalam kelas
-    } else { 
-      clsHeader.classList.add("hidden"); 
-      if(dynBadge) dynBadge.style.display = "flex"; // Tampilkan badge sesi di dashboard utama
-    } 
+    if (id === "screen-attendance" || id === "screen-preview") { clsHeader.innerText = id === "screen-attendance" ? "Presensi " + activeClassTitle : "Pratinjau"; clsHeader.classList.remove("hidden"); if(dynBadge) dynBadge.style.display = "none"; } 
+    else { clsHeader.classList.add("hidden"); if(dynBadge) dynBadge.style.display = "flex"; } 
   }
   if (!isPopState) history.pushState({ screen: id }, "");
 }
-
 window.onpopstate = function(event) { if (event.state && event.state.screen) switchScreen(event.state.screen, true); else if (currentUser) switchScreen("screen-dashboard", true); else switchScreen("screen-login", true); };
 
 // =====================================================
@@ -569,36 +575,17 @@ function renderDates() {
   const now = new Date(); const dm = $("date-masehi"); if (dm) dm.innerText = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(now);
   const jam = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   if (jam >= "07:00" && jam <= "08:20") currentSesi = 1; else if (jam > "08:20" && jam <= "10:10") currentSesi = 2; else currentSesi = 3;
-  
-  // PEMBARUAN: Ubah label Dynamic Island sesuai sesi aktif
   if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi;
-  
-  const dateStr = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
-  const cacheDate = localStorage.getItem("hijri_date"); const cacheData = localStorage.getItem("hijri_data");
-  const applyHijri = (h) => {
-    if (!h || !$("date-hijri")) return; let finalDay = parseInt(h.day, 10) + hijriOffset;
-    if (finalDay < 1) finalDay = 30; if (finalDay > 30) finalDay = 1;
-    const months = ["Muharram", "Safar", "Rabi'ul Awal", "Rabi'ul Akhir", "Jumadil Awal", "Jumadil Akhir", "Rajab", "Sya'ban", "Ramadhan", "Syawal", "Dzulqa'dah", "Dzulhijjah"];
-    $("date-hijri").innerText = `${finalDay} ${months[h.month.number - 1]} ${h.year} H`;
-  };
+  const dateStr = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`; const cacheDate = localStorage.getItem("hijri_date"); const cacheData = localStorage.getItem("hijri_data");
+  const applyHijri = (h) => { if (!h || !$("date-hijri")) return; let finalDay = parseInt(h.day, 10) + hijriOffset; if (finalDay < 1) finalDay = 30; if (finalDay > 30) finalDay = 1; const months = ["Muharram", "Safar", "Rabi'ul Awal", "Rabi'ul Akhir", "Jumadil Awal", "Jumadil Akhir", "Rajab", "Sya'ban", "Ramadhan", "Syawal", "Dzulqa'dah", "Dzulhijjah"]; $("date-hijri").innerText = `${finalDay} ${months[h.month.number - 1]} ${h.year} H`; };
   if (cacheDate === dateStr && cacheData) { try { applyHijri(JSON.parse(cacheData)); return; } catch (e) {} }
   fetch(`https://api.aladhan.com/v1/gToH?date=${dateStr}`).then((res) => res.json()).then((d) => { localStorage.setItem("hijri_date", dateStr); localStorage.setItem("hijri_data", JSON.stringify(d.data.hijri)); applyHijri(d.data.hijri); }).catch(() => { if ($("date-hijri")) $("date-hijri").innerText = "Hijriah offline"; });
 }
-
 function doLogin() {
   const hp = $("input-hp")?.value || ""; const pin = $("input-pin")?.value || ""; const err = $("login-error");
   if (!hp || !pin) { if (err) { err.innerText = "Mohon isi HP & PIN"; err.style.display = "block"; } return; }
   if (err) err.style.display = "none"; switchScreen("screen-loading"); if ($("loading-text")) $("loading-text").innerText = "Memverifikasi akun...";
-  postJSON({ action: "login", ID_Pengguna: hp, Kata_Sandi: pin })
-    .then((data) => {
-      if (data.status !== "sukses") throw new Error(data.pesan || "Login gagal");
-      currentUser = data.nama || ""; currentRole = data.peran || "";
-      localStorage.setItem('app_session_user', currentUser); localStorage.setItem('app_session_role', currentRole);
-      if ($("top-name")) $("top-name").innerText = currentUser; if ($("profile-name")) $("profile-name").innerText = currentUser; if ($("profile-role")) $("profile-role").innerText = currentRole === "pimpinan" ? "Pimpinan Eksekutif" : "Guru Pengajar";
-      if (currentRole === "pimpinan") $("nav-pimpinan")?.classList.remove("hidden"); else $("nav-pimpinan")?.classList.add("hidden");
-      renderDates(); switchMainTab("beranda"); dashboardCache = {}; loadDashboardData(); initMasterData();
-    })
-    .catch((e) => { switchScreen("screen-login"); if (err) { err.innerText = e.message || "Gangguan server."; err.style.display = "block"; } });
+  postJSON({ action: "login", ID_Pengguna: hp, Kata_Sandi: pin }).then((data) => { if (data.status !== "sukses") throw new Error(data.pesan || "Login gagal"); currentUser = data.nama || ""; currentRole = data.peran || ""; localStorage.setItem('app_session_user', currentUser); localStorage.setItem('app_session_role', currentRole); if ($("top-name")) $("top-name").innerText = currentUser; if ($("profile-name")) $("profile-name").innerText = currentUser; if ($("profile-role")) $("profile-role").innerText = currentRole === "pimpinan" ? "Pimpinan Eksekutif" : "Guru Pengajar"; if (currentRole === "pimpinan") $("nav-pimpinan")?.classList.remove("hidden"); else $("nav-pimpinan")?.classList.add("hidden"); renderDates(); switchMainTab("beranda"); dashboardCache = {}; loadDashboardData(); initMasterData(); }).catch((e) => { switchScreen("screen-login"); if (err) { err.innerText = e.message || "Gangguan server."; err.style.display = "block"; } });
 }
 function doLogout() { localStorage.removeItem('app_session_user'); localStorage.removeItem('app_session_role'); location.reload(); }
 
@@ -607,82 +594,53 @@ function doLogout() { localStorage.removeItem('app_session_user'); localStorage.
 // =====================================================
 function renderPimpinanRingkas(d) {
   if (currentRole !== "pimpinan") return; const stats = d.stats || {};
-  if ($("dash-guru")) $("dash-guru").innerText = `${stats.guruHadir ?? 0} / ${stats.totalGuru ?? 0}`;
-  if ($("dash-izin")) $("dash-izin").innerText = (Number(stats.s || 0) + Number(stats.i || 0)).toString();
-  if ($("dash-alpa")) $("dash-alpa").innerText = stats.a ?? 0;
-  const lateDiv = $("late-list");
-  if (lateDiv) {
-    if (latestInvalList.length > 0) {
-      lateDiv.innerHTML = `<div style="font-size:14px; font-weight:700; color:#b91c1c;">Ada ${latestInvalList.length} kelas kosong sesi ini.</div><div style="font-size:12px; color:#64748b; margin-top:6px;">Tekan kartu ini untuk membuka daftar inval.</div>`; lateDiv.style.cursor = "pointer"; lateDiv.onclick = openInvalDrawer;
-    } else { lateDiv.innerHTML = `<span style="color:#10b981; font-weight:700;">Semua kelas terisi.</span>`; lateDiv.onclick = null; }
-  }
+  if ($("dash-guru")) $("dash-guru").innerText = `${stats.guruHadir ?? 0} / ${stats.totalGuru ?? 0}`; if ($("dash-izin")) $("dash-izin").innerText = (Number(stats.s || 0) + Number(stats.i || 0)).toString(); if ($("dash-alpa")) $("dash-alpa").innerText = stats.a ?? 0;
+  const lateDiv = $("late-list"); if (lateDiv) { if (latestInvalList.length > 0) { lateDiv.innerHTML = `<div style="font-size:14px; font-weight:700; color:#b91c1c;">Ada ${latestInvalList.length} kelas kosong sesi ini.</div><div style="font-size:12px; color:#64748b; margin-top:6px;">Tekan kartu ini untuk membuka daftar inval.</div>`; lateDiv.style.cursor = "pointer"; lateDiv.onclick = openInvalDrawer; } else { lateDiv.innerHTML = `<span style="color:#10b981; font-weight:700;">Semua kelas terisi.</span>`; lateDiv.onclick = null; } }
 }
-
 function renderDashboardUI(d) {
-  latestInvalList = Array.isArray(d.kelasInvalKosong) ? d.kelasInvalKosong : [];
-  latestTukarJadwal = Array.isArray(d.jadwalTukar) ? d.jadwalTukar : [];
+  latestInvalList = Array.isArray(d.kelasInvalKosong) ? d.kelasInvalKosong : []; latestTukarJadwal = Array.isArray(d.jadwalTukar) ? d.jadwalTukar : [];
   const bHadir = $("hadir-badge"); const cStandby = $("standby-container"); bHadir?.classList.add("hidden"); cStandby?.classList.add("hidden");
   if (d.isPresent) { if (bHadir) { bHadir.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg><span>${escapeHTML(d.currentActivity || "Aktivitas terkunci")}</span>`; bHadir.classList.remove("hidden"); } } else if (d.canStandby) { cStandby?.classList.remove("hidden"); }
   const secJadwal = $("section-jadwal"); const divJadwal = $("jadwal-container"); const jadwal = Array.isArray(d.jadwalPribadi) ? d.jadwalPribadi : [];
-  if (jadwal.length > 0 && secJadwal && divJadwal) {
-    secJadwal.classList.remove("hidden"); divJadwal.innerHTML = "";
-    jadwal.forEach((j) => { const div = document.createElement("div"); div.className = "card-soft"; div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); }; div.innerHTML = `<div style="font-weight:800; font-size:16px; color:#0f172a; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#64748b;">${escapeHTML(j.mapel)}</div>`; divJadwal.appendChild(div); });
-  } else { secJadwal?.classList.add("hidden"); }
+  if (jadwal.length > 0 && secJadwal && divJadwal) { secJadwal.classList.remove("hidden"); divJadwal.innerHTML = ""; jadwal.forEach((j) => { const div = document.createElement("div"); div.className = "card-soft"; div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); }; div.innerHTML = `<div style="font-weight:800; font-size:16px; color:#0f172a; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#64748b;">${escapeHTML(j.mapel)}</div>`; divJadwal.appendChild(div); }); } else { secJadwal?.classList.add("hidden"); }
   const secJadwalTukar = $("section-jadwal-tukar"); const divJadwalTukar = $("jadwal-tukar-container");
-  if (latestTukarJadwal.length > 0 && secJadwalTukar && divJadwalTukar) {
-    secJadwalTukar.classList.remove("hidden"); divJadwalTukar.innerHTML = "";
-    latestTukarJadwal.forEach((j) => { const div = document.createElement("div"); div.className = "card-soft"; div.style.border = "1px solid #bfdbfe"; div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); }; div.innerHTML = `<div class="badge-tukar">Tukar Resmi</div><div style="font-weight:800; font-size:16px; color:#1e40af; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#3b82f6; margin-bottom:8px;">${escapeHTML(j.mapel)}</div><div style="font-size:12px; color:#1e3a8a;">Guru Asli: <b>${escapeHTML(j.guru)}</b></div>`; divJadwalTukar.appendChild(div); });
-  } else { secJadwalTukar?.classList.add("hidden"); }
+  if (latestTukarJadwal.length > 0 && secJadwalTukar && divJadwalTukar) { secJadwalTukar.classList.remove("hidden"); divJadwalTukar.innerHTML = ""; latestTukarJadwal.forEach((j) => { const div = document.createElement("div"); div.className = "card-soft"; div.style.border = "1px solid #bfdbfe"; div.onclick = () => { activeClassTitle = j.kelas; openClass(j.kelas); }; div.innerHTML = `<div class="badge-tukar">Tukar Resmi</div><div style="font-weight:800; font-size:16px; color:#1e40af; margin-bottom:4px;">${escapeHTML(j.kelas)}</div><div style="font-size:13px; color:#3b82f6; margin-bottom:8px;">${escapeHTML(j.mapel)}</div><div style="font-size:12px; color:#1e3a8a;">Guru Asli: <b>${escapeHTML(j.guru)}</b></div>`; divJadwalTukar.appendChild(div); }); } else { secJadwalTukar?.classList.add("hidden"); }
   const canInval = !!d.canAccessInval; const menuInval = $("menu-inval"); const invalNote = $("inval-summary-note"); const quick = $("section-inval-quick");
-  if (canInval) {
-    if (menuInval) menuInval.style.display = "flex"; if (invalNote) invalNote.innerText = latestInvalList.length > 0 ? `Ada ${latestInvalList.length} kelas kosong sesi ini.` : "Semua kelas terisi.";
-    if (quick) { if (latestInvalList.length > 0) { quick.classList.remove("hidden"); if ($("inval-count-quick")) $("inval-count-quick").innerText = latestInvalList.length; } else { quick.classList.add("hidden"); } }
-  } else { if (menuInval) menuInval.style.display = "none"; quick?.classList.add("hidden"); }
+  if (canInval) { if (menuInval) menuInval.style.display = "flex"; if (invalNote) invalNote.innerText = latestInvalList.length > 0 ? `Ada ${latestInvalList.length} kelas kosong sesi ini.` : "Semua kelas terisi."; if (quick) { if (latestInvalList.length > 0) { quick.classList.remove("hidden"); if ($("inval-count-quick")) $("inval-count-quick").innerText = latestInvalList.length; } else { quick.classList.add("hidden"); } } } else { if (menuInval) menuInval.style.display = "none"; quick?.classList.add("hidden"); }
   renderPimpinanRingkas(d); if (currentRole === "pimpinan") { loadTukarApprovals(false); loadIzinApprovals(false); }
 }
-
-function prefetchOtherSessions() {
-  [1, 2, 3].forEach(s => {
-    if (s !== currentSesi) { postJSON({ action: "syncDashboard", sesi: s, nama: currentUser }).then(d => { if (d.status !== "gagal") dashboardCache[s] = d; }).catch(e => console.log("Prefetch gagal")); }
-  });
-}
-
+function prefetchOtherSessions() { [1, 2, 3].forEach(s => { if (s !== currentSesi) { postJSON({ action: "syncDashboard", sesi: s, nama: currentUser }).then(d => { if (d.status !== "gagal") dashboardCache[s] = d; }).catch(e => console.log("Prefetch gagal")); } }); }
 function loadDashboardData() {
-  if (!currentUser) return;
-  if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi;
-  if (dashboardCache[currentSesi]) {
-    switchScreen("screen-dashboard"); renderDashboardUI(dashboardCache[currentSesi]);
-    postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { if (d.status !== "gagal") { dashboardCache[currentSesi] = d; renderDashboardUI(d); } }).catch(() => {});
-    return;
-  }
+  if (!currentUser) return; if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi;
+  if (dashboardCache[currentSesi]) { switchScreen("screen-dashboard"); renderDashboardUI(dashboardCache[currentSesi]); postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { if (d.status !== "gagal") { dashboardCache[currentSesi] = d; renderDashboardUI(d); } }).catch(() => {}); return; }
   switchScreen("screen-loading"); if ($("loading-text")) $("loading-text").innerText = `Menyiapkan data sesi ${currentSesi}...`;
-  postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser })
-    .then((d) => { if (d.status === "gagal") throw new Error(d.pesan || "Gagal memuat dashboard"); dashboardCache[currentSesi] = d; switchScreen("screen-dashboard"); renderDashboardUI(d); prefetchOtherSessions(); })
-    .catch((e) => { alert(e.message || "Gagal memuat dashboard."); switchScreen("screen-dashboard"); });
+  postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { if (d.status === "gagal") throw new Error(d.pesan || "Gagal memuat dashboard"); dashboardCache[currentSesi] = d; switchScreen("screen-dashboard"); renderDashboardUI(d); prefetchOtherSessions(); }).catch((e) => { alert(e.message || "Gagal memuat dashboard."); switchScreen("screen-dashboard"); });
 }
 
 // =====================================================
 // TUKAR TUGAS & IZIN GURU
 // =====================================================
 function setTukarStatus(msg, type) { const el = $("tukar-status"); if (!el) return; el.className = "tukar-status"; if (type) el.classList.add(type); el.innerText = msg || ""; }
-function resetTukarClassFields(message) { if ($("tukar-mapel")) $("tukar-mapel").innerText = "-"; if ($("tukar-guru-asli")) $("tukar-guru-asli").innerText = "-"; if ($("tukar-guru-pengisi")) $("tukar-guru-pengisi").innerHTML = `<option value="">${escapeHTML(message || "Pilih kelas")}</option>`; selectedTukarSchedule = null; }
+function resetTukarClassFields(message) { if ($("tukar-mapel")) $("tukar-mapel").innerText = "-"; if ($("tukar-guru-asli")) $("tukar-guru-asli").innerText = "-"; if ($("lbl-tukar-guru")) $("lbl-tukar-guru").innerText = message || "Pilih kelas"; if ($("tukar-guru-pengisi")) $("tukar-guru-pengisi").value = ""; selectedTukarSchedule = null; }
 function loadTukarOptions() {
-  const tanggal = $("tukar-tanggal")?.value || ""; const sesi = $("tukar-sesi")?.value || ""; const kelasSelect = $("tukar-kelas"); if (!kelasSelect) return; latestTukarOptions = []; kelasSelect.innerHTML = '<option value="">Memuat jadwal...</option>'; resetTukarClassFields("Memuat...");
-  if (!tanggal || !sesi) { kelasSelect.innerHTML = '<option value="">Pilih tanggal & sesi</option>'; return; }
-  postJSON({ action: "getTukarOptions", nama: currentUser, tanggal, sesi })
-    .then((data) => {
-      if (data.status === "gagal") throw new Error(data.pesan || "Gagal memuat"); latestTukarOptions = Array.isArray(data.schedules) ? data.schedules : []; kelasSelect.innerHTML = "";
-      if (latestTukarOptions.length === 0) { kelasSelect.innerHTML = '<option value="">Tidak ada jadwal</option>'; resetTukarClassFields("Kosong"); setTukarStatus(`Tidak ada jadwal Anda di sesi ${sesi}.`, "error"); return; }
-      kelasSelect.innerHTML = '<option value="">Pilih kelas</option>'; latestTukarOptions.forEach((j, idx) => { const opt = document.createElement("option"); opt.value = String(idx); opt.textContent = `${safeText(j.kelas)} - ${safeText(j.mapel)}`; kelasSelect.appendChild(opt); }); setTukarStatus("Pilih kelas yang akan ditukar.", ""); resetTukarClassFields("Pilih kelas dulu");
-    }).catch((e) => { kelasSelect.innerHTML = '<option value="">Gagal memuat</option>'; setTukarStatus(e.message || "Gagal koneksi.", "error"); });
+  const tanggal = $("tukar-tanggal")?.value || ""; const sesi = $("tukar-sesi")?.value || ""; latestTukarOptions = []; 
+  if ($("lbl-tukar-kelas")) $("lbl-tukar-kelas").innerText = 'Memuat jadwal...'; if ($("tukar-kelas")) $("tukar-kelas").value = ""; resetTukarClassFields("Memuat...");
+  if (!tanggal || !sesi) { if ($("lbl-tukar-kelas")) $("lbl-tukar-kelas").innerText = 'Pilih tanggal & sesi'; return; }
+  postJSON({ action: "getTukarOptions", nama: currentUser, tanggal, sesi }).then((data) => {
+      if (data.status === "gagal") throw new Error(data.pesan || "Gagal memuat"); latestTukarOptions = Array.isArray(data.schedules) ? data.schedules : [];
+      if (latestTukarOptions.length === 0) { if ($("lbl-tukar-kelas")) $("lbl-tukar-kelas").innerText = 'Tidak ada jadwal'; resetTukarClassFields("Kosong"); setTukarStatus(`Tidak ada jadwal Anda di sesi ${sesi}.`, "error"); return; }
+      if ($("lbl-tukar-kelas")) $("lbl-tukar-kelas").innerText = 'Pilih kelas'; setTukarStatus("Pilih kelas yang akan ditukar.", ""); resetTukarClassFields("Pilih kelas dulu");
+    }).catch((e) => { if ($("lbl-tukar-kelas")) $("lbl-tukar-kelas").innerText = 'Gagal memuat'; setTukarStatus(e.message || "Gagal koneksi.", "error"); });
 }
 function selectTukarClass() {
-  const idx = $("tukar-kelas")?.value || ""; const gp = $("tukar-guru-pengisi"); selectedTukarSchedule = null; if (idx === "") { resetTukarClassFields("Pilih kelas"); return; }
-  const j = latestTukarOptions[parseInt(idx, 10)]; if (!j || !gp) return; selectedTukarSchedule = j;
+  const idx = $("tukar-kelas")?.value || ""; selectedTukarSchedule = null; if (idx === "") { resetTukarClassFields("Pilih kelas"); return; }
+  const j = latestTukarOptions[parseInt(idx, 10)]; if (!j) return; selectedTukarSchedule = j;
   if ($("tukar-mapel")) $("tukar-mapel").innerText = safeText(j.mapel) || "-"; if ($("tukar-guru-asli")) $("tukar-guru-asli").innerText = safeText(j.guruJadwalAsli) || currentUser;
-  const candidates = Array.isArray(j.guruPengisiOptions) ? j.guruPengisiOptions : []; gp.innerHTML = "";
-  if (candidates.length === 0) { gp.innerHTML = '<option value="">Tidak ada guru pengganti</option>'; setTukarStatus("Tidak ada opsi guru pengganti untuk kelas ini.", "error"); return; }
-  gp.innerHTML = '<option value="">Pilih guru pengganti</option>'; candidates.forEach((nama) => { const opt = document.createElement("option"); opt.value = nama; opt.textContent = nama; gp.appendChild(opt); }); setTukarStatus("Pilih guru pengganti.", "");
+  const candidates = Array.isArray(j.guruPengisiOptions) ? j.guruPengisiOptions : []; 
+  if ($("lbl-tukar-guru")) $("lbl-tukar-guru").innerText = candidates.length === 0 ? 'Tidak ada guru pengganti' : 'Pilih guru pengganti';
+  if ($("tukar-guru-pengisi")) $("tukar-guru-pengisi").value = "";
+  if (candidates.length === 0) { setTukarStatus("Tidak ada opsi guru pengganti untuk kelas ini.", "error"); return; }
+  setTukarStatus("Pilih guru pengganti.", "");
 }
 function submitTukarTugas() {
   if (tukarBusy) return; const tanggal = $("tukar-tanggal")?.value || ""; const sesi = $("tukar-sesi")?.value || ""; const guruPengisi = $("tukar-guru-pengisi")?.value || ""; const keterangan = $("tukar-keterangan")?.value.trim() || "";
@@ -716,12 +674,8 @@ function decideIzin(idIzin, newStatus) { if (izinApprovalBusy) return; const cat
 // =====================================================
 function markStandby() {
   if (standbyBusy) return; standbyBusy = true; switchScreen("screen-loading");
-  postJSON({ action: "markStandby", sesi: currentSesi, nama: currentUser })
-    .then((data) => { if (data.status === "gagal") alert(data.pesan || "Gagal mencatat."); dashboardCache = {}; loadDashboardData(); })
-    .catch(() => { alert("Gagal koneksi. Sinyal mungkin terputus."); switchScreen("screen-dashboard"); })
-    .finally(() => { standbyBusy = false; });
+  postJSON({ action: "markStandby", sesi: currentSesi, nama: currentUser }).then((data) => { if (data.status === "gagal") alert(data.pesan || "Gagal mencatat."); dashboardCache = {}; loadDashboardData(); }).catch(() => { alert("Gagal koneksi. Sinyal mungkin terputus."); switchScreen("screen-dashboard"); }).finally(() => { standbyBusy = false; });
 }
-
 function openClass(c) {
   closeInvalDrawer(); activeClassTitle = c; switchScreen("screen-attendance"); const div = $("student-list"); if (!div) return;
   if (allStudents.length > 0) { renderStudentList(c, div); } else {
@@ -729,7 +683,6 @@ function openClass(c) {
     fetch(API_URL).then((r) => r.json()).then((stData) => { allStudents = Array.isArray(stData) ? stData : []; localStorage.setItem('mmu_students_cache', JSON.stringify(stData)); renderStudentList(c, div); }).catch(() => { div.innerHTML = '<div class="card-soft" style="text-align:center; color:#ef4444;">Gagal memuat siswa. Pastikan sinyal internet stabil.</div>'; });
   }
 }
-
 function renderStudentList(c, div) {
   attendanceData = {}; const cKey = normalizeKey(c); currentClassStudents = allStudents.filter((s) => normalizeKey(s.Kelas) === cKey); div.innerHTML = "";
   if (currentClassStudents.length === 0) { div.innerHTML = '<div class="card-soft" style="text-align:center; color:#ef4444;">Data siswa kelas ini kosong.</div>'; return; }
@@ -739,7 +692,6 @@ function renderStudentList(c, div) {
     div.appendChild(r);
   });
 }
-
 function setStatus(id, st, el) { attendanceData[id] = st; const btns = el.parentElement.querySelectorAll(".status-btn"); btns.forEach((b) => { b.className = "status-btn"; }); el.classList.add("active-" + st); const waBtn = $("wa-" + id); if (waBtn) waBtn.style.display = st === "A" ? "flex" : "none"; }
 function sendWA(no, nama, kls) { if (!no || no === "undefined" || no.toString().trim() === "") { alert(`Nomor WA Wali untuk Ananda ${nama} belum ada!`); return; } let formatNo = no.toString().replace(/[^0-9]/g, ""); if (formatNo.startsWith("0")) formatNo = "62" + formatNo.substring(1); const msg = `Assalamu'alaikum Warahmatullah, Bapak/Ibu wali murid dari Ananda *${nama}*. Kami menginformasikan bahwa pada *Sesi ${currentSesi}* hari ini, Ananda terdata *Belum Hadir (Alpa)* di Kelas *${kls}*. Mohon konfirmasi, terima kasih.`; window.open(`https://wa.me/${formatNo}?text=${encodeURIComponent(msg)}`, "_blank"); }
 function showPreview() {
@@ -747,33 +699,13 @@ function showPreview() {
   switchScreen("screen-preview"); if ($("prev-sesi")) $("prev-sesi").innerText = currentSesi; let h = 0, s = 0, i = 0, a = 0; currentClassStudents.forEach((st) => { const v = attendanceData[st.ID_Siswa]; if (v === "H") h++; else if (v === "S") s++; else if (v === "I") i++; else a++; });
   if ($("preview-summary")) { $("preview-summary").innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;"><span>Hadir</span> <span style="font-weight:800; color:#064e3b;">${h} Siswa</span></div><div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; color:#d97706;"><span>Sakit/Izin</span> <span style="font-weight:800;">${s + i} Siswa</span></div><div style="display:flex; justify-content:space-between; color:#b91c1c;"><span>Alpa</span> <span style="font-weight:800;">${a} Siswa</span></div>`; }
 }
-
-function finishSubmitOffline(payload) {
-  saveToOutbox(payload, activeClassTitle);
-  alert(`Sinyal lemah! Tapi tenang, data presensi kelas ${activeClassTitle} aman tersimpan di HP Anda.\nAplikasi akan mengirimkannya otomatis saat sinyal kembali.`);
-  updateOutboxUI(); dashboardCache = {}; loadDashboardData();
-  isSubmitting = false; const btn = $("btn-submit"); if (btn) { btn.innerText = "Kunci & Kirim Data"; btn.disabled = false; }
-}
-
+function finishSubmitOffline(payload) { saveToOutbox(payload, activeClassTitle); alert(`Sinyal lemah! Tapi tenang, data presensi kelas ${activeClassTitle} aman tersimpan di HP Anda.\nAplikasi akan mengirimkannya otomatis saat sinyal kembali.`); updateOutboxUI(); dashboardCache = {}; loadDashboardData(); isSubmitting = false; const btn = $("btn-submit"); if (btn) { btn.innerText = "Kunci & Kirim Data"; btn.disabled = false; } }
 function submitData() {
-  if (isSubmitting) return;
-  if (!currentClassStudents || currentClassStudents.length === 0) { alert("Data siswa kosong. Presensi tidak dikirim."); return; }
-  isSubmitting = true;
-  const btn = $("btn-submit"); const oldText = btn?.innerText || "Kunci & Kirim Data"; if (btn) { btn.innerText = "Mengirim..."; btn.disabled = true; }
-
-  const payload = currentClassStudents.map((s) => ({
-    Tanggal: new Date().toLocaleDateString("id-ID"), Sesi: currentSesi, ID_Siswa: s.ID_Siswa, Nama_Siswa: s.Nama_Siswa, Kelas: s.Kelas, Status: attendanceData[s.ID_Siswa] || "H", Nama_Guru: currentUser
-  }));
-
+  if (isSubmitting) return; if (!currentClassStudents || currentClassStudents.length === 0) { alert("Data siswa kosong. Presensi tidak dikirim."); return; }
+  isSubmitting = true; const btn = $("btn-submit"); const oldText = btn?.innerText || "Kunci & Kirim Data"; if (btn) { btn.innerText = "Mengirim..."; btn.disabled = true; }
+  const payload = currentClassStudents.map((s) => ({ Tanggal: new Date().toLocaleDateString("id-ID"), Sesi: currentSesi, ID_Siswa: s.ID_Siswa, Nama_Siswa: s.Nama_Siswa, Kelas: s.Kelas, Status: attendanceData[s.ID_Siswa] || "H", Nama_Guru: currentUser }));
   if (!navigator.onLine) { finishSubmitOffline(payload); return; }
-
-  postJSON({ action: "submitAttendance", data: payload })
-    .then((data) => {
-      if (data.status === "gagal") { alert(data.pesan || "Data ditolak server."); switchScreen("screen-dashboard"); } 
-      else { alert(data.pesan || "Data sukses terkunci."); dashboardCache = {}; loadDashboardData(); }
-      isSubmitting = false; if (btn) { btn.innerText = oldText; btn.disabled = false; }
-    })
-    .catch(() => { finishSubmitOffline(payload); });
+  postJSON({ action: "submitAttendance", data: payload }).then((data) => { if (data.status === "gagal") { alert(data.pesan || "Data ditolak server."); switchScreen("screen-dashboard"); } else { alert(data.pesan || "Data sukses terkunci."); dashboardCache = {}; loadDashboardData(); } isSubmitting = false; if (btn) { btn.innerText = oldText; btn.disabled = false; } }).catch(() => { finishSubmitOffline(payload); });
 }
 
 // =====================================================
@@ -793,23 +725,15 @@ function generateLaporanYayasan(tanggalMulai, tanggalSelesai, periodeLabel) { if
 // INIT & LOCAL STORAGE
 // =====================================================
 function checkSession() {
-  const storedUser = localStorage.getItem('app_session_user');
-  const storedRole = localStorage.getItem('app_session_role');
-  
+  const storedUser = localStorage.getItem('app_session_user'); const storedRole = localStorage.getItem('app_session_role');
   if (storedUser && storedRole) {
     currentUser = storedUser; currentRole = storedRole;
     if ($("top-name")) $("top-name").innerText = currentUser; if ($("profile-name")) $("profile-name").innerText = currentUser; if ($("profile-role")) $("profile-role").innerText = currentRole === "pimpinan" ? "Pimpinan Eksekutif" : "Guru Pengajar";
     if (currentRole === "pimpinan") $("nav-pimpinan")?.classList.remove("hidden"); else $("nav-pimpinan")?.classList.add("hidden");
-    
-    renderDates(); switchMainTab("beranda"); dashboardCache = {}; loadDashboardData(); initMasterData(); 
-    
-    updateOutboxUI(); syncOutbox();
-    
-    return true;
+    renderDates(); switchMainTab("beranda"); dashboardCache = {}; loadDashboardData(); initMasterData(); updateOutboxUI(); syncOutbox(); return true;
   }
   return false;
 }
-
 window.onload = function() {
   if (!checkSession()) { history.replaceState({ screen: "screen-login" }, ""); switchScreen("screen-login"); }
   renderDates(); initSwipeToClose();
