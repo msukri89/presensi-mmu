@@ -193,7 +193,7 @@
                 </div>
             </div>
 
-            <div id="tab-layanan" class="tab-content hidden">
+            <div id="tab-layanan" class="tab-content">
                 <div class="section-title" style="margin-top: 0;">Layanan Guru</div>
                 
                 <div class="card-soft" style="padding: 0;">
@@ -228,7 +228,7 @@
                 </div>
             </div>
 
-            <div id="tab-pimpinan" class="tab-content hidden">
+            <div id="tab-pimpinan" class="tab-content">
                 <div class="section-title" style="margin-top: 0;">Ringkasan Eksekutif</div>
                 
                 <div class="card-soft" style="background: #0f172a; color: #fff; border: none;">
@@ -291,7 +291,7 @@
                 </div>
             </div>
 
-            <div id="tab-akun" class="tab-content hidden">
+            <div id="tab-akun" class="tab-content">
                 <div class="section-title" style="margin-top: 0;">Profil Akun</div>
                 <div class="card-soft" style="text-align: center; padding: 32px 20px;">
                     <div style="width: 72px; height: 72px; border-radius: 50%; background: #f1f5f9; color: #0f172a; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
@@ -317,7 +317,7 @@
 
         </div> <nav class="bottom-nav" id="main-bottom-nav">
             <div class="nav-item active" onclick="switchMainTab('beranda')" id="nav-beranda">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 <span>Beranda</span>
             </div>
             <div class="nav-item" onclick="switchMainTab('layanan')" id="nav-layanan">
@@ -552,7 +552,7 @@
     let periodeActionMode = "";
     let hijriOffset = parseInt(localStorage.getItem('hijri_offset')) || 0;
 
-    // FUNGSI NAVIGASI BAWAH
+    // FUNGSI NAVIGASI BAWAH (Sudah Dikoreksi Bebas Konflik Class 'hidden')
     function switchMainTab(tabId) {
         ['beranda', 'layanan', 'pimpinan', 'akun'].forEach(id => {
             document.getElementById('tab-' + id).classList.remove('active');
