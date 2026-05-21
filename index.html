@@ -576,7 +576,22 @@ function showCustomPrompt(msg, title = "Masukkan Data", onConfirm) {
 // KOTAK KELUAR OFFLINE
 // =====================================================
 let outboxSyncing = false;
-function saveToOutbox(payload, kelas) { let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]'); outbox.push({ id: Date.now(), kelas: kelas, sesi: currentSesi, data: payload }); localStorage.setItem('mmu_outbox', JSON.stringify(outbox)); }
+function saveToOutbox(payload, kelas) { 
+  let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]'); 
+  const hariIni = new Date().toLocaleDateString("id-ID");
+  const txId = `${hariIni}_Sesi${currentSesi}_${kelas}`;
+  const existingIndex = outbox.findIndex(item => item.txId === txId);
+
+  if (existingIndex > -1) {
+    outbox[existingIndex].data = payload;
+    outbox[existingIndex].timestamp = Date.now();
+  } else {
+    outbox.push({ 
+      id: Date.now(), txId: txId, kelas: kelas, sesi: currentSesi, data: payload, timestamp: Date.now()
+    }); 
+  }
+  localStorage.setItem('mmu_outbox', JSON.stringify(outbox)); 
+}
 function updateOutboxUI(isSyncing = false) {
   const banner = $("outbox-banner"); const title = $("outbox-title"); const desc = $("outbox-desc"); const btn = $("btn-sync-outbox"); if (!banner || !title || !desc) return;
   let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]');
@@ -586,11 +601,28 @@ function updateOutboxUI(isSyncing = false) {
     else { desc.innerText = navigator.onLine ? "Sinyal tersedia. Siap dikirim." : "Menunggu koneksi internet..."; if(btn) { btn.innerText = "Kirim"; btn.disabled = false; } }
   } else { banner.classList.add("hidden"); }
 }
-function syncOutbox() {
+async function syncOutbox() {
   if (!navigator.onLine || outboxSyncing) return;
-  let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]'); if (outbox.length === 0) { updateOutboxUI(); return; }
-  outboxSyncing = true; updateOutboxUI(true); const item = outbox[0];
-  postJSON({ action: "submitAttendance", data: item.data }).then((res) => { if(res.status !== "gagal") { outbox.shift(); localStorage.setItem('mmu_outbox', JSON.stringify(outbox)); dashboardCache = {}; outboxSyncing = false; syncOutbox(); } else { outboxSyncing = false; updateOutboxUI(); } }).catch(() => { outboxSyncing = false; updateOutboxUI(); });
+  let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]'); 
+  if (outbox.length === 0) { updateOutboxUI(); return; }
+
+  outboxSyncing = true; updateOutboxUI(true); 
+
+  for (let i = 0; i < outbox.length; i++) {
+    if (!navigator.onLine) break; 
+    const item = outbox[i];
+    try {
+      const res = await postJSON({ action: "submitAttendance", data: item.data });
+      if (res.status !== "gagal") { item.sukses = true; } else { break; }
+    } catch (e) { break; }
+  }
+
+  const sisaOutbox = outbox.filter(item => !item.sukses);
+  localStorage.setItem('mmu_outbox', JSON.stringify(sisaOutbox));
+  outboxSyncing = false; updateOutboxUI();
+
+  if (outbox.length !== sisaOutbox.length) { dashboardCache = {}; loadDashboardData(); }
+  if (sisaOutbox.length > 0 && navigator.onLine) { setTimeout(syncOutbox, 3000); }
 }
 window.addEventListener('online', syncOutbox); window.addEventListener('offline', updateOutboxUI);
 
@@ -892,7 +924,19 @@ function markStandby() {
   if (standbyBusy) return; standbyBusy = true; switchScreen("screen-loading");
   postJSON({ action: "markStandby", sesi: currentSesi, nama: currentUser }).then((data) => { if (data.status === "gagal") showCustomAlert(data.pesan || "Gagal mencatat.", "Gagal"); dashboardCache = {}; loadDashboardData(); }).catch(() => { showCustomAlert("Gagal koneksi. Sinyal mungkin terputus.", "Error"); switchScreen("screen-dashboard"); }).finally(() => { standbyBusy = false; });
 }
+function checkClassInOutbox(kelas) {
+  let outbox = JSON.parse(localStorage.getItem('mmu_outbox') || '[]');
+  const hariIni = new Date().toLocaleDateString("id-ID");
+  const txId = `${hariIni}_Sesi${currentSesi}_${kelas}`;
+  return outbox.some(item => item.txId === txId);
+}
+
 function openClass(c) {
+  if (checkClassInOutbox(c)) {
+    showCustomAlert(`Presensi kelas ${c} sedang dalam antrean pengiriman offline.\n\nTunggu hingga internet menyala dan data terkirim sebelum Anda bisa mengeditnya kembali.`, "Terkunci Offline");
+    return;
+  }
+
   closeInvalDrawer(); activeClassTitle = c; switchScreen("screen-attendance"); const div = $("student-list"); if (!div) return;
   if (allStudents.length > 0) { renderStudentList(c, div); } else {
     div.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#0f172a; font-weight:600; font-size:14px;">Menyiapkan data kelas dari server, mohon tunggu sebentar...</div>`;
