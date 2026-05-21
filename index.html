@@ -78,14 +78,11 @@
     .bottom-drawer-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
     .bottom-drawer-overlay.show { opacity: 1; pointer-events: auto; }
     
-    /* Pengaturan z-index standar */
     #session-drawer-overlay, #inval-drawer-overlay, #tukar-drawer-overlay, #izin-drawer-overlay, #approval-drawer-overlay, #izin-approval-drawer-overlay, #audit-drawer-overlay, #audit-bulanan-drawer-overlay, #periode-drawer-overlay { z-index: 1200; }
-    
-    /* Z-INDEX TERTINGGI UNTUK LACI PILIHAN UNIVERSAL */
     #generic-select-drawer { z-index: 1500 !important; }
     
     .bottom-drawer { background: #fff; width: 100%; max-width: 480px; max-height: 85vh; border-radius: 32px 32px 0 0; padding: 16px 24px 32px 24px; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); overflow-y: auto; position: relative; transform: translateY(100%); transition: transform 0.45s cubic-bezier(0.32, 1.2, 0.6, 1); overscroll-behavior-y: contain; }
-    body.drawer-open { overflow: hidden !important; touch-action: none; overscroll-behavior: none; }
+    body.drawer-open, body.modal-open { overflow: hidden !important; touch-action: none; overscroll-behavior: none; }
     .bottom-drawer-overlay.show .bottom-drawer { transform: translateY(0); }
     .drawer-handle { width: 40px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: 0 auto 24px auto; }
     .drawer-header { margin-bottom: 24px; padding-right: 40px; position: relative; }
@@ -112,8 +109,13 @@
     .approval-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; font-family: inherit; transition: 0.2s; }
     .approval-btn.approve { background: #064e3b; color: #fff; }
     .approval-btn.cancel { background: #fee2e2; color: #b91c1c; }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); z-index: 1300; display: flex; align-items: center; justify-content: center; padding: 24px; }
-    .modal-box { background: #fff; border-radius: 24px; padding: 28px 24px; width: 100%; max-width: 340px; box-shadow: 0 20px 60px rgba(15,23,42,0.18); text-align: center; }
+    
+    /* GAYA MODAL KHUSUS (PENGGANTI ALERT/CONFIRM/PROMPT) */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+    .modal-overlay.show { opacity: 1; pointer-events: auto; }
+    .modal-box { background: #fff; border-radius: 24px; padding: 28px 24px; width: 100%; max-width: 340px; box-shadow: 0 20px 60px rgba(15,23,42,0.18); text-align: center; transform: scale(0.95); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .modal-overlay.show .modal-box { transform: scale(1); }
+    
     .adj-btn { padding: 10px 12px; border: 1.5px solid #e2e8f0; background: #fff; color: #475569; border-radius: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
     .adj-btn.active { background: #064e3b; color: #fff; border-color: #064e3b; }
     #screen-login { background: #fff; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 32px; }
@@ -311,6 +313,18 @@
   </div>
 </div>
 
+<div id="custom-dialog-overlay" class="modal-overlay hidden" style="z-index: 9999;">
+  <div class="modal-box">
+    <div id="dialog-title" style="font-weight:800;font-size:18px;color:#0f172a;margin-bottom:12px;">Informasi</div>
+    <div id="dialog-message" style="font-size:14px;color:#475569;margin-bottom:20px;line-height:1.5;"></div>
+    <input type="text" id="dialog-input" class="input-field hidden" style="margin-bottom:20px; padding:12px;" placeholder="Ketik di sini...">
+    <div style="display:flex;gap:12px;">
+      <button id="dialog-btn-cancel" class="btn btn-outline hidden" style="margin-bottom:0; flex:1;">Batal</button>
+      <button id="dialog-btn-ok" class="btn" style="margin-bottom:0; flex:1;">OK</button>
+    </div>
+  </div>
+</div>
+
 <div id="session-drawer-overlay" class="bottom-drawer-overlay hidden" onclick="closeSessionDrawer()">
   <div class="bottom-drawer" onclick="event.stopPropagation()">
     <button class="drawer-close" onclick="closeSessionDrawer()">×</button>
@@ -466,6 +480,50 @@ let isSubmitting = false; let standbyBusy = false; let tukarBusy = false; let ap
 let hijriOffset = parseInt(localStorage.getItem("hijri_offset"), 10) || 0;
 
 // =====================================================
+// MANAJEMEN MODAL CUSTOM (PENGGANTI ALERT/CONFIRM/PROMPT)
+// =====================================================
+function closeCustomDialog() {
+  const ov = $("custom-dialog-overlay"); if(ov) ov.classList.remove("show");
+  setTimeout(() => { 
+    if(ov) ov.classList.add("hidden"); 
+    if($("dialog-input")) { $("dialog-input").classList.add("hidden"); $("dialog-input").value = ""; }
+    if($("dialog-btn-cancel")) $("dialog-btn-cancel").classList.add("hidden");
+    const act = document.querySelectorAll('.modal-overlay.show'); if(act.length === 0) document.body.classList.remove("modal-open");
+  }, 200);
+}
+
+function showCustomAlert(msg, title = "Informasi") {
+  document.body.classList.add("modal-open");
+  $("dialog-title").innerText = title; $("dialog-message").innerHTML = String(msg).replace(/\n/g, "<br>");
+  $("dialog-input").classList.add("hidden"); $("dialog-btn-cancel").classList.add("hidden");
+  $("dialog-btn-ok").onclick = closeCustomDialog;
+  $("custom-dialog-overlay").classList.remove("hidden");
+  requestAnimationFrame(() => $("custom-dialog-overlay").classList.add("show"));
+}
+
+function showCustomConfirm(msg, title = "Konfirmasi", onConfirm) {
+  document.body.classList.add("modal-open");
+  $("dialog-title").innerText = title; $("dialog-message").innerHTML = String(msg).replace(/\n/g, "<br>");
+  $("dialog-input").classList.add("hidden"); $("dialog-btn-cancel").classList.remove("hidden");
+  $("dialog-btn-cancel").onclick = closeCustomDialog;
+  $("dialog-btn-ok").onclick = () => { closeCustomDialog(); if(onConfirm) onConfirm(); };
+  $("custom-dialog-overlay").classList.remove("hidden");
+  requestAnimationFrame(() => $("custom-dialog-overlay").classList.add("show"));
+}
+
+function showCustomPrompt(msg, title = "Masukkan Data", onConfirm) {
+  document.body.classList.add("modal-open");
+  $("dialog-title").innerText = title; $("dialog-message").innerHTML = String(msg).replace(/\n/g, "<br>");
+  $("dialog-input").classList.remove("hidden"); $("dialog-btn-cancel").classList.remove("hidden");
+  setTimeout(() => { $("dialog-input").focus(); }, 100);
+  $("dialog-btn-cancel").onclick = closeCustomDialog;
+  $("dialog-btn-ok").onclick = () => { const val = $("dialog-input").value; closeCustomDialog(); if(onConfirm) onConfirm(val); };
+  $("custom-dialog-overlay").classList.remove("hidden");
+  requestAnimationFrame(() => $("custom-dialog-overlay").classList.add("show"));
+}
+
+
+// =====================================================
 // KOTAK KELUAR OFFLINE
 // =====================================================
 let outboxSyncing = false;
@@ -487,6 +545,7 @@ function syncOutbox() {
 }
 window.addEventListener('online', syncOutbox); window.addEventListener('offline', updateOutboxUI);
 
+
 // =====================================================
 // UTILS
 // =====================================================
@@ -506,6 +565,7 @@ function initMasterData() {
   fetch(API_URL).then(r => r.json()).then(stData => { if (Array.isArray(stData) && stData.length > 0) { allStudents = stData; localStorage.setItem('mmu_students_cache', JSON.stringify(stData)); } }).catch(() => {});
 }
 
+
 // =====================================================
 // DRAWER / MODAL
 // =====================================================
@@ -516,7 +576,6 @@ function animateOpen(overlay) {
   requestAnimationFrame(() => overlay.classList.add("show")); 
 }
 
-// PERBAIKAN: Logika tutup laci cerdas agar tidak melepas scroll body jika laci lain masih terbuka
 function animateClose(overlay) { 
   if (!overlay) return; 
   overlay.classList.remove("show"); 
@@ -525,11 +584,8 @@ function animateClose(overlay) {
   
   setTimeout(() => { 
     overlay.classList.add("hidden"); 
-    // Cek apakah ada laci lain yang masih terbuka (show)
     const activeDrawers = document.querySelectorAll('.bottom-drawer-overlay.show');
-    if (activeDrawers.length === 0) {
-       document.body.classList.remove("drawer-open"); 
-    }
+    if (activeDrawers.length === 0) { document.body.classList.remove("drawer-open"); }
   }, 300); 
 }
 
@@ -544,7 +600,6 @@ function initSwipeToClose() {
   });
 }
 
-// FUNGSI LACI UNIVERSAL PENGGANTI DROPDOWN
 function openCustomSelect(title, options, callback) {
   $("generic-select-title").innerText = title; const list = $("generic-select-list"); list.innerHTML = "";
   options.forEach(opt => {
@@ -557,14 +612,12 @@ function openCustomSelect(title, options, callback) {
 }
 function closeGenericSelect() { animateClose($("generic-select-drawer")); }
 
-// KONEKSI LACI UNIVERSAL KE INPUT
 function openSelectTukarSesi() { openCustomSelect("Pilih Sesi", [{value:"1",text:"Sesi 1"},{value:"2",text:"Sesi 2"},{value:"3",text:"Sesi 3"}], (v, t) => { $("tukar-sesi").value = v; $("lbl-tukar-sesi").innerText = t; loadTukarOptions(); }); }
 function openSelectTukarKelas() { if (latestTukarOptions.length === 0) { setTukarStatus("Tidak ada jadwal untuk dipilih.", "error"); return; } const opts = latestTukarOptions.map((j, idx) => ({ value: String(idx), text: `${j.kelas} - ${j.mapel}` })); openCustomSelect("Pilih Kelas", opts, (v, t) => { $("tukar-kelas").value = v; $("lbl-tukar-kelas").innerText = t; selectTukarClass(); }); }
 function openSelectTukarGuru() { if (!selectedTukarSchedule) return; const candidates = selectedTukarSchedule.guruPengisiOptions || []; if (candidates.length === 0) return; const opts = candidates.map(nama => ({ value: nama, text: nama })); openCustomSelect("Pilih Guru Pengganti", opts, (v, t) => { $("tukar-guru-pengisi").value = v; $("lbl-tukar-guru").innerText = t; }); }
 function openSelectIzinSesi() { openCustomSelect("Pilih Sesi", [{value:"Semua",text:"Semua Sesi"},{value:"1",text:"Sesi 1"},{value:"2",text:"Sesi 2"},{value:"3",text:"Sesi 3"}], (v, t) => { $("izin-sesi").value = v; $("lbl-izin-sesi").innerText = t; }); }
 function openSelectIzinJenis() { openCustomSelect("Jenis Pengajuan", [{value:"Sakit",text:"Sakit"},{value:"Izin",text:"Izin"}], (v, t) => { $("izin-jenis").value = v; $("lbl-izin-jenis").innerText = t; }); }
 
-// LACI SESI DYNAMIC ISLAND
 function openSessionDrawer() {
   const ov = $("session-drawer-overlay"); if (!ov) return;
   [1, 2, 3].forEach(s => { const el = $("opt-sesi-" + s); if (el) { if (s === currentSesi) { el.style.borderColor = "#064e3b"; el.style.background = "#f0fdf4"; } else { el.style.borderColor = "transparent"; el.style.background = "#fff"; } } });
@@ -573,9 +626,9 @@ function openSessionDrawer() {
 function closeSessionDrawer() { animateClose($("session-drawer-overlay")); }
 function selectSession(val) { if (currentSesi === val) { closeSessionDrawer(); return; } currentSesi = val; if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi; closeSessionDrawer(); loadDashboardData(); }
 
-function openAdjustmentModal() { const modal = $("adjustment-modal"); if (!modal) return; modal.classList.remove("hidden"); ["adj-min1", "adj-0", "adj-plus1"].forEach((id) => $(id)?.classList.remove("active")); if (hijriOffset === -1) $("adj-min1")?.classList.add("active"); else if (hijriOffset === 1) $("adj-plus1")?.classList.add("active"); else $("adj-0")?.classList.add("active"); }
+function openAdjustmentModal() { const modal = $("adjustment-modal"); if (!modal) return; document.body.classList.add("modal-open"); modal.classList.remove("hidden"); ["adj-min1", "adj-0", "adj-plus1"].forEach((id) => $(id)?.classList.remove("active")); if (hijriOffset === -1) $("adj-min1")?.classList.add("active"); else if (hijriOffset === 1) $("adj-plus1")?.classList.add("active"); else $("adj-0")?.classList.add("active"); requestAnimationFrame(() => modal.classList.add("show")); }
 function setHijriAdjustment(val) { hijriOffset = val; localStorage.setItem("hijri_offset", String(val)); openAdjustmentModal(); renderDates(); }
-function closeAdjustmentModal() { $("adjustment-modal")?.classList.add("hidden"); }
+function closeAdjustmentModal() { const modal = $("adjustment-modal"); if(modal) { modal.classList.remove("show"); setTimeout(() => { modal.classList.add("hidden"); document.body.classList.remove("modal-open"); }, 200); } }
 
 function openInvalDrawer() {
   const ov = $("inval-drawer-overlay"); const list = $("inval-drawer-list"); if (!ov || !list) return; list.innerHTML = "";
@@ -592,7 +645,6 @@ function closeAuditRekapDrawer() { animateClose($("audit-drawer-overlay")); }
 function closeAuditBulananDrawer() { animateClose($("audit-bulanan-drawer-overlay")); }
 function closePeriodeDrawer() { animateClose($("periode-drawer-overlay")); }
 
-// RESET UI SAAT MEMBUKA LACI TUKAR/IZIN
 function openTukarDrawer() { 
   const ov = $("tukar-drawer-overlay"); if (!ov) return; const tgl = $("tukar-tanggal"); 
   if (tgl && !tgl.value) { tgl.value = todayIsoDate(); if(tgl._flatpickr) tgl._flatpickr.setDate(todayIsoDate()); } 
@@ -617,7 +669,7 @@ function openPeriodeDrawer(mode) {
   if (mode === "audit") { if (title) title.innerText = "Audit Rekap Periode"; if (sub) sub.innerText = "Pilih periode yang ingin diaudit."; if (btn) btn.innerText = "Lihat Audit"; } else if (mode === "laporan") { if (title) title.innerText = "Generate Data Laporan"; if (sub) sub.innerText = "Pilih periode untuk data laporan yayasan."; if (btn) btn.innerText = "Generate Data"; } else { if (title) title.innerText = "Generate Rekap Periode"; if (sub) sub.innerText = "Pilih periode yang akan dihitung."; if (btn) btn.innerText = "Generate Rekap"; }
   animateOpen(ov);
 }
-document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; closeGenericSelect(); closeSessionDrawer(); closeInvalDrawer(); closeTukarDrawer(); closeIzinDrawer(); closeTukarApprovalDrawer(); closeIzinApprovalDrawer(); closePeriodeDrawer(); closeAuditRekapDrawer(); closeAuditBulananDrawer(); });
+document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; closeCustomDialog(); closeAdjustmentModal(); closeGenericSelect(); closeSessionDrawer(); closeInvalDrawer(); closeTukarDrawer(); closeIzinDrawer(); closeTukarApprovalDrawer(); closeIzinApprovalDrawer(); closePeriodeDrawer(); closeAuditRekapDrawer(); closeAuditBulananDrawer(); });
 
 // =====================================================
 // NAVIGASI
@@ -681,7 +733,7 @@ function loadDashboardData() {
   if (!currentUser) return; if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi;
   if (dashboardCache[currentSesi]) { switchScreen("screen-dashboard"); renderDashboardUI(dashboardCache[currentSesi]); postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { if (d.status !== "gagal") { dashboardCache[currentSesi] = d; renderDashboardUI(d); } }).catch(() => {}); return; }
   switchScreen("screen-loading"); if ($("loading-text")) $("loading-text").innerText = `Menyiapkan data sesi ${currentSesi}...`;
-  postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { if (d.status === "gagal") throw new Error(d.pesan || "Gagal memuat dashboard"); dashboardCache[currentSesi] = d; switchScreen("screen-dashboard"); renderDashboardUI(d); prefetchOtherSessions(); }).catch((e) => { alert(e.message || "Gagal memuat dashboard."); switchScreen("screen-dashboard"); });
+  postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { if (d.status === "gagal") throw new Error(d.pesan || "Gagal memuat dashboard"); dashboardCache[currentSesi] = d; switchScreen("screen-dashboard"); renderDashboardUI(d); prefetchOtherSessions(); }).catch((e) => { showCustomAlert(e.message || "Gagal memuat dashboard.", "Error"); switchScreen("screen-dashboard"); });
 }
 
 // =====================================================
@@ -713,35 +765,46 @@ function submitTukarTugas() {
   if (tukarBusy) return; const tanggal = $("tukar-tanggal")?.value || ""; const sesi = $("tukar-sesi")?.value || ""; const guruPengisi = $("tukar-guru-pengisi")?.value || ""; const keterangan = $("tukar-keterangan")?.value.trim() || "";
   if (!selectedTukarSchedule || !guruPengisi) { setTukarStatus("Lengkapi kelas dan guru pengganti.", "error"); return; }
   tukarBusy = true; const btn = $("btn-submit-tukar"); const oldText = btn?.innerText || "Kirim Pengajuan"; if (btn) { btn.disabled = true; btn.innerText = "Mengirim..."; }
-  postJSON({ action: "submitTukarTugas", nama: currentUser, tanggal, sesi, kelas: selectedTukarSchedule.kelas, guruPengisi, keterangan }).then((data) => { if (data.status === "gagal") throw new Error(data.pesan || "Pengajuan gagal"); alert(data.pesan || "Pengajuan berhasil dikirim."); closeTukarDrawer(); }).catch((e) => setTukarStatus(e.message || "Gagal koneksi.", "error")).finally(() => { tukarBusy = false; if (btn) { btn.disabled = false; btn.innerText = oldText; } });
+  postJSON({ action: "submitTukarTugas", nama: currentUser, tanggal, sesi, kelas: selectedTukarSchedule.kelas, guruPengisi, keterangan }).then((data) => { if (data.status === "gagal") throw new Error(data.pesan || "Pengajuan gagal"); showCustomAlert(data.pesan || "Pengajuan berhasil dikirim.", "Sukses"); closeTukarDrawer(); }).catch((e) => setTukarStatus(e.message || "Gagal koneksi.", "error")).finally(() => { tukarBusy = false; if (btn) { btn.disabled = false; btn.innerText = oldText; } });
 }
 function renderTukarApprovalList() {
   const list = $("approval-drawer-list"); if (!list) return; list.innerHTML = ""; if (!latestTukarRequests || latestTukarRequests.length === 0) { list.innerHTML = '<div class="drawer-empty">Tidak ada antrean.</div>'; return; }
   latestTukarRequests.forEach((req) => { const card = document.createElement("div"); card.className = "card-soft"; card.style.border = "1px solid #bfdbfe"; card.style.background = "#eff6ff"; card.innerHTML = `<div style="font-weight:800; font-size:15px; color:#1d4ed8; margin-bottom:6px;">${escapeHTML(req.idTukar)} — ${escapeHTML(req.kelas)}</div><div style="font-size:13px; color:#1e40af;">${escapeHTML(req.hari)}, ${escapeHTML(req.tanggal)} • Sesi ${escapeHTML(req.sesi)} • ${escapeHTML(req.mapel)}</div><div style="font-size:13px; color:#1e3a8a; margin-top:12px;">Asli: <b>${escapeHTML(req.guruJadwalAsli)}</b><br>Pengisi: <b>${escapeHTML(req.guruPengisi)}</b></div><div style="margin-top:8px; font-size:12px; color:#3b82f6;">Ket: ${escapeHTML(req.keterangan) || "-"}</div><div class="approval-actions"><button class="approval-btn approve" onclick="decideTukar('${escapeHTML(req.idTukar)}','Disetujui')">Setujui</button><button class="approval-btn cancel" onclick="decideTukar('${escapeHTML(req.idTukar)}','Batal')">Tolak</button></div>`; list.appendChild(card); });
 }
 function loadTukarApprovals(renderAfter = false) { if (currentRole !== "pimpinan") return; postJSON({ action: "listTukarPengajuan", nama: currentUser, statusFilter: "Diajukan" }).then((data) => { latestTukarRequests = data.status === "gagal" ? [] : (Array.isArray(data.requests) ? data.requests : []); if ($("approval-count")) $("approval-count").innerText = latestTukarRequests.length; if (renderAfter) renderTukarApprovalList(); }).catch(() => { latestTukarRequests = []; if ($("approval-count")) $("approval-count").innerText = "0"; if (renderAfter) renderTukarApprovalList(); }); }
-function decideTukar(idTukar, newStatus) { if (approvalBusy) return; const catatan = prompt(newStatus === "Disetujui" ? "Catatan persetujuan (boleh kosong):" : "Alasan penolakan:", ""); if (catatan === null) return; approvalBusy = true; postJSON({ action: "updateTukarStatus", nama: currentUser, idTukar, newStatus, catatan }).then((data) => { alert(data.pesan || "Berhasil."); return loadTukarApprovals(true); }).catch(() => alert("Gagal koneksi.")).finally(() => { approvalBusy = false; }); }
+function decideTukar(idTukar, newStatus) { 
+  if (approvalBusy) return; 
+  showCustomPrompt(newStatus === "Disetujui" ? "Catatan persetujuan (boleh kosong):" : "Alasan penolakan:", "Keterangan Pimpinan", (catatan) => {
+    approvalBusy = true; 
+    postJSON({ action: "updateTukarStatus", nama: currentUser, idTukar, newStatus, catatan }).then((data) => { showCustomAlert(data.pesan || "Berhasil.", "Sukses"); return loadTukarApprovals(true); }).catch(() => showCustomAlert("Gagal koneksi.", "Error")).finally(() => { approvalBusy = false; }); 
+  });
+}
 
 function setIzinStatus(msg, type) { const el = $("izin-status"); if (!el) return; el.className = "tukar-status"; if (type) el.classList.add(type); el.innerText = msg || ""; }
 function submitIzinGuru() {
   if (izinBusy) return; const tanggalMulai = $("izin-tanggal-mulai")?.value || ""; const tanggalSelesai = $("izin-tanggal-selesai")?.value || ""; const sesi = $("izin-sesi")?.value || "Semua"; const jenis = $("izin-jenis")?.value || "Sakit"; const keterangan = $("izin-keterangan")?.value || "";
   if (!tanggalMulai || !tanggalSelesai) { setIzinStatus("Tanggal wajib dipilih.", "error"); return; } if (tanggalMulai > tanggalSelesai) { setIzinStatus("Tanggal mulai tidak boleh lebih besar dari tanggal selesai.", "error"); return; }
   izinBusy = true; const btn = $("btn-submit-izin"); const oldText = btn?.innerText || "Kirim Pengajuan"; if (btn) { btn.disabled = true; btn.innerText = "Mengirim..."; }
-  postJSON({ action: "submitIzinGuru", nama: currentUser, tanggalMulai, tanggalSelesai, sesi, jenis, keterangan }).then((data) => { if (data.status !== "sukses") throw new Error(data.pesan || "Pengajuan gagal"); alert(data.pesan || "Pengajuan berhasil dikirim."); closeIzinDrawer(); }).catch((e) => setIzinStatus(e.message || "Gagal koneksi.", "error")).finally(() => { izinBusy = false; if (btn) { btn.disabled = false; btn.innerText = oldText; } });
+  postJSON({ action: "submitIzinGuru", nama: currentUser, tanggalMulai, tanggalSelesai, sesi, jenis, keterangan }).then((data) => { if (data.status !== "sukses") throw new Error(data.pesan || "Pengajuan gagal"); showCustomAlert(data.pesan || "Pengajuan berhasil dikirim.", "Sukses"); closeIzinDrawer(); }).catch((e) => setIzinStatus(e.message || "Gagal koneksi.", "error")).finally(() => { izinBusy = false; if (btn) { btn.disabled = false; btn.innerText = oldText; } });
 }
 function renderIzinApprovalList() {
   const list = $("izin-approval-drawer-list"); if (!list) return; list.innerHTML = ""; if (!latestIzinRequests || latestIzinRequests.length === 0) { list.innerHTML = '<div class="drawer-empty">Tidak ada antrean.</div>'; return; }
   latestIzinRequests.forEach((req) => { const periode = safeText(req.tanggalMulai) === safeText(req.tanggalSelesai) ? safeText(req.tanggalMulai) : `${safeText(req.tanggalMulai)} s.d. ${safeText(req.tanggalSelesai)}`; const card = document.createElement("div"); card.className = "card-soft"; card.style.border = "1px solid #fde68a"; card.style.background = "#fffbeb"; card.innerHTML = `<div style="font-weight:800; font-size:15px; color:#d97706; margin-bottom:6px;">${escapeHTML(req.idIzin)} — ${escapeHTML(req.jenis)}</div><div style="font-size:13px; color:#b45309;">${escapeHTML(periode)} • Sesi ${escapeHTML(req.sesi)}</div><div style="font-size:13px; color:#92400e; margin-top:12px;">Guru: <b>${escapeHTML(req.namaGuru)}</b></div><div style="margin-top:8px; font-size:12px; color:#d97706;">Ket: ${escapeHTML(req.keterangan) || "-"}</div><div class="approval-actions"><button class="approval-btn approve" onclick="decideIzin('${escapeHTML(req.idIzin)}','Disetujui')">Setujui</button><button class="approval-btn cancel" onclick="decideIzin('${escapeHTML(req.idIzin)}','Batal')">Tolak</button></div>`; list.appendChild(card); });
 }
 function loadIzinApprovals(renderAfter = false) { if (currentRole !== "pimpinan") return; postJSON({ action: "listIzinGuruPengajuan", nama: currentUser, statusFilter: "Diajukan" }).then((data) => { latestIzinRequests = data.status === "gagal" ? [] : (Array.isArray(data.requests) ? data.requests : []); if ($("izin-approval-count")) $("izin-approval-count").innerText = latestIzinRequests.length; if (renderAfter) renderIzinApprovalList(); }).catch(() => { latestIzinRequests = []; if ($("izin-approval-count")) $("izin-approval-count").innerText = "0"; if (renderAfter) renderIzinApprovalList(); }); }
-function decideIzin(idIzin, newStatus) { if (izinApprovalBusy) return; const catatan = prompt(newStatus === "Disetujui" ? "Catatan persetujuan (boleh kosong):" : "Alasan penolakan:", ""); if (catatan === null) return; izinApprovalBusy = true; postJSON({ action: "updateIzinGuruStatus", nama: currentUser, idIzin, newStatus, catatan }).then((data) => { alert(data.pesan || "Berhasil."); return loadIzinApprovals(true); }).catch(() => alert("Gagal koneksi.")).finally(() => { izinApprovalBusy = false; }); }
+function decideIzin(idIzin, newStatus) { 
+  if (izinApprovalBusy) return; 
+  showCustomPrompt(newStatus === "Disetujui" ? "Catatan persetujuan (boleh kosong):" : "Alasan penolakan:", "Keterangan Pimpinan", (catatan) => {
+    izinApprovalBusy = true; postJSON({ action: "updateIzinGuruStatus", nama: currentUser, idIzin, newStatus, catatan }).then((data) => { showCustomAlert(data.pesan || "Berhasil.", "Sukses"); return loadIzinApprovals(true); }).catch(() => showCustomAlert("Gagal koneksi.", "Error")).finally(() => { izinApprovalBusy = false; }); 
+  });
+}
 
 // =====================================================
 // PRESENSI KELAS DENGAN PROTEKSI OFFLINE
 // =====================================================
 function markStandby() {
   if (standbyBusy) return; standbyBusy = true; switchScreen("screen-loading");
-  postJSON({ action: "markStandby", sesi: currentSesi, nama: currentUser }).then((data) => { if (data.status === "gagal") alert(data.pesan || "Gagal mencatat."); dashboardCache = {}; loadDashboardData(); }).catch(() => { alert("Gagal koneksi. Sinyal mungkin terputus."); switchScreen("screen-dashboard"); }).finally(() => { standbyBusy = false; });
+  postJSON({ action: "markStandby", sesi: currentSesi, nama: currentUser }).then((data) => { if (data.status === "gagal") showCustomAlert(data.pesan || "Gagal mencatat.", "Gagal"); dashboardCache = {}; loadDashboardData(); }).catch(() => { showCustomAlert("Gagal koneksi. Sinyal mungkin terputus.", "Error"); switchScreen("screen-dashboard"); }).finally(() => { standbyBusy = false; });
 }
 function openClass(c) {
   closeInvalDrawer(); activeClassTitle = c; switchScreen("screen-attendance"); const div = $("student-list"); if (!div) return;
@@ -760,33 +823,33 @@ function renderStudentList(c, div) {
   });
 }
 function setStatus(id, st, el) { attendanceData[id] = st; const btns = el.parentElement.querySelectorAll(".status-btn"); btns.forEach((b) => { b.className = "status-btn"; }); el.classList.add("active-" + st); const waBtn = $("wa-" + id); if (waBtn) waBtn.style.display = st === "A" ? "flex" : "none"; }
-function sendWA(no, nama, kls) { if (!no || no === "undefined" || no.toString().trim() === "") { alert(`Nomor WA Wali untuk Ananda ${nama} belum ada!`); return; } let formatNo = no.toString().replace(/[^0-9]/g, ""); if (formatNo.startsWith("0")) formatNo = "62" + formatNo.substring(1); const msg = `Assalamu'alaikum Warahmatullah, Bapak/Ibu wali murid dari Ananda *${nama}*. Kami menginformasikan bahwa pada *Sesi ${currentSesi}* hari ini, Ananda terdata *Belum Hadir (Alpa)* di Kelas *${kls}*. Mohon konfirmasi, terima kasih.`; window.open(`https://wa.me/${formatNo}?text=${encodeURIComponent(msg)}`, "_blank"); }
+function sendWA(no, nama, kls) { if (!no || no === "undefined" || no.toString().trim() === "") { showCustomAlert(`Nomor WA Wali untuk Ananda ${nama} belum ada!`, "Peringatan"); return; } let formatNo = no.toString().replace(/[^0-9]/g, ""); if (formatNo.startsWith("0")) formatNo = "62" + formatNo.substring(1); const msg = `Assalamu'alaikum Warahmatullah, Bapak/Ibu wali murid dari Ananda *${nama}*. Kami menginformasikan bahwa pada *Sesi ${currentSesi}* hari ini, Ananda terdata *Belum Hadir (Alpa)* di Kelas *${kls}*. Mohon konfirmasi, terima kasih.`; window.open(`https://wa.me/${formatNo}?text=${encodeURIComponent(msg)}`, "_blank"); }
 function showPreview() {
-  if (!currentClassStudents || currentClassStudents.length === 0) { alert("Data siswa belum tersedia."); return; }
+  if (!currentClassStudents || currentClassStudents.length === 0) { showCustomAlert("Data siswa belum tersedia.", "Error"); return; }
   switchScreen("screen-preview"); if ($("prev-sesi")) $("prev-sesi").innerText = currentSesi; let h = 0, s = 0, i = 0, a = 0; currentClassStudents.forEach((st) => { const v = attendanceData[st.ID_Siswa]; if (v === "H") h++; else if (v === "S") s++; else if (v === "I") i++; else a++; });
   if ($("preview-summary")) { $("preview-summary").innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;"><span>Hadir</span> <span style="font-weight:800; color:#064e3b;">${h} Siswa</span></div><div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; color:#d97706;"><span>Sakit/Izin</span> <span style="font-weight:800;">${s + i} Siswa</span></div><div style="display:flex; justify-content:space-between; color:#b91c1c;"><span>Alpa</span> <span style="font-weight:800;">${a} Siswa</span></div>`; }
 }
-function finishSubmitOffline(payload) { saveToOutbox(payload, activeClassTitle); alert(`Sinyal lemah! Tapi tenang, data presensi kelas ${activeClassTitle} aman tersimpan di HP Anda.\nAplikasi akan mengirimkannya otomatis saat sinyal kembali.`); updateOutboxUI(); dashboardCache = {}; loadDashboardData(); isSubmitting = false; const btn = $("btn-submit"); if (btn) { btn.innerText = "Kunci & Kirim Data"; btn.disabled = false; } }
+function finishSubmitOffline(payload) { saveToOutbox(payload, activeClassTitle); showCustomAlert(`Sinyal lemah!\nTapi tenang, data presensi kelas ${activeClassTitle} aman tersimpan di HP Anda. Aplikasi akan mengirimkannya otomatis saat sinyal kembali.`, "Mode Offline"); updateOutboxUI(); dashboardCache = {}; loadDashboardData(); isSubmitting = false; const btn = $("btn-submit"); if (btn) { btn.innerText = "Kunci & Kirim Data"; btn.disabled = false; } }
 function submitData() {
-  if (isSubmitting) return; if (!currentClassStudents || currentClassStudents.length === 0) { alert("Data siswa kosong. Presensi tidak dikirim."); return; }
+  if (isSubmitting) return; if (!currentClassStudents || currentClassStudents.length === 0) { showCustomAlert("Data siswa kosong. Presensi tidak dikirim.", "Error"); return; }
   isSubmitting = true; const btn = $("btn-submit"); const oldText = btn?.innerText || "Kunci & Kirim Data"; if (btn) { btn.innerText = "Mengirim..."; btn.disabled = true; }
   const payload = currentClassStudents.map((s) => ({ Tanggal: new Date().toLocaleDateString("id-ID"), Sesi: currentSesi, ID_Siswa: s.ID_Siswa, Nama_Siswa: s.Nama_Siswa, Kelas: s.Kelas, Status: attendanceData[s.ID_Siswa] || "H", Nama_Guru: currentUser }));
   if (!navigator.onLine) { finishSubmitOffline(payload); return; }
-  postJSON({ action: "submitAttendance", data: payload }).then((data) => { if (data.status === "gagal") { alert(data.pesan || "Data ditolak server."); switchScreen("screen-dashboard"); } else { alert(data.pesan || "Data sukses terkunci."); dashboardCache = {}; loadDashboardData(); } isSubmitting = false; if (btn) { btn.innerText = oldText; btn.disabled = false; } }).catch(() => { finishSubmitOffline(payload); });
+  postJSON({ action: "submitAttendance", data: payload }).then((data) => { if (data.status === "gagal") { showCustomAlert(data.pesan || "Data ditolak server.", "Gagal"); switchScreen("screen-dashboard"); } else { showCustomAlert(data.pesan || "Data sukses terkunci.", "Sukses"); dashboardCache = {}; loadDashboardData(); } isSubmitting = false; if (btn) { btn.innerText = oldText; btn.disabled = false; } }).catch(() => { finishSubmitOffline(payload); });
 }
 
 // =====================================================
 // REKAP / AUDIT / LAPORAN
 // =====================================================
 function renderGenericList(container, data) { if (!container) return; const rows = data.rows || data.items || data.data || []; if (Array.isArray(rows) && rows.length > 0) { container.innerHTML = rows.map((r) => `<div class="card-soft"><pre style="white-space:pre-wrap; font-family:inherit; font-size:12px; color:#334155;">${escapeHTML(JSON.stringify(r, null, 2))}</pre></div>`).join(""); return; } container.innerHTML = `<div class="drawer-empty">${escapeHTML(data.pesan || "Tidak ada data detail.")}</div>`; }
-function generateRekapGuruSesi() { if (!confirm(`Generate Rekap hari ini, sesi ${currentSesi}?`)) return; postJSON({ action: "generateRekapGuruSesi", nama: currentUser, sesi: currentSesi }).then((data) => alert(data.pesan || "Berhasil.")).catch(() => alert("Gagal koneksi.")); }
-function generateRekapGuruHarian() { if (!confirm("Generate Rekap Harian untuk Sesi 1-3?")) return; postJSON({ action: "generateRekapGuruHarian", nama: currentUser }).then((data) => alert(data.pesan || "Berhasil.")).catch(() => alert("Gagal koneksi.")); }
+function generateRekapGuruSesi() { showCustomConfirm(`Generate Rekap hari ini, sesi ${currentSesi}?`, "Generate Sesi", () => { postJSON({ action: "generateRekapGuruSesi", nama: currentUser, sesi: currentSesi }).then((data) => showCustomAlert(data.pesan || "Berhasil.", "Sukses")).catch(() => showCustomAlert("Gagal koneksi.", "Error")); }); }
+function generateRekapGuruHarian() { showCustomConfirm("Generate Rekap Harian untuk Sesi 1-3?", "Generate Harian", () => { postJSON({ action: "generateRekapGuruHarian", nama: currentUser }).then((data) => showCustomAlert(data.pesan || "Berhasil.", "Sukses")).catch(() => showCustomAlert("Gagal koneksi.", "Error")); }); }
 function openAuditRekapDrawer() { const ov = $("audit-drawer-overlay"); const list = $("audit-drawer-list"); if (list) list.innerHTML = '<div class="drawer-empty">Memuat audit harian...</div>'; animateOpen(ov); postJSON({ action: "auditRekapGuruHarian", nama: currentUser }).then((data) => { if ($("audit-drawer-subtitle")) $("audit-drawer-subtitle").innerText = data.periode || "Audit hari ini"; if (list) { const total = data.totalRows ?? data.total ?? 0; let html = `<div class="card-soft"><div style="font-weight:800; margin-bottom:8px;">Total Baris: ${escapeHTML(total)}</div>`; if (data.summary) html += `<pre style="white-space:pre-wrap; font-family:inherit; font-size:12px; color:#334155;">${escapeHTML(JSON.stringify(data.summary, null, 2))}</pre>`; html += `</div>`; list.innerHTML = html; if (data.rows || data.items || data.data) renderGenericList(list, data); } }).catch(() => { if (list) list.innerHTML = '<div class="drawer-empty">Gagal memuat audit.</div>'; }); }
-function getSelectedPeriode() { const mulai = $("periode-tanggal-mulai")?.value || ""; const selesai = $("periode-tanggal-selesai")?.value || ""; if (!mulai || !selesai) { alert("Tanggal wajib dipilih."); return null; } if (mulai > selesai) { alert("Tanggal mulai tidak boleh lebih besar dari tanggal selesai."); return null; } return { mulai, selesai, label: `${formatIsoToId(mulai)} s.d. ${formatIsoToId(selesai)}` }; }
+function getSelectedPeriode() { const mulai = $("periode-tanggal-mulai")?.value || ""; const selesai = $("periode-tanggal-selesai")?.value || ""; if (!mulai || !selesai) { showCustomAlert("Tanggal wajib dipilih.", "Peringatan"); return null; } if (mulai > selesai) { showCustomAlert("Tanggal mulai tidak boleh lebih besar dari tanggal selesai.", "Peringatan"); return null; } return { mulai, selesai, label: `${formatIsoToId(mulai)} s.d. ${formatIsoToId(selesai)}` }; }
 function submitPeriodeAction() { const p = getSelectedPeriode(); if (!p) return; closePeriodeDrawer(); if (periodeActionMode === "audit") return openAuditBulananDrawer(p.mulai, p.selesai, p.label); if (periodeActionMode === "laporan") return generateLaporanYayasan(p.mulai, p.selesai, p.label); return generateRekapGuruPeriode(p.mulai, p.selesai, p.label); }
-function generateRekapGuruPeriode(tanggalMulai, tanggalSelesai, periodeLabel) { if (!confirm(`Generate ulang Rekap Periode untuk ${periodeLabel}?`)) return; postJSON({ action: "generateRekapGuruPeriode", nama: currentUser, tanggalMulai, tanggalSelesai, startDate: tanggalMulai, endDate: tanggalSelesai }).then((data) => alert(data.pesan || "Berhasil.")).catch(() => alert("Gagal koneksi.")); }
+function generateRekapGuruPeriode(tanggalMulai, tanggalSelesai, periodeLabel) { showCustomConfirm(`Generate ulang Rekap Periode untuk ${periodeLabel}?`, "Generate Periode", () => { postJSON({ action: "generateRekapGuruPeriode", nama: currentUser, tanggalMulai, tanggalSelesai, startDate: tanggalMulai, endDate: tanggalSelesai }).then((data) => showCustomAlert(data.pesan || "Berhasil.", "Sukses")).catch(() => showCustomAlert("Gagal koneksi.", "Error")); }); }
 function openAuditBulananDrawer(tanggalMulai, tanggalSelesai, periodeLabel) { const ov = $("audit-bulanan-drawer-overlay"); const list = $("audit-bulanan-drawer-list"); if ($("audit-bulanan-drawer-subtitle")) $("audit-bulanan-drawer-subtitle").innerText = periodeLabel || "Memuat data..."; if (list) list.innerHTML = '<div class="drawer-empty">Memuat audit periode...</div>'; animateOpen(ov); postJSON({ action: "auditRekapGuruPeriode", nama: currentUser, tanggalMulai, tanggalSelesai, startDate: tanggalMulai, endDate: tanggalSelesai }).then((data) => { if (list) { const total = data.totalRows ?? data.totalGuru ?? data.total ?? 0; let html = `<div class="card-soft"><div style="font-weight:800; margin-bottom:8px;">Total Guru: ${escapeHTML(total)}</div>`; if (data.summary) html += `<pre style="white-space:pre-wrap; font-family:inherit; font-size:12px; color:#334155;">${escapeHTML(JSON.stringify(data.summary, null, 2))}</pre>`; html += `</div>`; list.innerHTML = html; if (data.rows || data.items || data.data) renderGenericList(list, data); } }).catch(() => { if (list) list.innerHTML = '<div class="drawer-empty">Gagal memuat audit periode.</div>'; }); }
-function generateLaporanYayasan(tanggalMulai, tanggalSelesai, periodeLabel) { if (!confirm(`Generate Data Laporan Yayasan untuk ${periodeLabel}?`)) return; postJSON({ action: "generateLaporanYayasan", nama: currentUser, tanggalMulai, tanggalSelesai, startDate: tanggalMulai, endDate: tanggalSelesai }).then((data) => { alert(data.pesan || "Berhasil."); if (data.url) window.open(data.url, "_blank"); }).catch(() => alert("Gagal koneksi.")); }
+function generateLaporanYayasan(tanggalMulai, tanggalSelesai, periodeLabel) { showCustomConfirm(`Generate Data Laporan Yayasan untuk ${periodeLabel}?`, "Laporan Yayasan", () => { postJSON({ action: "generateLaporanYayasan", nama: currentUser, tanggalMulai, tanggalSelesai, startDate: tanggalMulai, endDate: tanggalSelesai }).then((data) => { showCustomAlert(data.pesan || "Berhasil.", "Sukses"); if (data.url) window.open(data.url, "_blank"); }).catch(() => showCustomAlert("Gagal koneksi.", "Error")); }); }
 
 // =====================================================
 // INIT & LOCAL STORAGE
