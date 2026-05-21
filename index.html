@@ -23,7 +23,8 @@
     .dynamic-island-badge:active { transform: scale(0.92); }
     
     .app-brand { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; color: #064e3b; display: flex; align-items: center; gap: 8px; position: absolute; left: 24px; }
-    .app-brand-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; }
+    .app-brand-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; transition: all 0.3s ease; } /* Default merah */
+    
     .header-greeting { padding: 24px 24px 16px 24px; background: #fff; }
     .header-greeting-title { font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
     .header-greeting-name { font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; margin-bottom: 12px; }
@@ -126,7 +127,7 @@
 <div id="app-container">
   
   <div class="sticky-top-bar hidden" id="top-bar">
-    <div class="app-brand"><div class="app-brand-dot"></div> MMU-B08</div>
+    <div class="app-brand"><div class="app-brand-dot" id="indikator-offline" title="Memeriksa status..."></div> MMU-B08</div>
     <div id="dynamic-session-badge" class="dynamic-island-badge" onclick="openSessionDrawer()">
       <span id="top-sesi-lbl">Sesi 1</span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
@@ -479,6 +480,29 @@ let isSubmitting = false; let standbyBusy = false; let tukarBusy = false; let ap
 let hijriOffset = parseInt(localStorage.getItem("hijri_offset"), 10) || 0;
 
 // =====================================================
+// INDIKATOR OFFLINE
+// =====================================================
+function setStatusOffline(isReady) {
+  const indikator = $("indikator-offline");
+  if (!indikator) return;
+  if (isReady) {
+    indikator.style.backgroundColor = "#10b981"; // Hijau (Siap Offline)
+    indikator.style.boxShadow = "0 0 8px rgba(16, 185, 129, 0.5)";
+    indikator.title = "Siap Offline (Data Tersimpan)";
+  } else {
+    indikator.style.backgroundColor = "#ef4444"; // Merah (Sedang Loading / Belum Siap)
+    indikator.style.boxShadow = "0 0 8px rgba(239, 68, 68, 0.5)";
+    indikator.title = "Belum Siap Offline (Sedang Sinkronisasi)";
+  }
+}
+
+function checkOfflineReady() {
+  const isDashboardReady = !!dashboardCache[currentSesi];
+  const isStudentsReady = allStudents && allStudents.length > 0;
+  setStatusOffline(isDashboardReady && isStudentsReady);
+}
+
+// =====================================================
 // MANAJEMEN MODAL CUSTOM (PENGGANTI ALERT/CONFIRM/PROMPT)
 // =====================================================
 function closeCustomDialog() {
@@ -558,8 +582,19 @@ function firstDayOfMonthIso() { const d = new Date(); return `${d.getFullYear()}
 function formatIsoToId(iso) { if (!iso) return ""; const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}/${m[2]}/${m[1]}` : iso; }
 
 function initMasterData() {
-  const cachedStudents = localStorage.getItem('mmu_students_cache'); if (cachedStudents) { try { allStudents = JSON.parse(cachedStudents); } catch (e) {} }
-  fetch(API_URL).then(r => r.json()).then(stData => { if (Array.isArray(stData) && stData.length > 0) { allStudents = stData; localStorage.setItem('mmu_students_cache', JSON.stringify(stData)); } }).catch(() => {});
+  const cachedStudents = localStorage.getItem('mmu_students_cache'); 
+  if (cachedStudents) { 
+    try { allStudents = JSON.parse(cachedStudents); checkOfflineReady(); } catch (e) {} 
+  }
+  
+  if (allStudents.length === 0) setStatusOffline(false); // Merah jika belum ada cache sama sekali
+  
+  fetch(API_URL).then(r => r.json()).then(stData => { 
+    if (Array.isArray(stData) && stData.length > 0) { 
+      allStudents = stData; localStorage.setItem('mmu_students_cache', JSON.stringify(stData)); 
+      checkOfflineReady();
+    } 
+  }).catch(() => { checkOfflineReady(); });
 }
 
 // =====================================================
@@ -699,8 +734,22 @@ function renderDates() {
 function doLogin() {
   const hp = $("input-hp")?.value || ""; const pin = $("input-pin")?.value || ""; const err = $("login-error");
   if (!hp || !pin) { if (err) { err.innerText = "Mohon isi HP & PIN"; err.style.display = "block"; } return; }
+  
   if (err) err.style.display = "none"; switchScreen("screen-loading"); if ($("loading-text")) $("loading-text").innerText = "Memverifikasi akun...";
-  postJSON({ action: "login", ID_Pengguna: hp, Kata_Sandi: pin }).then((data) => { if (data.status !== "sukses") throw new Error(data.pesan || "Login gagal"); currentUser = data.nama || ""; currentRole = data.peran || ""; localStorage.setItem('app_session_user', currentUser); localStorage.setItem('app_session_role', currentRole); if ($("top-name")) $("top-name").innerText = currentUser; if ($("profile-name")) $("profile-name").innerText = currentUser; if ($("profile-role")) $("profile-role").innerText = currentRole === "pimpinan" ? "Pimpinan Eksekutif" : "Guru Pengajar"; if (currentRole === "pimpinan") $("nav-pimpinan")?.classList.remove("hidden"); else $("nav-pimpinan")?.classList.add("hidden"); renderDates(); switchMainTab("beranda"); dashboardCache = {}; loadDashboardData(); initMasterData(); }).catch((e) => { switchScreen("screen-login"); if (err) { err.innerText = e.message || "Gangguan server."; err.style.display = "block"; } });
+  
+  setStatusOffline(false); // Lampu Merah saat memuat login
+  
+  postJSON({ action: "login", ID_Pengguna: hp, Kata_Sandi: pin }).then((data) => { 
+    if (data.status !== "sukses") throw new Error(data.pesan || "Login gagal"); 
+    currentUser = data.nama || ""; currentRole = data.peran || ""; localStorage.setItem('app_session_user', currentUser); localStorage.setItem('app_session_role', currentRole); 
+    if ($("top-name")) $("top-name").innerText = currentUser; if ($("profile-name")) $("profile-name").innerText = currentUser; if ($("profile-role")) $("profile-role").innerText = currentRole === "pimpinan" ? "Pimpinan Eksekutif" : "Guru Pengajar"; 
+    if (currentRole === "pimpinan") $("nav-pimpinan")?.classList.remove("hidden"); else $("nav-pimpinan")?.classList.add("hidden"); 
+    renderDates(); switchMainTab("beranda"); dashboardCache = {}; loadDashboardData(); initMasterData(); 
+  }).catch((e) => { 
+    switchScreen("screen-login"); 
+    if (err) { err.innerText = e.message || "Gangguan server."; err.style.display = "block"; } 
+    setStatusOffline(false);
+  });
 }
 function doLogout() { localStorage.removeItem('app_session_user'); localStorage.removeItem('app_session_role'); location.reload(); }
 
@@ -727,9 +776,23 @@ function renderDashboardUI(d) {
 function prefetchOtherSessions() { [1, 2, 3].forEach(s => { if (s !== currentSesi) { postJSON({ action: "syncDashboard", sesi: s, nama: currentUser }).then(d => { if (d.status !== "gagal") dashboardCache[s] = d; }).catch(e => console.log("Prefetch gagal")); } }); }
 function loadDashboardData() {
   if (!currentUser) return; if ($("top-sesi-lbl")) $("top-sesi-lbl").innerText = "Sesi " + currentSesi;
-  if (dashboardCache[currentSesi]) { switchScreen("screen-dashboard"); renderDashboardUI(dashboardCache[currentSesi]); postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { if (d.status !== "gagal") { dashboardCache[currentSesi] = d; renderDashboardUI(d); } }).catch(() => {}); return; }
+  
+  if (dashboardCache[currentSesi]) { 
+    switchScreen("screen-dashboard"); renderDashboardUI(dashboardCache[currentSesi]); checkOfflineReady();
+    postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { 
+      if (d.status !== "gagal") { dashboardCache[currentSesi] = d; renderDashboardUI(d); checkOfflineReady(); } 
+    }).catch(() => {}); return; 
+  }
+  
+  setStatusOffline(false); // Lampu Merah saat sedang proses menyedot data
   switchScreen("screen-loading"); if ($("loading-text")) $("loading-text").innerText = `Menyiapkan data sesi ${currentSesi}...`;
-  postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { if (d.status === "gagal") throw new Error(d.pesan || "Gagal memuat dashboard"); dashboardCache[currentSesi] = d; switchScreen("screen-dashboard"); renderDashboardUI(d); prefetchOtherSessions(); }).catch((e) => { showCustomAlert(e.message || "Gagal memuat dashboard.", "Error"); switchScreen("screen-dashboard"); });
+  
+  postJSON({ action: "syncDashboard", sesi: currentSesi, nama: currentUser }).then((d) => { 
+    if (d.status === "gagal") throw new Error(d.pesan || "Gagal memuat dashboard"); 
+    dashboardCache[currentSesi] = d; switchScreen("screen-dashboard"); renderDashboardUI(d); prefetchOtherSessions(); checkOfflineReady();
+  }).catch((e) => { 
+    showCustomAlert(e.message || "Gagal memuat dashboard.", "Error"); switchScreen("screen-dashboard"); checkOfflineReady();
+  });
 }
 
 // =====================================================
