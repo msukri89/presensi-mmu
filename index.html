@@ -122,26 +122,32 @@
     #screen-loading { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #fff; }
     .hidden { display: none !important; }
 
-    /* Animasi Efek Silau Berdenyut untuk Logo */
-    @keyframes logo-glow-shimmer {
-      0% { 
-        filter: brightness(1) drop-shadow(0 0 0px rgba(16, 185, 129, 0)); 
-        transform: scale(1); 
-      }
-      50% { 
-        filter: brightness(1.3) drop-shadow(0 0 20px rgba(16, 185, 129, 0.6)); 
-        transform: scale(1.08); 
-      }
-      100% { 
-        filter: brightness(1) drop-shadow(0 0 0px rgba(16, 185, 129, 0)); 
-        transform: scale(1); 
-      }
+   /* Animasi Skeleton Shimmer Premium untuk Logo */
+    .logo-skeleton-shimmer {
+      width: 80px;
+      height: 80px; /* Tinggi menyesuaikan proporsi logo */
+      margin-bottom: 24px;
+      background-color: #cbd5e1; /* Warna dasar abu-abu skeleton yang elegan */
+      -webkit-mask: url('logo.svg') no-repeat center / contain;
+      mask: url('logo.svg') no-repeat center / contain;
+      position: relative;
+      overflow: hidden;
     }
-    .loading-logo-anim {
-      width: 80px; /* Sesuaikan ukuran logo */
-      height: auto;
-      animation: logo-glow-shimmer 1.5s ease-in-out infinite;
-      margin-bottom: 20px;
+    
+    .logo-skeleton-shimmer::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -150%;
+      width: 150%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+      animation: skeleton-sweep 1.5s infinite ease-in-out;
+    }
+    
+    @keyframes skeleton-sweep {
+      0% { left: -150%; }
+      100% { left: 150%; }
     }
   </style>
 </head>
@@ -170,9 +176,9 @@
   </div>
 
   <div id="screen-loading" class="hidden">
-    <img src="logo.svg" alt="Loading Logo" class="loading-logo-anim">
+    <div class="logo-skeleton-shimmer"></div>
     
-    <p style="color:#0f172a;font-size:15px;font-weight:600;" id="loading-text">Menyinkronkan data...</p>
+    <p style="color:#64748b;font-size:14px;font-weight:600;letter-spacing:0.5px;" id="loading-text">Menyinkronkan data...</p>
   </div>
 
   <div id="screen-dashboard" class="hidden">
